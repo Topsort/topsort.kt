@@ -34,9 +34,9 @@ class KotlinApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Either generate a unique session id here or hash an existing identifier. It should be consistent for each user (impression, click, purchase).
-
-        //
+        // Either generate a unique session id here or hash an existing
+        // identifier. It should be consistent for
+        // each user (impression, click, purchase).
 
         Analytics.setup(
             this,
