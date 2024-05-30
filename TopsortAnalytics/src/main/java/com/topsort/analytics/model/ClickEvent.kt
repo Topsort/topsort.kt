@@ -1,5 +1,8 @@
 package com.topsort.analytics.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ClickEvent(
     private val eventType: EventType = EventType.Click,
     val session: Session,

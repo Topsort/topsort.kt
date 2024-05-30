@@ -3,12 +3,11 @@ package com.topsort.analytics
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.util.Locale
 
@@ -23,11 +22,6 @@ internal object Cache {
 
     private lateinit var applicationContext: Context
     private lateinit var preferences: SharedPreferences
-
-    private val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
-    private val impressionAdapter = moshi.adapter(ImpressionEvent::class.java)
-    private val clickAdapter = moshi.adapter(ClickEvent::class.java)
-    private val purchaseAdapter = moshi.adapter(PurchaseEvent::class.java)
 
     private var recentRecordId: Long = 0
 
@@ -72,7 +66,7 @@ internal object Cache {
     fun storeImpression(
         impressionEvent: ImpressionEvent
     ): Long {
-        val json = impressionAdapter.toJson(impressionEvent)
+        val json = Json.encodeToString(impressionEvent)
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -82,13 +76,13 @@ internal object Cache {
     }
 
     fun readImpression(recordId: Long): ImpressionEvent? {
-        return readEvent(recordId, impressionAdapter)
+        return readEvent(recordId)
     }
 
     fun storeClick(
         clickEvent: ClickEvent
     ): Long {
-        val json = clickAdapter.toJson(clickEvent)
+        val json = Json.encodeToString(clickEvent)
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -98,13 +92,13 @@ internal object Cache {
     }
 
     fun readClick(recordId: Long): ClickEvent? {
-        return readEvent(recordId, clickAdapter)
+        return readEvent(recordId)
     }
 
     fun storePurchase(
         purchaseEvent: PurchaseEvent
     ): Long {
-        val json = purchaseAdapter.toJson(purchaseEvent)
+        val json = Json.encodeToString(purchaseEvent)
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -114,7 +108,7 @@ internal object Cache {
     }
 
     fun readPurchase(recordId: Long): PurchaseEvent? {
-        return readEvent(recordId, purchaseAdapter)
+        return readEvent(recordId)
     }
 
     fun deleteEvent(recordId: Long) {
@@ -124,14 +118,14 @@ internal object Cache {
             .apply()
     }
 
-    private fun <T> readEvent(recordId: Long, adapter: JsonAdapter<T>): T? {
+    private inline fun <reified T> readEvent(recordId: Long): T? {
         val json = preferences.getString(recordKey(recordId), "")
         if (json == null || TextUtils.isEmpty(json)) {
             return null
         }
 
         return try {
-            adapter.fromJson(json)
+            Json.decodeFromString<T>(json)
         } catch (e: IOException) {
             null
         }
