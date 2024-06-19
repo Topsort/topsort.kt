@@ -19,6 +19,12 @@ data class Impression(
      */
     val entity: Entity? = null,
 
+    /**
+     * Extra attribution if desired by the marketplace.
+     * When using this field, the resolvedBidId must also exist in the event body.
+     */
+    val additionalAttribution: String? = null,
+
     val placement: Placement,
 
     /**
@@ -32,15 +38,9 @@ data class Impression(
     val opaqueUserId: String,
 
     /**
-     * The marketplace's ID for the impression
+     * The marketplace assigned ID for the order
      */
     val id: String,
-
-    /**
-     * Extra attribution if desired by the marketplace.
-     * When using this field, the resolvedBidId must also exist in the event body.
-     */
-    val additionalAttribution: String? = null,
 )
 
 internal data class ImpressionEventResponse(
