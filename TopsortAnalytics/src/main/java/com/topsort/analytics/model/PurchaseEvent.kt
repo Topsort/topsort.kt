@@ -5,7 +5,21 @@ import androidx.annotation.IntRange
 data class PurchaseEvent(
     private val eventType: EventType = EventType.Purchase,
     val session: Session,
-    val purchasedAt: String,
+    val purchases: List<Purchase>
+
+)
+
+data class Purchase(
+
+    /**
+     * RFC3339 formatted timestamp including UTC offset.
+     */
+    val occurredAt: String,
+
+    /**
+     * The opaque user ID which allows correlating user activity.
+     */
+    val opaqueUserId: String,
 
     /**
      * Items purchased
@@ -15,7 +29,7 @@ data class PurchaseEvent(
     /**
      * The marketplace assigned ID for the order
      */
-    val id: String?
+    val id: String
 )
 
 data class PurchasedItem(
@@ -31,8 +45,6 @@ data class PurchasedItem(
     /**
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
-    val auctionId: String? = null,
-
     val resolvedBidId: String? = null
 )
 

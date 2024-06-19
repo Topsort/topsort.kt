@@ -53,17 +53,25 @@ object Analytics : TopsortAnalytics {
         val impressionEvent = ImpressionEvent(
             session = session!!,
             impressions = impressions,
-            occurredAt = eventTime()
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
         enqueueEventRequest(recordId, EventType.Impression)
     }
 
-    override fun reportImpressionWithResolvedBidId(resolvedBidId: String, placement: Placement) {
+    override fun reportImpressionWithResolvedBidId(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String,
+        id: String,
+        occurredAt: String?,
+    ) {
         val impression = Impression(
             resolvedBidId = resolvedBidId,
-            placement = placement
+            placement = placement,
+            opaqueUserId = opaqueUserId,
+            id = id,
+            occurredAt = occurredAt ?: eventTime(),
         )
 
         reportImpression(listOf(impression))
@@ -71,10 +79,10 @@ object Analytics : TopsortAnalytics {
 
     override fun reportClick(
         placement: Placement,
-        productId: String?,
-        auctionId: String?,
-        id: String?,
+        opaqueUserId: String,
+        id: String,
         resolvedBidId: String?,
+        occurredAt: String?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -83,28 +91,41 @@ object Analytics : TopsortAnalytics {
 
         val clickEvent = ClickEvent(
             session = session!!,
-            placement = placement,
-            productId = productId,
-            auctionId = auctionId,
-            id = id,
-            resolvedBidId = resolvedBidId,
-            occurredAt = eventTime()
+            clicks = listOf(
+                Click(
+                    placement = placement,
+                    opaqueUserId = opaqueUserId,
+                    id = id,
+                    resolvedBidId = resolvedBidId,
+                    occurredAt = occurredAt ?: eventTime()
+                )
+            )
+
         )
 
         val recordId = Cache.storeClick(clickEvent)
         enqueueEventRequest(recordId, EventType.Click)
     }
 
-    override fun reportClickWithResolvedBidId(resolvedBidId: String, placement: Placement) {
+    override fun reportClickWithResolvedBidId(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String,
+        id: String,
+    ) {
         reportClick(
+            resolvedBidId = resolvedBidId,
             placement = placement,
-            resolvedBidId = resolvedBidId
+            opaqueUserId = opaqueUserId,
+            id = id,
         )
     }
 
     override fun reportPurchase(
         items: List<PurchasedItem>,
-        id: String?
+        id: String,
+        opaqueUserId: String,
+        occurredAt: String?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -113,9 +134,14 @@ object Analytics : TopsortAnalytics {
 
         val purchaseEvent = PurchaseEvent(
             session = session!!,
-            id = id,
-            items = items,
-            purchasedAt = eventTime()
+            purchases = listOf(
+                Purchase(
+                    id = id,
+                    items = items,
+                    occurredAt = occurredAt ?: eventTime(),
+                    opaqueUserId = opaqueUserId,
+                ),
+            ),
         )
 
         val recordId = Cache.storePurchase(purchaseEvent)

@@ -18,22 +18,26 @@ interface TopsortAnalytics {
      */
     fun reportImpressionWithResolvedBidId(
         resolvedBidId: String,
-        placement: Placement
+        placement: Placement,
+        opaqueUserId: String,
+        id: String,
+        occurredAt: String? = null,
     )
 
     /**
      * Reports a click event
      *
-     * @param productId The product that was clicked.
-     * @param auctionId Required for promoted products. Must be the ID for the auction the product won
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
      * @param id The marketplace's unique ID for the click
+     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
     fun reportClick(
         placement: Placement,
-        productId: String? = null,
-        auctionId: String? = null,
-        id: String? = null,
+        opaqueUserId: String,
+        id: String,
         resolvedBidId: String? = null,
+        occurredAt: String? = null,
     )
 
     /**
@@ -41,16 +45,22 @@ interface TopsortAnalytics {
      */
     fun reportClickWithResolvedBidId(
         resolvedBidId: String,
-        placement: Placement
+        placement: Placement,
+        opaqueUserId: String,
+        id: String,
     )
 
     /**
      * Reports a purchase event.
      *  @param items the list of purchased items
      *  @param id The marketplace assigned ID for the order
+     *  @param opaqueUserId The opaque user ID which allows correlating user activity.
+     *  @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
     fun reportPurchase(
         items: List<PurchasedItem>,
-        id: String? = null,
+        id: String,
+        opaqueUserId: String,
+        occurredAt: String? = null,
     )
 }
