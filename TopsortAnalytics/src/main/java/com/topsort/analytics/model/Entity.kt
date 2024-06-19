@@ -7,6 +7,14 @@ enum class EntityType {
 }
 
 data class Entity(
-    val id: Session,
+
+    /**
+     * The marketplace's ID of the entity associated with the interaction
+     */
+    val id: Int,
+
+    /**
+     * The type of entity associated with the interaction.
+     */
     val type: EntityType,
 )
