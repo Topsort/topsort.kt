@@ -15,6 +15,11 @@ interface TopsortAnalytics {
 
     /**
      * Reports a single impression with the provided resolvedBidId
+     *
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the impression
+     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
     fun reportImpressionWithResolvedBidId(
         resolvedBidId: String,
