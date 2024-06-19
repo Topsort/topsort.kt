@@ -6,7 +6,6 @@ data class PurchaseEvent(
     private val eventType: EventType = EventType.Purchase,
     val session: Session,
     val purchases: List<Purchase>
-
 )
 
 data class Purchase(
@@ -22,14 +21,14 @@ data class Purchase(
     val opaqueUserId: String,
 
     /**
+     * The marketplace assigned ID for the order
+     */
+    val id: String,
+
+    /**
      * Items purchased
      */
     val items: List<PurchasedItem>,
-
-    /**
-     * The marketplace assigned ID for the order
-     */
-    val id: String
 )
 
 data class PurchasedItem(
