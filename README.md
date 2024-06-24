@@ -1,13 +1,13 @@
 
-# Topsort Analytics
+# Topsort kotlin library
 
-An Android library for reporting events to [Topsort Analytics Endpoints v1 API](https://docs.topsort.com/reference/reportevent)
+An Android library for interacting with the Topsort APIs. We currently only support sending events but will add more features shortly.
 
 Licensed under [MIT][1].
 
 ## Installation / Getting started
 
-- Clone the repository from github: `git clone https://github.com/topsort/analytics.kotlin.git`
+- Clone the repository from github: `git clone https://github.com/topsort/topsort.kt.git`
 - From Android Studio, import the module: `File -> New -> Import Module`.
 - A popup window will open with the title: Import Module From Source
 - Select the source directory of the downloaded library named: `TopsortAnalytics`, and click finish
