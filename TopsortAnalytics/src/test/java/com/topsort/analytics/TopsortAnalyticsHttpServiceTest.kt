@@ -15,9 +15,9 @@ import org.junit.Test
 
 internal class TopsortAnalyticsHttpServiceTest {
 
-    lateinit var analytics: TopsortAnalytics
-    lateinit var service: TopsortAnalyticsHttpService
-    lateinit var session: Session
+    private lateinit var analytics: TopsortAnalytics
+    private lateinit var service: TopsortAnalyticsHttpService
+    private lateinit var session: Session
 
     @Before
     fun setup() {
@@ -28,7 +28,7 @@ internal class TopsortAnalyticsHttpServiceTest {
 
     @Test
     fun `send impressions`() {
-        service.service.reportImpression(
+        val resp = service.service.reportImpression(
             ImpressionEvent(
                 session = session,
                 impressions = listOf(
@@ -39,6 +39,8 @@ internal class TopsortAnalyticsHttpServiceTest {
                 )
             )
         )
+
+        assert(resp.code == 200)
     }
 
     @Test

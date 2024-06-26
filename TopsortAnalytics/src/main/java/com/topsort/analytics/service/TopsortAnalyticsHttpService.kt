@@ -3,48 +3,47 @@ package com.topsort.analytics.service
 import com.google.gson.Gson
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
+import com.topsort.analytics.core.HttpResponse
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
 
-//private const val apiUrl = "https://api.topsort.com/v1/events"
-private const val apiUrl = "localhost:8083"
+private const val apiUrl = "https://api.topsort.com/v1/events"
 
 internal object TopsortAnalyticsHttpService {
 
-    val httpClient : HttpClient = HttpClient(apiUrl)
+    val httpClient: HttpClient = HttpClient(apiUrl)
 
     val service: Service = buildService()
 
     private val gson = Gson()
 
     private fun buildService(): Service {
-        return object : Service{
-            private fun reportEvent(event: Any) {
+        return object : Service {
+            private fun reportEvent(event: Any): HttpResponse {
                 val json = gson.toJson(event)
-                httpClient.post(json, Cache.token)
+                return httpClient.post(json, Cache.token.ifEmpty { null })
             }
 
-            override fun reportImpression(impressionEvent: ImpressionEvent) {
-                reportEvent(impressionEvent)
+            override fun reportImpression(impressionEvent: ImpressionEvent): HttpResponse {
+                return reportEvent(impressionEvent)
             }
 
-            override fun reportClick(clickEvent: ClickEvent) {
-                reportEvent(clickEvent)
+            override fun reportClick(clickEvent: ClickEvent): HttpResponse {
+                return reportEvent(clickEvent)
             }
 
-            override fun reportPurchase(purchaseEvent: PurchaseEvent) {
-                reportEvent(purchaseEvent)
+            override fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse {
+                return reportEvent(purchaseEvent)
             }
         }
-
     }
 
     interface Service {
-        fun reportImpression(impressionEvent: ImpressionEvent)
+        fun reportImpression(impressionEvent: ImpressionEvent): HttpResponse
 
-        fun reportClick(clickEvent: ClickEvent)
+        fun reportClick(clickEvent: ClickEvent): HttpResponse
 
-        fun reportPurchase(purchaseEvent: PurchaseEvent)
+        fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse
     }
 }

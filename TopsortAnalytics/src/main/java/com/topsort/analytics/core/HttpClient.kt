@@ -10,22 +10,33 @@ import java.util.zip.GZIPOutputStream
 
 const val LIBRARY_VERSION = 1.0
 
+data class HttpResponse(
+    val code : Int,
+    val message : String,
+){
+    fun isSuccessful() : Boolean {
+        return code in 200..299
+    }
+}
+
 class HttpClient (
     private val apiHost: String,
     private val requestFactory: RequestFactory = RequestFactory()
 ) {
 
-    fun post(body: String, bearerToken: String?) {
+    fun post(body: String, bearerToken: String?) : HttpResponse {
         val connection: HttpURLConnection = requestFactory.upload(apiHost, bearerToken)
         val postConnection = connection.createPostConnection()
-        postConnection.outputStream?.let{ stream ->
-            with(stream.bufferedWriter()){
-                write(body)
-                flush()
-            }
-            postConnection.outputStream.close()
-            postConnection.close()
-        }
+        val writeStream = postConnection.outputStream!!.bufferedWriter()
+
+        writeStream.write(body)
+        writeStream.flush()
+        postConnection.outputStream.close()
+
+        val response = HttpResponse(connection.responseCode, connection.responseMessage)
+        postConnection.close()
+
+        return response
     }
 }
 
@@ -68,10 +79,11 @@ class RequestFactory {
         bearerToken?.let {
             connection.setRequestProperty("Authorization", "Bearer $bearerToken")
         }
+        connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         connection.setRequestProperty(
             "User-Agent",
-            "ts.kt/$LIBRARY_VERSION"
+            "topsort.kt/$LIBRARY_VERSION"
         )
         connection.doOutput = true
         connection.setChunkedStreamingMode(0)
