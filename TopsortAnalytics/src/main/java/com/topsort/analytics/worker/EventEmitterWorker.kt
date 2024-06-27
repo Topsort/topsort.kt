@@ -8,7 +8,7 @@ import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
-import com.topsort.analytics.service.TopsortAnalyticsService
+import com.topsort.analytics.service.TopsortAnalyticsHttpService
 
 internal class EventEmitterWorker(
     context: Context,
@@ -70,8 +70,8 @@ internal class EventEmitterWorker(
 
     private fun reportImpression(impressionEvent: ImpressionEvent): Boolean {
         return try {
-            val response = TopsortAnalyticsService.service.reportImpression(impressionEvent).execute()
-            response.isSuccessful && response.body() != null
+            val response = TopsortAnalyticsHttpService.service.reportImpression(impressionEvent)
+            response.isSuccessful()
         } catch (ignored: Exception) {
             false
         }
@@ -79,8 +79,8 @@ internal class EventEmitterWorker(
 
     private fun reportClick(clickEvent: ClickEvent): Boolean {
         return try {
-            val response = TopsortAnalyticsService.service.reportClick(clickEvent).execute()
-            response.isSuccessful && response.body() != null
+            val response = TopsortAnalyticsHttpService.service.reportClick(clickEvent)
+            response.isSuccessful()
         } catch (ignored: Exception) {
             false
         }
@@ -88,8 +88,8 @@ internal class EventEmitterWorker(
 
     private fun reportPurchase(purchaseEvent: PurchaseEvent): Boolean {
         return try {
-            val response = TopsortAnalyticsService.service.reportPurchase(purchaseEvent).execute()
-            response.isSuccessful && response.body() != null
+            val response = TopsortAnalyticsHttpService.service.reportPurchase(purchaseEvent)
+            response.isSuccessful()
         } catch (ignored: Exception) {
             false
         }
