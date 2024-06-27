@@ -1,11 +1,15 @@
 package com.topsort.analytics.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ImpressionEvent(
     private val eventType: EventType = EventType.Impression,
     val session: Session,
     val impressions: List<Impression>,
 )
 
+@Serializable
 data class Impression(
 
     /**

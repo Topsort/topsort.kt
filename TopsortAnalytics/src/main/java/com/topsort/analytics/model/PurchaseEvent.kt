@@ -1,7 +1,9 @@
 package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PurchaseEvent(
     private val eventType: EventType = EventType.Purchase,
     val session: Session,
@@ -31,6 +33,7 @@ data class Purchase(
     val items: List<PurchasedItem>,
 )
 
+@Serializable
 data class PurchasedItem(
 
     /**

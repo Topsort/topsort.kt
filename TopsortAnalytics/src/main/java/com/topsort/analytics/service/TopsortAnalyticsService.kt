@@ -1,11 +1,13 @@
 package com.topsort.analytics.service
 
 import com.topsort.analytics.model.*
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 
@@ -27,7 +29,9 @@ internal object TopsortAnalyticsService {
             .Builder()
             .baseUrl(baseUrl)
             .client(httpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(
+                Json.asConverterFactory(
+                    "application/json; charset=UTF8".toMediaType()))
             .build()
             .create(Service::class.java)
     }
