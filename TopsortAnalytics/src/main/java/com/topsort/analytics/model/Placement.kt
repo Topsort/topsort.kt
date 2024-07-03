@@ -1,5 +1,7 @@
 package com.topsort.analytics.model
 
+import org.json.JSONObject
+
 data class Placement(
 
     /**
@@ -49,4 +51,31 @@ data class Placement(
      * A marketplace defined name for a page part
      */
     val location: String? = null
-)
+) {
+    fun toJsonObject(): JSONObject {
+        return JSONObject()
+            .put("path", path)
+            .put("position",position)
+            .put("page", page)
+            .put("pageSize", pageSize)
+            .put("productId", productId)
+            .put("categoryIds", categoryIds)
+            .put("searchQuery", searchQuery)
+            .put("location", location)
+    }
+
+    companion object{
+        fun fromJsonObject(json : JSONObject) : Placement{
+            return Placement(
+                path = json.getString("path"),
+                position = json.getInt("position"),
+                page = json.getInt("position"),
+                pageSize = json.getInt("pageSize"),
+                productId = json.getString("productId"),
+                categoryIds = null,
+                searchQuery = json.getString("searchQuery"),
+                location = json.getString("location"),
+            )
+        }
+    }
+}

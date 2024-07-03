@@ -51,7 +51,6 @@ object Analytics : TopsortAnalytics {
         }
 
         val impressionEvent = ImpressionEvent(
-            session = session!!,
             impressions = impressions,
         )
 
@@ -90,7 +89,6 @@ object Analytics : TopsortAnalytics {
         }
 
         val clickEvent = ClickEvent(
-            session = session!!,
             clicks = listOf(
                 Click(
                     placement = placement,
@@ -133,7 +131,6 @@ object Analytics : TopsortAnalytics {
         }
 
         val purchaseEvent = PurchaseEvent(
-            session = session!!,
             purchases = listOf(
                 Purchase(
                     id = id,
