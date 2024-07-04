@@ -63,19 +63,4 @@ data class Placement(
             .put("searchQuery", searchQuery)
             .put("location", location)
     }
-
-    companion object{
-        fun fromJsonObject(json : JSONObject) : Placement{
-            return Placement(
-                path = json.getString("path"),
-                position = json.getInt("position"),
-                page = json.getInt("position"),
-                pageSize = json.getInt("pageSize"),
-                productId = json.getString("productId"),
-                categoryIds = null,
-                searchQuery = json.getString("searchQuery"),
-                location = json.getString("location"),
-            )
-        }
-    }
 }

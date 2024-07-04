@@ -54,20 +54,6 @@ data class Impression(
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
     }
-
-    companion object{
-        fun fromJsonObject(json: JSONObject): Impression {
-            return Impression(
-                resolvedBidId = json.getString("resolvedBidId"),
-                entity = Entity.fromJsonObject(json.getJSONObject("entity")),
-                additionalAttribution = json.getString("additionalAttribution"),
-                placement = Placement.fromJsonObject(json.getJSONObject("placement")),
-                occurredAt = json.getString("occurredAt"),
-                opaqueUserId = json.getString("opaqueUserId"),
-                id = json.getString("id"),
-            )
-        }
-    }
 }
 
 internal data class ImpressionEventResponse(

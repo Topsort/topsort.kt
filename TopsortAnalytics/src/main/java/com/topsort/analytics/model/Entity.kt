@@ -23,15 +23,6 @@ data class Entity(
     fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("id", id)
-            .put("type", type.name.lowercase())
-    }
-
-    companion object {
-        fun fromJsonObject(json: JSONObject): Entity {
-            return Entity(
-                id = json.getString("id"),
-                type = EntityType.valueOf(json.getString("type"))
-            )
-        }
+            .put("type", type.name)
     }
 }
