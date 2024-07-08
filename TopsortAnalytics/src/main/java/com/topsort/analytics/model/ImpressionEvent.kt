@@ -2,10 +2,26 @@ package com.topsort.analytics.model
 
 import org.json.JSONObject
 
-data class ImpressionEvent(
+data class ImpressionEvent (
+    @Transient
     private val eventType: EventType = EventType.Impression,
     val impressions: List<Impression>,
 ) {
+    fun toJsonObject(): JSONObject {
+        return JSONObject().put("impressions", impressions)
+    }
+
+    companion object{
+        fun fromJson(json : String?) : ImpressionEvent? {
+            if(json == null) return null
+            val array = JSONObject(json).getJSONArray("impressions")
+            val impressions = (0 until array.length()).map {
+                Impression.fromJsonObject(array.getJSONObject(it))
+            }
+
+            return ImpressionEvent(impressions = impressions)
+        }
+    }
 }
 
 data class Impression(
@@ -53,6 +69,21 @@ data class Impression(
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+    }
+
+    companion object{
+
+        fun fromJsonObject(json: JSONObject): Impression {
+            return Impression(
+                resolvedBidId = json.optString("resolvedBidId"),
+                entity = Entity.fromJsonObject(json.getJSONObject("entity")),
+                additionalAttribution = json.optString("additionalAttribution"),
+                placement = Placement.fromJsonObject(json.getJSONObject("placement")),
+                occurredAt = json.getString("occurredAt"),
+                opaqueUserId = json.getString("opaqueUserId"),
+                id = json.getString("id"),
+            )
+        }
     }
 }
 

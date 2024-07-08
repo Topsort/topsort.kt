@@ -63,4 +63,26 @@ data class Placement(
             .put("searchQuery", searchQuery)
             .put("location", location)
     }
+
+    companion object {
+        fun fromJsonObject(json : JSONObject) : Placement{
+            return Placement(
+                path = json.getString("path"),
+                position = json.optInt("position"),
+                page = json.optInt("page"),
+                pageSize = json.optInt("pageSize"),
+                productId = json.optString("productId"),
+                categoryIds = json.optStringList("categoryIds"),
+                searchQuery = json.optString("searchQuery"),
+                location = json.optString("location"),
+            )
+        }
+    }
+}
+
+private fun JSONObject.optStringList(name: String): List<String>? {
+    return if (has(name)) {
+        val array = getJSONArray(name)
+        return (0 until array.length()).map { array[it].toString() }
+    } else null
 }

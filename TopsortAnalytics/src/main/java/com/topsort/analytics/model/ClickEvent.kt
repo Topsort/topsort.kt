@@ -1,11 +1,33 @@
 package com.topsort.analytics.model
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class ClickEvent(
+    @Transient
     private val eventType: EventType = EventType.Click,
     val clicks: List<Click>,
-)
+) {
+    fun toJsonObject(): JSONObject {
+        val array = JSONArray()
+        clicks.indices.map {
+            array.put(it, clicks[it].toJsonObject())
+        }
+        return JSONObject().put("clicks", array)
+    }
+
+    companion object{
+        fun fromJson(json : String?) : ClickEvent? {
+            if(json == null) return null
+            val array = JSONObject(json).getJSONArray("clicks")
+            val clicks = (0 until array.length()).map {
+                Click.fromJsonObject(array.getJSONObject(it))
+            }
+
+            return ClickEvent(clicks = clicks)
+        }
+    }
+}
 
 data class Click(
 
@@ -52,6 +74,20 @@ data class Click(
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+    }
+
+    companion object{
+        fun fromJsonObject(json: JSONObject): Click {
+            return Click(
+                resolvedBidId = json.optString("resolvedBidId"),
+                entity = Entity.fromJsonObject(json.getJSONObject("entity")),
+                additionalAttribution = json.optString("additionalAttribution"),
+                placement = Placement.fromJsonObject(json.getJSONObject("placement")),
+                occurredAt = json.getString("occurredAt"),
+                opaqueUserId = json.getString("opaqueUserId"),
+                id = json.getString("id"),
+            )
+        }
     }
 }
 

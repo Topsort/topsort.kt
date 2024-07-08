@@ -1,12 +1,30 @@
 package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
+
 import org.json.JSONObject
 
 data class PurchaseEvent(
+    @Transient
     private val eventType: EventType = EventType.Purchase,
     val purchases: List<Purchase>
-)
+) {
+    fun toJsonObject(): JSONObject {
+        return JSONObject().put("purchases", purchases)
+    }
+
+    companion object{
+        fun fromJson(json : String?) : PurchaseEvent? {
+            if(json == null) return null
+            val array = JSONObject(json).getJSONArray("purchases")
+            val purchases = (0 until array.length()).map {
+                Purchase.fromJsonObject(array.getJSONObject(it))
+            }
+
+            return PurchaseEvent(purchases = purchases)
+        }
+    }
+}
 
 data class Purchase(
 
@@ -37,6 +55,20 @@ data class Purchase(
             .put("id", id)
             .put("items", items)
     }
+
+    companion object {
+        fun fromJsonObject(json: JSONObject): Purchase {
+            val itemsArray = json.getJSONArray("items")
+            return Purchase(
+                occurredAt = json.getString("occurredAt"),
+                opaqueUserId = json.getString("opaqueUserId"),
+                id = json.getString("id"),
+                items = (0 until itemsArray.length()).map {
+                    PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
+                },
+            )
+        }
+    }
 }
 
 data class PurchasedItem(
@@ -60,6 +92,17 @@ data class PurchasedItem(
             .put("productId", productId)
             .put("quantity", quantity)
             .put("unitPrice", unitPrice)
+    }
+
+    companion object {
+        fun fromJsonObject(json: JSONObject): PurchasedItem {
+            return PurchasedItem(
+                productId = json.getString("productId"),
+                quantity = json.getInt("quantity"),
+                unitPrice = json.optInt("unitPrice"),
+                resolvedBidId = json.optString("resolvedBidId"),
+            )
+        }
     }
 }
 

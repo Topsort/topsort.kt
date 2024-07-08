@@ -2,7 +2,6 @@ package com.topsort.analytics
 
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
@@ -18,7 +17,7 @@ internal class JsonTest {
     fun `json click serialization`() {
         val click = getRandomClick()
         val serialized = click.toJsonObject().toString()
-        val deserialized = deserializeClick(JSONObject(serialized))
+        val deserialized = Click.fromJsonObject(JSONObject(serialized))
 
         assertEquals(click.id, deserialized.id)
         assertPlacementEquals(click.placement, deserialized.placement)
@@ -33,7 +32,7 @@ internal class JsonTest {
     fun `json impression serialization`() {
         val impression = getRandomImpression()
         val serialized = impression.toJsonObject().toString()
-        val deserialized = deserializeImpression(JSONObject(serialized))
+        val deserialized = Impression.fromJsonObject(JSONObject(serialized))
 
         assertEquals(impression.id, deserialized.id)
         assertPlacementEquals(impression.placement, deserialized.placement)
@@ -47,7 +46,7 @@ internal class JsonTest {
     fun `json purchase serialization`() {
         val purchase = getRandomPurchase()
         val serialized = purchase.toJsonObject().toString()
-        val deserialized = deserializePurchase(JSONObject(serialized))
+        val deserialized = Purchase.fromJsonObject(JSONObject(serialized))
 
         assertEquals(purchase.id, deserialized.id)
         assertEquals(purchase.occurredAt, deserialized.occurredAt)
@@ -56,90 +55,6 @@ internal class JsonTest {
         for(i in 0 until purchase.items.size){
             assertPurchasedItemEquals(purchase.items[i], deserialized.items[i])
         }
-    }
-
-    private fun JSONObject.getStringOrNull(name: String): String? {
-        return if (has(name)) {
-            getString(name)
-        } else null
-    }
-
-    private fun JSONObject.getStringListOrNull(name: String): List<String>? {
-        return if (has(name)) {
-            val array = getJSONArray(name)
-            return (0 until array.length()).map { array[it].toString() }
-        } else null
-    }
-
-    private fun JSONObject.getIntOrNull(name: String): Int? {
-        return if (has(name)) {
-            getInt(name)
-        } else null
-    }
-
-    private fun deserializeClick(json: JSONObject): Click {
-        return Click(
-            resolvedBidId = json.getStringOrNull("resolvedBidId"),
-            entity = deserializeEntity(json.getJSONObject("entity")),
-            additionalAttribution = json.getStringOrNull("additionalAttribution"),
-            placement = deserializePlacement(json.getJSONObject("placement")),
-            occurredAt = json.getString("occurredAt"),
-            opaqueUserId = json.getString("opaqueUserId"),
-            id = json.getString("id"),
-        )
-    }
-
-    private fun deserializeImpression(json: JSONObject): Impression {
-        return Impression(
-            resolvedBidId = json.getStringOrNull("resolvedBidId"),
-            entity = deserializeEntity(json.getJSONObject("entity")),
-            additionalAttribution = json.getStringOrNull("additionalAttribution"),
-            placement = deserializePlacement(json.getJSONObject("placement")),
-            occurredAt = json.getString("occurredAt"),
-            opaqueUserId = json.getString("opaqueUserId"),
-            id = json.getString("id"),
-        )
-    }
-
-    private fun deserializePurchase(json : JSONObject) : Purchase {
-        val itemsArray = json.getJSONArray("items")
-        return Purchase(
-            occurredAt = json.getString("occurredAt"),
-            opaqueUserId = json.getString("opaqueUserId"),
-            id = json.getString("id"),
-            items = (0 until itemsArray.length()).map {
-                deserializePurchasedItem(itemsArray.getJSONObject(it))
-            },
-        )
-    }
-
-    private fun deserializePurchasedItem(json: JSONObject): PurchasedItem {
-        return PurchasedItem(
-            productId = json.getString("productId"),
-            quantity = json.getInt("quantity"),
-            unitPrice = json.getIntOrNull("unitPrice"),
-            resolvedBidId = json.getStringOrNull("resolvedBidId"),
-        )
-    }
-
-    private fun deserializePlacement(json : JSONObject) : Placement{
-        return Placement(
-            path = json.getString("path"),
-            position = json.getIntOrNull("position"),
-            page = json.getIntOrNull("page"),
-            pageSize = json.getIntOrNull("pageSize"),
-            productId = json.getStringOrNull("productId"),
-            categoryIds = json.getStringListOrNull("categoryIds"),
-            searchQuery = json.getStringOrNull("searchQuery"),
-            location = json.getStringOrNull("location"),
-        )
-    }
-
-    private fun deserializeEntity(json: JSONObject): Entity {
-        return Entity(
-            id = json.getString("id"),
-            type = EntityType.valueOf(json.getString("type"))
-        )
     }
 
     private fun assertPlacementEquals(a: Placement, b: Placement) {
