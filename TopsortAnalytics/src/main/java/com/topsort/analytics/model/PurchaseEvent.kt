@@ -7,8 +7,6 @@ import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONObject
 
 data class PurchaseEvent(
-    @Transient
-    private val eventType: EventType = EventType.Purchase,
     val purchases: List<Purchase>
 ) {
     fun toJsonObject(): JSONObject {

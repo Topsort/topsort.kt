@@ -5,8 +5,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class ClickEvent(
-    @Transient
-    private val eventType: EventType = EventType.Click,
     val clicks: List<Click>,
 ) {
     fun toJsonObject(): JSONObject {

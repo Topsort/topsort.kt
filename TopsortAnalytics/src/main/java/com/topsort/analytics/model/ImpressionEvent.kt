@@ -4,8 +4,6 @@ import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONObject
 
 data class ImpressionEvent (
-    @Transient
-    private val eventType: EventType = EventType.Impression,
     val impressions: List<Impression>,
 ) {
     fun toJsonObject(): JSONObject {
