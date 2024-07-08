@@ -77,61 +77,59 @@ data class Impression private constructor(
             .put("id", id)
     }
 
-    class Factory {
-        companion object {
+    object Factory {
 
-            @JvmOverloads
-            fun buildPromoted(
-                resolvedBidId: String,
-                placement: Placement,
-                occurredAt: String,
-                opaqueUserId: String,
-                id: String,
-                additionalAttribution: String? = null,
-            ): Impression {
-                return Impression(
-                    resolvedBidId = resolvedBidId,
-                    placement = placement,
-                    occurredAt = occurredAt,
-                    opaqueUserId = opaqueUserId,
-                    id = id,
-                    additionalAttribution = additionalAttribution,
-                )
-            }
+        @JvmOverloads
+        fun buildPromoted(
+            resolvedBidId: String,
+            placement: Placement,
+            occurredAt: String,
+            opaqueUserId: String,
+            id: String,
+            additionalAttribution: String? = null,
+        ): Impression {
+            return Impression(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                occurredAt = occurredAt,
+                opaqueUserId = opaqueUserId,
+                id = id,
+                additionalAttribution = additionalAttribution,
+            )
+        }
 
-            @JvmOverloads
-            fun buildOrganic(
-                entity: Entity,
-                placement: Placement,
-                occurredAt: String,
-                opaqueUserId: String,
-                id: String,
-                additionalAttribution: String? = null,
-            ): Impression {
-                return Impression(
-                    entity = entity,
-                    placement = placement,
-                    occurredAt = occurredAt,
-                    opaqueUserId = opaqueUserId,
-                    id = id,
-                    additionalAttribution = additionalAttribution,
-                )
-            }
+        @JvmOverloads
+        fun buildOrganic(
+            entity: Entity,
+            placement: Placement,
+            occurredAt: String,
+            opaqueUserId: String,
+            id: String,
+            additionalAttribution: String? = null,
+        ): Impression {
+            return Impression(
+                entity = entity,
+                placement = placement,
+                occurredAt = occurredAt,
+                opaqueUserId = opaqueUserId,
+                id = id,
+                additionalAttribution = additionalAttribution,
+            )
+        }
 
-            fun fromJsonObject(json: JSONObject): Impression {
-                val resolvedBidId = json.getStringOrNull("resolvedBidId")
-                return Impression(
-                    resolvedBidId = resolvedBidId,
-                    entity = if (resolvedBidId == null) {
-                        Entity.fromJsonObject(json.getJSONObject("entity"))
-                    } else null,
-                    additionalAttribution = json.getStringOrNull("additionalAttribution"),
-                    placement = Placement.fromJsonObject(json.getJSONObject("placement")),
-                    occurredAt = json.getString("occurredAt"),
-                    opaqueUserId = json.getString("opaqueUserId"),
-                    id = json.getString("id"),
-                )
-            }
+        fun fromJsonObject(json: JSONObject): Impression {
+            val resolvedBidId = json.getStringOrNull("resolvedBidId")
+            return Impression(
+                resolvedBidId = resolvedBidId,
+                entity = if (resolvedBidId == null) {
+                    Entity.fromJsonObject(json.getJSONObject("entity"))
+                } else null,
+                additionalAttribution = json.getStringOrNull("additionalAttribution"),
+                placement = Placement.fromJsonObject(json.getJSONObject("placement")),
+                occurredAt = json.getString("occurredAt"),
+                opaqueUserId = json.getString("opaqueUserId"),
+                id = json.getString("id"),
+            )
         }
     }
 }
