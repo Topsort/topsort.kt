@@ -7,25 +7,18 @@ import com.topsort.analytics.model.PurchasedItem
 interface TopsortAnalytics {
 
     /**
-     * Report a list of impressions
-     */
-    fun reportImpression(
-        impressions: List<Impression>,
-    )
-
-    /**
-     * Reports a single impression with the provided resolvedBidId
+     * Reports a single impression
      *
      * @param opaqueUserId The opaque user ID which allows correlating user activity.
      * @param id The marketplace's unique ID for the impression
      * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
      * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
-    fun reportImpressionWithResolvedBidId(
-        resolvedBidId: String,
+    fun reportImpression(
         placement: Placement,
-        opaqueUserId: String,
+        opaqueUserId: String? = null,
         id: String,
+        resolvedBidId: String? = null,
         occurredAt: String? = null,
     )
 
@@ -39,20 +32,10 @@ interface TopsortAnalytics {
      */
     fun reportClick(
         placement: Placement,
-        opaqueUserId: String,
+        opaqueUserId: String? = null,
         id: String,
         resolvedBidId: String? = null,
         occurredAt: String? = null,
-    )
-
-    /**
-     * Reports a click event given the provided resolvedBidId
-     */
-    fun reportClickWithResolvedBidId(
-        resolvedBidId: String,
-        placement: Placement,
-        opaqueUserId: String,
-        id: String,
     )
 
     /**
@@ -65,7 +48,7 @@ interface TopsortAnalytics {
     fun reportPurchase(
         items: List<PurchasedItem>,
         id: String,
-        opaqueUserId: String,
+        opaqueUserId: String? = null,
         occurredAt: String? = null,
     )
 }

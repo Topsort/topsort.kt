@@ -44,41 +44,37 @@ object Analytics : TopsortAnalytics {
         )
     }
 
-    override fun reportImpression(impressions: List<Impression>) {
+    override fun reportImpression(
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String,
+        resolvedBidId: String?,
+        occurredAt: String?,
+    ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
             return
         }
 
         val impressionEvent = ImpressionEvent(
-            impressions = impressions,
+            impressions = listOf(
+                Impression(
+                    placement = placement,
+                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                    id = id,
+                    resolvedBidId = resolvedBidId,
+                    occurredAt = occurredAt ?: eventTime(),
+                )
+            ),
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
         enqueueEventRequest(recordId, EventType.Impression)
     }
 
-    override fun reportImpressionWithResolvedBidId(
-        resolvedBidId: String,
-        placement: Placement,
-        opaqueUserId: String,
-        id: String,
-        occurredAt: String?,
-    ) {
-        val impression = Impression(
-            resolvedBidId = resolvedBidId,
-            placement = placement,
-            opaqueUserId = opaqueUserId,
-            id = id,
-            occurredAt = occurredAt ?: eventTime(),
-        )
-
-        reportImpression(listOf(impression))
-    }
-
     override fun reportClick(
         placement: Placement,
-        opaqueUserId: String,
+        opaqueUserId: String?,
         id: String,
         resolvedBidId: String?,
         occurredAt: String?,
@@ -92,7 +88,7 @@ object Analytics : TopsortAnalytics {
             clicks = listOf(
                 Click(
                     placement = placement,
-                    opaqueUserId = opaqueUserId,
+                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
                     id = id,
                     resolvedBidId = resolvedBidId,
                     occurredAt = occurredAt ?: eventTime()
@@ -105,24 +101,10 @@ object Analytics : TopsortAnalytics {
         enqueueEventRequest(recordId, EventType.Click)
     }
 
-    override fun reportClickWithResolvedBidId(
-        resolvedBidId: String,
-        placement: Placement,
-        opaqueUserId: String,
-        id: String,
-    ) {
-        reportClick(
-            resolvedBidId = resolvedBidId,
-            placement = placement,
-            opaqueUserId = opaqueUserId,
-            id = id,
-        )
-    }
-
     override fun reportPurchase(
         items: List<PurchasedItem>,
         id: String,
-        opaqueUserId: String,
+        opaqueUserId: String?,
         occurredAt: String?,
     ) {
         if (!assertSetup()) {
@@ -136,7 +118,7 @@ object Analytics : TopsortAnalytics {
                     id = id,
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
-                    opaqueUserId = opaqueUserId,
+                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
                 ),
             ),
         )
