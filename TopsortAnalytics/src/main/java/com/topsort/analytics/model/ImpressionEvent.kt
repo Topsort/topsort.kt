@@ -119,7 +119,7 @@ data class Impression private constructor(
             }
 
             fun fromJsonObject(json: JSONObject): Impression {
-                val resolvedBidId: String? = json.getStringOrNull("resolvedBidId")
+                val resolvedBidId = json.getStringOrNull("resolvedBidId")
                 return Impression(
                     resolvedBidId = resolvedBidId,
                     entity = if (resolvedBidId == null) {

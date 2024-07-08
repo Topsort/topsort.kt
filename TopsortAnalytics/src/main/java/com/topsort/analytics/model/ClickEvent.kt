@@ -68,8 +68,13 @@ data class Click private constructor (
 ) {
     fun toJsonObject(): JSONObject {
         return JSONObject()
-            .put("resolvedBidId", resolvedBidId)
-            .put("entity", entity?.toJsonObject())
+            .let {
+                if (resolvedBidId == null) {
+                    it.put("entity", entity?.toJsonObject())
+                } else {
+                    it.put("resolvedBidId", resolvedBidId)
+                }
+            }
             .put("additionalAttribution", additionalAttribution)
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
@@ -116,6 +121,7 @@ data class Click private constructor (
                     additionalAttribution = additionalAttribution,
                 )
             }
+
             fun fromJsonObject(json: JSONObject): Click {
                 val resolvedBidId = json.getStringOrNull("resolvedBidId")
                 return Click(

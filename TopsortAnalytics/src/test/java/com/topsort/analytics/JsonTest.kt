@@ -5,7 +5,7 @@ import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Purchase
 import org.json.JSONObject
 import org.junit.Test
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 internal class JsonTest {
 
