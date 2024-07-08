@@ -1,5 +1,8 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.core.getIntOrNull
+import com.topsort.analytics.core.getStringListOrNull
+import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONObject
 
 data class Placement(
@@ -52,6 +55,7 @@ data class Placement(
      */
     val location: String? = null
 ) {
+
     fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("path", path)
@@ -65,24 +69,36 @@ data class Placement(
     }
 
     companion object {
-        fun fromJsonObject(json : JSONObject) : Placement{
+
+        @JvmOverloads
+        fun build(
+            path: String,
+            position: Int? = null,
+            page: Int? = null,
+            pageSize: Int? = null,
+            productId: String? = null,
+            categoryIds: List<String>? = null,
+            searchQuery: String? = null,
+            location: String? = null,
+        ): Placement {
+            return Placement(
+                path, position, page, pageSize, productId, categoryIds, searchQuery, location
+            )
+        }
+
+        fun fromJsonObject(json: JSONObject): Placement {
             return Placement(
                 path = json.getString("path"),
-                position = json.optInt("position"),
-                page = json.optInt("page"),
-                pageSize = json.optInt("pageSize"),
-                productId = json.optString("productId"),
-                categoryIds = json.optStringList("categoryIds"),
-                searchQuery = json.optString("searchQuery"),
-                location = json.optString("location"),
+                position = json.getIntOrNull("position"),
+                page = json.getIntOrNull("page"),
+                pageSize = json.getIntOrNull("pageSize"),
+                productId = json.getStringOrNull("productId"),
+                categoryIds = json.getStringListOrNull("categoryIds"),
+                searchQuery = json.getStringOrNull("searchQuery"),
+                location = json.getStringOrNull("location"),
             )
         }
     }
 }
 
-private fun JSONObject.optStringList(name: String): List<String>? {
-    return if (has(name)) {
-        val array = getJSONArray(name)
-        return (0 until array.length()).map { array[it].toString() }
-    } else null
-}
+

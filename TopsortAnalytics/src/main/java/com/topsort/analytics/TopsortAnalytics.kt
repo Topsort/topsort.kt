@@ -1,5 +1,6 @@
 package com.topsort.analytics
 
+import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
@@ -7,34 +8,70 @@ import com.topsort.analytics.model.PurchasedItem
 interface TopsortAnalytics {
 
     /**
-     * Reports a single impression
+     * Reports a single promoted impression (with a resolvedBidId)
      *
+     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
+     * @param placement Object describing the impression's placement
      * @param opaqueUserId The opaque user ID which allows correlating user activity.
      * @param id The marketplace's unique ID for the impression
-     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
      * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
-    fun reportImpression(
+    fun reportImpressionPromoted(
+        resolvedBidId: String,
         placement: Placement,
         opaqueUserId: String? = null,
-        id: String,
-        resolvedBidId: String? = null,
+        id: String? = null,
         occurredAt: String? = null,
     )
 
     /**
-     * Reports a click event
+     * Reports a single organic impression
      *
+     * @param entity Refers to the object involved in the organic interaction
+     * @param placement Object describing the impression's placement
      * @param opaqueUserId The opaque user ID which allows correlating user activity.
-     * @param id The marketplace's unique ID for the click
-     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
+     * @param id The marketplace's unique ID for the impression
      * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      */
-    fun reportClick(
+    fun reportImpressionOrganic(
+        entity: Entity,
         placement: Placement,
         opaqueUserId: String? = null,
-        id: String,
-        resolvedBidId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+    )
+
+    /**
+     * Reports a single promoted click (with a resolvedBidId)
+     *
+     * @param resolvedBidId Required for promoted products. Must be the ID for the auction the product won
+     * @param placement Object describing the click's placement
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the impression
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     */
+    fun reportClickPromoted(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+    )
+
+    /**
+     * Reports a single organic click
+     *
+     * @param entity Refers to the object involved in the organic interaction
+     * @param placement Object describing the click's placement
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the impression
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     */
+    fun reportClickOrganic(
+        entity: Entity,
+        placement: Placement,
+        opaqueUserId: String? = null,
+        id: String? = null,
         occurredAt: String? = null,
     )
 

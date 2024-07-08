@@ -11,13 +11,9 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 
-fun getRandomClick() : Click {
-    return Click(
+fun getClickPromoted() : Click {
+    return Click.Factory.buildPromoted(
         placement = getTestPlacement(),
-        entity = Entity(
-            type = EntityType.Product,
-            id = randomId("product_"),
-        ),
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
@@ -26,8 +22,8 @@ fun getRandomClick() : Click {
     )
 }
 
-fun getRandomImpression() : Impression{
-    return Impression (
+fun getClickOrganic() : Click {
+    return Click.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
             type = EntityType.Product,
@@ -36,7 +32,31 @@ fun getRandomImpression() : Impression{
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
+        additionalAttribution = "{\"additional\":\"attribution click\"}",
+    )
+}
+
+fun getImpressionPromoted() : Impression{
+    return Impression.Factory.buildPromoted (
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
+        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+    )
+}
+
+fun getImpressionOrganic() : Impression{
+    return Impression.Factory.buildOrganic (
+        placement = getTestPlacement(),
+        entity = Entity(
+            type = EntityType.Product,
+            id = randomId("product_"),
+        ),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
         additionalAttribution = "{\"additional\":\"attribution impression\"}",
     )
 }

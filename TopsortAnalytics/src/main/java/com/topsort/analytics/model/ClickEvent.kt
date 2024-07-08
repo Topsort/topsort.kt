@@ -1,5 +1,6 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -21,7 +22,7 @@ data class ClickEvent(
             if(json == null) return null
             val array = JSONObject(json).getJSONArray("clicks")
             val clicks = (0 until array.length()).map {
-                Click.fromJsonObject(array.getJSONObject(it))
+                Click.Factory.fromJsonObject(array.getJSONObject(it))
             }
 
             return ClickEvent(clicks = clicks)
@@ -29,7 +30,7 @@ data class ClickEvent(
     }
 }
 
-data class Click(
+data class Click private constructor (
 
     /**
      * Required for promoted products. Must be the ID for the auction the product won.
@@ -76,17 +77,59 @@ data class Click(
             .put("id", id)
     }
 
-    companion object{
-        fun fromJsonObject(json: JSONObject): Click {
-            return Click(
-                resolvedBidId = json.optString("resolvedBidId"),
-                entity = Entity.fromJsonObject(json.getJSONObject("entity")),
-                additionalAttribution = json.optString("additionalAttribution"),
-                placement = Placement.fromJsonObject(json.getJSONObject("placement")),
-                occurredAt = json.getString("occurredAt"),
-                opaqueUserId = json.getString("opaqueUserId"),
-                id = json.getString("id"),
-            )
+    class Factory {
+        companion object {
+            @JvmOverloads
+            fun buildPromoted(
+                resolvedBidId: String,
+                placement: Placement,
+                occurredAt: String,
+                opaqueUserId: String,
+                id: String,
+                additionalAttribution: String? = null,
+            ): Click {
+                return Click(
+                    resolvedBidId = resolvedBidId,
+                    placement = placement,
+                    occurredAt = occurredAt,
+                    opaqueUserId = opaqueUserId,
+                    id = id,
+                    additionalAttribution = additionalAttribution,
+                )
+            }
+
+            @JvmOverloads
+            fun buildOrganic(
+                entity: Entity,
+                placement: Placement,
+                occurredAt: String,
+                opaqueUserId: String,
+                id: String,
+                additionalAttribution: String? = null,
+            ): Click {
+                return Click(
+                    entity = entity,
+                    placement = placement,
+                    occurredAt = occurredAt,
+                    opaqueUserId = opaqueUserId,
+                    id = id,
+                    additionalAttribution = additionalAttribution,
+                )
+            }
+            fun fromJsonObject(json: JSONObject): Click {
+                val resolvedBidId = json.getStringOrNull("resolvedBidId")
+                return Click(
+                    resolvedBidId = resolvedBidId,
+                    entity = if (resolvedBidId == null) {
+                        Entity.fromJsonObject(json.getJSONObject("entity"))
+                    } else null,
+                    additionalAttribution = json.getStringOrNull("additionalAttribution"),
+                    placement = Placement.fromJsonObject(json.getJSONObject("placement")),
+                    occurredAt = json.getString("occurredAt"),
+                    opaqueUserId = json.getString("opaqueUserId"),
+                    id = json.getString("id"),
+                )
+            }
         }
     }
 }

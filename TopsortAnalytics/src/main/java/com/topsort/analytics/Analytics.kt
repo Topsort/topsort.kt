@@ -44,61 +44,84 @@ object Analytics : TopsortAnalytics {
         )
     }
 
-    override fun reportImpression(
+    override fun reportImpressionPromoted(
+        resolvedBidId: String,
         placement: Placement,
         opaqueUserId: String?,
-        id: String,
-        resolvedBidId: String?,
+        id: String?,
         occurredAt: String?,
     ) {
-        if (!assertSetup()) {
-            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
-            return
-        }
-
-        val impressionEvent = ImpressionEvent(
-            impressions = listOf(
-                Impression(
-                    placement = placement,
-                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
-                    id = id,
-                    resolvedBidId = resolvedBidId,
-                    occurredAt = occurredAt ?: eventTime(),
-                )
-            ),
+        val impressions = listOf(
+            Impression.Factory.buildPromoted(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+            )
         )
 
-        val recordId = Cache.storeImpression(impressionEvent)
-        enqueueEventRequest(recordId, EventType.Impression)
+        reportImpressions(impressions)
     }
 
-    override fun reportClick(
+    override fun reportImpressionOrganic(
+        entity: Entity,
         placement: Placement,
         opaqueUserId: String?,
-        id: String,
-        resolvedBidId: String?,
+        id: String?,
         occurredAt: String?,
     ) {
-        if (!assertSetup()) {
-            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
-            return
-        }
-
-        val clickEvent = ClickEvent(
-            clicks = listOf(
-                Click(
-                    placement = placement,
-                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
-                    id = id,
-                    resolvedBidId = resolvedBidId,
-                    occurredAt = occurredAt ?: eventTime()
-                )
+        val impressions = listOf(
+            Impression.Factory.buildOrganic(
+                entity = entity,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
             )
-
         )
 
-        val recordId = Cache.storeClick(clickEvent)
-        enqueueEventRequest(recordId, EventType.Click)
+        reportImpressions(impressions)
+    }
+
+    override fun reportClickPromoted(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+    ) {
+        val clicks = listOf(
+            Click.Factory.buildPromoted(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime()
+            )
+        )
+
+        reportClicks(clicks)
+    }
+
+    override fun reportClickOrganic(
+        entity: Entity,
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+    ) {
+        val clicks = listOf(
+            Click.Factory.buildOrganic(
+                entity = entity,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime()
+            )
+        )
+
+        reportClicks(clicks)
     }
 
     override fun reportPurchase(
@@ -172,5 +195,43 @@ object Analytics : TopsortAnalytics {
         return applicationContext != null
                 && session != null
                 && workManager != null
+    }
+
+    private fun randomId(prefix : String = "", size : Int = 32): String {
+        val allowedCharacters =   ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val rand = List(size) { allowedCharacters.random() }.joinToString("")
+        return "${prefix}${rand}"
+    }
+
+    private fun reportImpressions(
+        impressions : List<Impression>,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val impressionEvent = ImpressionEvent(
+            impressions = impressions,
+        )
+
+        val recordId = Cache.storeImpression(impressionEvent)
+        enqueueEventRequest(recordId, EventType.Impression)
+    }
+
+    private fun reportClicks(
+        clicks: List<Click>
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val clickEvent = ClickEvent(
+            clicks = clicks
+        )
+
+        val recordId = Cache.storeClick(clickEvent)
+        enqueueEventRequest(recordId, EventType.Click)
     }
 }

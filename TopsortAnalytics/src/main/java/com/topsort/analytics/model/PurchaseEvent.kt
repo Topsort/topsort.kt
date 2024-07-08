@@ -1,6 +1,8 @@
 package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
+import com.topsort.analytics.core.getIntOrNull
+import com.topsort.analytics.core.getStringOrNull
 
 import org.json.JSONObject
 
@@ -99,8 +101,8 @@ data class PurchasedItem(
             return PurchasedItem(
                 productId = json.getString("productId"),
                 quantity = json.getInt("quantity"),
-                unitPrice = json.optInt("unitPrice"),
-                resolvedBidId = json.optString("resolvedBidId"),
+                unitPrice = json.getIntOrNull("unitPrice"),
+                resolvedBidId = json.getStringOrNull("resolvedBidId"),
             )
         }
     }
