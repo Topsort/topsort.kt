@@ -1,5 +1,7 @@
 package com.topsort.analytics
 
+import com.topsort.analytics.core.eventNow
+import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
@@ -7,9 +9,6 @@ import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchasedItem
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
-
 
 fun getClickPromoted() : Click {
     return Click.Factory.buildPromoted(
@@ -89,14 +88,3 @@ private fun getTestPlacement() : Placement {
         location = "gibraltar",
     )
 }
-
-private fun eventNow(): String {
-    return ISODateTimeFormat.dateTime().print(DateTime())
-}
-
-private fun randomId(prefix : String = "", size : Int = 32): String {
-    val allowedCharacters =   ('a'..'z') + ('A'..'Z') + ('0'..'9')
-    val rand = List(size) { allowedCharacters.random() }.joinToString("")
-    return "${prefix}${rand}"
-}
-

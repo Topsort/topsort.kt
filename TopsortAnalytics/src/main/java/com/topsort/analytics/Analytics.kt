@@ -6,6 +6,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.work.*
+import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.*
 import com.topsort.analytics.worker.EventEmitterWorker
 import org.joda.time.DateTime
@@ -195,12 +196,6 @@ object Analytics : TopsortAnalytics {
         return applicationContext != null
                 && session != null
                 && workManager != null
-    }
-
-    private fun randomId(prefix : String = "", size : Int = 32): String {
-        val allowedCharacters =   ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        val rand = List(size) { allowedCharacters.random() }.joinToString("")
-        return "${prefix}${rand}"
     }
 
     private fun reportImpressions(
