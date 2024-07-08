@@ -13,7 +13,7 @@ import org.joda.time.format.ISODateTimeFormat
 
 fun getRandomClick() : Click {
     return Click(
-        placement = Placement(page = 1, path = "test"),
+        placement = getTestPlacement(),
         entity = Entity(
             type = EntityType.Product,
             id = randomId("product_"),
@@ -28,7 +28,7 @@ fun getRandomClick() : Click {
 
 fun getRandomImpression() : Impression{
     return Impression (
-        placement = Placement(page = 1, path = "test"),
+        placement = getTestPlacement(),
         entity = Entity(
             type = EntityType.Product,
             id = randomId("product_"),
@@ -36,6 +36,7 @@ fun getRandomImpression() : Impression{
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
+        resolvedBidId = randomId("resolvedBid_"),
         additionalAttribution = "{\"additional\":\"attribution impression\"}",
     )
 }
@@ -43,20 +44,31 @@ fun getRandomImpression() : Impression{
 fun getRandomPurchase() : Purchase{
     return Purchase(
         opaqueUserId = randomId("oId_"),
-
         occurredAt = eventNow(),
         items = listOf(
             PurchasedItem(
                 productId = randomId("p_"),
                 quantity = 1,
+                unitPrice = 100,
+                resolvedBidId = randomId("resolvedBid_"),
             )
         ),
         id = randomId("orderId_"),
     )
 }
 
-
-
+private fun getTestPlacement() : Placement {
+    return Placement(
+        path = "test",
+        position = 2,
+        page = 1,
+        pageSize = 20,
+        productId = randomId(),
+        categoryIds = listOf("cat1", "cat2"),
+        searchQuery = "search query",
+        location = "gibraltar",
+    )
+}
 
 private fun eventNow(): String {
     return ISODateTimeFormat.dateTime().print(DateTime())

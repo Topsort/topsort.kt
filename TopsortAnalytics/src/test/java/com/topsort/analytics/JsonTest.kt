@@ -50,11 +50,24 @@ internal class JsonTest {
         val deserialized = deserializePurchase(JSONObject(serialized))
 
         assertEquals(purchase.id, deserialized.id)
+        assertEquals(purchase.occurredAt, deserialized.occurredAt)
+        assertEquals(purchase.opaqueUserId, deserialized.opaqueUserId)
+        assertEquals(purchase.items.size, deserialized.items.size)
+        for(i in 0 until purchase.items.size){
+            assertPurchasedItemEquals(purchase.items[i], deserialized.items[i])
+        }
     }
 
     private fun JSONObject.getStringOrNull(name: String): String? {
         return if (has(name)) {
             getString(name)
+        } else null
+    }
+
+    private fun JSONObject.getStringListOrNull(name: String): List<String>? {
+        return if (has(name)) {
+            val array = getJSONArray(name)
+            return (0 until array.length()).map { array[it].toString() }
         } else null
     }
 
@@ -89,11 +102,14 @@ internal class JsonTest {
     }
 
     private fun deserializePurchase(json : JSONObject) : Purchase {
+        val itemsArray = json.getJSONArray("items")
         return Purchase(
             occurredAt = json.getString("occurredAt"),
             opaqueUserId = json.getString("opaqueUserId"),
             id = json.getString("id"),
-            items = listOf(),
+            items = (0 until itemsArray.length()).map {
+                deserializePurchasedItem(itemsArray.getJSONObject(it))
+            },
         )
     }
 
@@ -113,7 +129,7 @@ internal class JsonTest {
             page = json.getIntOrNull("page"),
             pageSize = json.getIntOrNull("pageSize"),
             productId = json.getStringOrNull("productId"),
-            categoryIds = null,
+            categoryIds = json.getStringListOrNull("categoryIds"),
             searchQuery = json.getStringOrNull("searchQuery"),
             location = json.getStringOrNull("location"),
         )
@@ -137,6 +153,7 @@ internal class JsonTest {
         if(a.categoryIds == null){
             assertThat(b.categoryIds).isNull()
         } else {
+            assertThat(b.categoryIds).isNotNull()
             assertThat(a.categoryIds).containsExactlyInAnyOrderElementsOf(b.categoryIds)
         }
     }
@@ -145,8 +162,16 @@ internal class JsonTest {
         if(a == null){
             assertThat(b).isNull()
         } else {
+            assertThat(b).isNotNull()
             assertThat(a.id).isEqualTo(b!!.id)
             assertThat(a.type).isEqualTo(b.type)
         }
+    }
+
+    private fun assertPurchasedItemEquals(a: PurchasedItem, b: PurchasedItem){
+        assertThat(a.productId).isEqualTo(b.productId)
+        assertThat(a.resolvedBidId).isEqualTo(b.resolvedBidId)
+        assertThat(a.quantity).isEqualTo(b.quantity)
+        assertThat(a.unitPrice).isEqualTo(b.unitPrice)
     }
 }
