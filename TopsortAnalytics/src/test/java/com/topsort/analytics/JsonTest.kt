@@ -10,6 +10,7 @@ import com.topsort.analytics.model.PurchasedItem
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.assertj.core.api.Assertions.*
 
 internal class JsonTest {
 
@@ -20,10 +21,12 @@ internal class JsonTest {
         val deserialized = deserializeClick(JSONObject(serialized))
 
         assertEquals(click.id, deserialized.id)
-        //assertEquals(1, 2)
+        assertPlacementEquals(click.placement, deserialized.placement)
+        assertEntityEquals(click.entity, deserialized.entity)
         assertEquals(click.occurredAt, deserialized.occurredAt)
         assertEquals(click.opaqueUserId, deserialized.opaqueUserId)
         assertEquals(click.resolvedBidId, deserialized.resolvedBidId)
+        assertEquals(click.additionalAttribution, deserialized.additionalAttribution)
     }
 
     @Test
@@ -33,7 +36,8 @@ internal class JsonTest {
         val deserialized = deserializeImpression(JSONObject(serialized))
 
         assertEquals(impression.id, deserialized.id)
-        //assertEquals(1, 2)
+        assertPlacementEquals(impression.placement, deserialized.placement)
+        assertEntityEquals(impression.entity, deserialized.entity)
         assertEquals(impression.occurredAt, deserialized.occurredAt)
         assertEquals(impression.opaqueUserId, deserialized.opaqueUserId)
         assertEquals(impression.resolvedBidId, deserialized.resolvedBidId)
@@ -106,7 +110,7 @@ internal class JsonTest {
         return Placement(
             path = json.getString("path"),
             position = json.getIntOrNull("position"),
-            page = json.getIntOrNull("position"),
+            page = json.getIntOrNull("page"),
             pageSize = json.getIntOrNull("pageSize"),
             productId = json.getStringOrNull("productId"),
             categoryIds = null,
@@ -120,5 +124,29 @@ internal class JsonTest {
             id = json.getString("id"),
             type = EntityType.valueOf(json.getString("type"))
         )
+    }
+
+    private fun assertPlacementEquals(a: Placement, b: Placement) {
+        assertEquals(a.page, b.page)
+        assertEquals(a.path, b.path)
+        assertEquals(a.location, b.location)
+        assertEquals(a.pageSize, b.pageSize)
+        assertEquals(a.position, b.position)
+        assertEquals(a.productId, b.productId)
+        assertEquals(a.searchQuery, b.searchQuery)
+        if(a.categoryIds == null){
+            assertThat(b.categoryIds).isNull()
+        } else {
+            assertThat(a.categoryIds).containsExactlyInAnyOrderElementsOf(b.categoryIds)
+        }
+    }
+
+    private fun assertEntityEquals(a: Entity?, b: Entity?) {
+        if(a == null){
+            assertThat(b).isNull()
+        } else {
+            assertThat(a.id).isEqualTo(b!!.id)
+            assertThat(a.type).isEqualTo(b.type)
+        }
     }
 }

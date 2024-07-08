@@ -22,6 +22,7 @@ fun getRandomClick() : Click {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
+        additionalAttribution = "{\"additional\":\"attribution click\"}",
     )
 }
 
@@ -35,6 +36,7 @@ fun getRandomImpression() : Impression{
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
+        additionalAttribution = "{\"additional\":\"attribution impression\"}",
     )
 }
 
