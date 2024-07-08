@@ -37,17 +37,6 @@ data class Purchase(
             .put("id", id)
             .put("items", items)
     }
-
-    companion object{
-        fun fromJsonObject(json : JSONObject) : Purchase{
-            return Purchase(
-                occurredAt = json.getString("occurredAt"),
-                opaqueUserId = json.getString("opaqueUserId"),
-                id = json.getString("id"),
-                items = listOf(),
-            )
-        }
-    }
 }
 
 data class PurchasedItem(
@@ -72,17 +61,6 @@ data class PurchasedItem(
             .put("quantity", quantity)
             .put("unitPrice", unitPrice)
     }
-
-    companion object {
-        fun fromJsonObject(json: JSONObject): PurchasedItem {
-            return PurchasedItem(
-                productId = json.getString("productId"),
-                quantity = json.getInt("quantity"),
-                unitPrice = json.getInt("unitPrice"),
-            )
-        }
-    }
-
 }
 
 internal data class PurchaseEventResponse(

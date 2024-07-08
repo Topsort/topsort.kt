@@ -5,10 +5,11 @@ import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
+import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.PurchasedItem
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.io.Console
 
 internal class JsonTest {
 
@@ -27,7 +28,7 @@ internal class JsonTest {
 
     @Test
     fun `json impression serialization`() {
-        val impression = getRandomClick()
+        val impression = getRandomImpression()
         val serialized = impression.toJsonObject().toString()
         val deserialized = deserializeImpression(JSONObject(serialized))
 
@@ -40,7 +41,11 @@ internal class JsonTest {
 
     @Test
     fun `json purchase serialization`() {
-        assert(true)
+        val purchase = getRandomPurchase()
+        val serialized = purchase.toJsonObject().toString()
+        val deserialized = deserializePurchase(JSONObject(serialized))
+
+        assertEquals(purchase.id, deserialized.id)
     }
 
     private fun JSONObject.getStringOrNull(name: String): String? {
@@ -67,7 +72,7 @@ internal class JsonTest {
         )
     }
 
-    fun deserializeImpression(json: JSONObject): Impression {
+    private fun deserializeImpression(json: JSONObject): Impression {
         return Impression(
             resolvedBidId = json.getStringOrNull("resolvedBidId"),
             entity = deserializeEntity(json.getJSONObject("entity")),
@@ -76,6 +81,24 @@ internal class JsonTest {
             occurredAt = json.getString("occurredAt"),
             opaqueUserId = json.getString("opaqueUserId"),
             id = json.getString("id"),
+        )
+    }
+
+    private fun deserializePurchase(json : JSONObject) : Purchase {
+        return Purchase(
+            occurredAt = json.getString("occurredAt"),
+            opaqueUserId = json.getString("opaqueUserId"),
+            id = json.getString("id"),
+            items = listOf(),
+        )
+    }
+
+    private fun deserializePurchasedItem(json: JSONObject): PurchasedItem {
+        return PurchasedItem(
+            productId = json.getString("productId"),
+            quantity = json.getInt("quantity"),
+            unitPrice = json.getIntOrNull("unitPrice"),
+            resolvedBidId = json.getStringOrNull("resolvedBidId"),
         )
     }
 
