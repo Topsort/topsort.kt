@@ -1,12 +1,30 @@
 package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
+import com.topsort.analytics.core.getIntOrNull
+import com.topsort.analytics.core.getStringOrNull
+
+import org.json.JSONObject
 
 data class PurchaseEvent(
-    private val eventType: EventType = EventType.Purchase,
-    val session: Session,
     val purchases: List<Purchase>
-)
+) {
+    fun toJsonObject(): JSONObject {
+        return JSONObject().put("purchases", purchases)
+    }
+
+    companion object{
+        fun fromJson(json : String?) : PurchaseEvent? {
+            if(json == null) return null
+            val array = JSONObject(json).getJSONArray("purchases")
+            val purchases = (0 until array.length()).map {
+                Purchase.fromJsonObject(array.getJSONObject(it))
+            }
+
+            return PurchaseEvent(purchases = purchases)
+        }
+    }
+}
 
 data class Purchase(
 
@@ -29,7 +47,29 @@ data class Purchase(
      * Items purchased
      */
     val items: List<PurchasedItem>,
-)
+) {
+    fun toJsonObject(): JSONObject {
+        return JSONObject()
+            .put("occurredAt", occurredAt)
+            .put("opaqueUserId", opaqueUserId)
+            .put("id", id)
+            .put("items", items)
+    }
+
+    companion object {
+        fun fromJsonObject(json: JSONObject): Purchase {
+            val itemsArray = json.getJSONArray("items")
+            return Purchase(
+                occurredAt = json.getString("occurredAt"),
+                opaqueUserId = json.getString("opaqueUserId"),
+                id = json.getString("id"),
+                items = (0 until itemsArray.length()).map {
+                    PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
+                },
+            )
+        }
+    }
+}
 
 data class PurchasedItem(
 
@@ -45,7 +85,26 @@ data class PurchasedItem(
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
     val resolvedBidId: String? = null
-)
+) {
+
+    fun toJsonObject(): JSONObject {
+        return JSONObject()
+            .put("productId", productId)
+            .put("quantity", quantity)
+            .put("unitPrice", unitPrice)
+    }
+
+    companion object {
+        fun fromJsonObject(json: JSONObject): PurchasedItem {
+            return PurchasedItem(
+                productId = json.getString("productId"),
+                quantity = json.getInt("quantity"),
+                unitPrice = json.getIntOrNull("unitPrice"),
+                resolvedBidId = json.getStringOrNull("resolvedBidId"),
+            )
+        }
+    }
+}
 
 internal data class PurchaseEventResponse(
     val purchaseId: String,

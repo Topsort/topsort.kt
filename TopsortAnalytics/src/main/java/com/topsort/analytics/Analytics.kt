@@ -6,6 +6,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.work.*
+import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.*
 import com.topsort.analytics.worker.EventEmitterWorker
 import org.joda.time.DateTime
@@ -44,87 +45,90 @@ object Analytics : TopsortAnalytics {
         )
     }
 
-    override fun reportImpression(impressions: List<Impression>) {
-        if (!assertSetup()) {
-            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
-            return
-        }
-
-        val impressionEvent = ImpressionEvent(
-            session = session!!,
-            impressions = impressions,
-        )
-
-        val recordId = Cache.storeImpression(impressionEvent)
-        enqueueEventRequest(recordId, EventType.Impression)
-    }
-
-    override fun reportImpressionWithResolvedBidId(
+    override fun reportImpressionPromoted(
         resolvedBidId: String,
         placement: Placement,
-        opaqueUserId: String,
-        id: String,
+        opaqueUserId: String?,
+        id: String?,
         occurredAt: String?,
     ) {
-        val impression = Impression(
-            resolvedBidId = resolvedBidId,
-            placement = placement,
-            opaqueUserId = opaqueUserId,
-            id = id,
-            occurredAt = occurredAt ?: eventTime(),
-        )
-
-        reportImpression(listOf(impression))
-    }
-
-    override fun reportClick(
-        placement: Placement,
-        opaqueUserId: String,
-        id: String,
-        resolvedBidId: String?,
-        occurredAt: String?,
-    ) {
-        if (!assertSetup()) {
-            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
-            return
-        }
-
-        val clickEvent = ClickEvent(
-            session = session!!,
-            clicks = listOf(
-                Click(
-                    placement = placement,
-                    opaqueUserId = opaqueUserId,
-                    id = id,
-                    resolvedBidId = resolvedBidId,
-                    occurredAt = occurredAt ?: eventTime()
-                )
+        val impressions = listOf(
+            Impression.Factory.buildPromoted(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
             )
-
         )
 
-        val recordId = Cache.storeClick(clickEvent)
-        enqueueEventRequest(recordId, EventType.Click)
+        reportImpressions(impressions)
     }
 
-    override fun reportClickWithResolvedBidId(
+    override fun reportImpressionOrganic(
+        entity: Entity,
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+    ) {
+        val impressions = listOf(
+            Impression.Factory.buildOrganic(
+                entity = entity,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+            )
+        )
+
+        reportImpressions(impressions)
+    }
+
+    override fun reportClickPromoted(
         resolvedBidId: String,
         placement: Placement,
-        opaqueUserId: String,
-        id: String,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
     ) {
-        reportClick(
-            resolvedBidId = resolvedBidId,
-            placement = placement,
-            opaqueUserId = opaqueUserId,
-            id = id,
+        val clicks = listOf(
+            Click.Factory.buildPromoted(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime()
+            )
         )
+
+        reportClicks(clicks)
+    }
+
+    override fun reportClickOrganic(
+        entity: Entity,
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+    ) {
+        val clicks = listOf(
+            Click.Factory.buildOrganic(
+                entity = entity,
+                placement = placement,
+                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                id = id?: randomId(),
+                occurredAt = occurredAt ?: eventTime()
+            )
+        )
+
+        reportClicks(clicks)
     }
 
     override fun reportPurchase(
         items: List<PurchasedItem>,
         id: String,
-        opaqueUserId: String,
+        opaqueUserId: String?,
         occurredAt: String?,
     ) {
         if (!assertSetup()) {
@@ -133,13 +137,12 @@ object Analytics : TopsortAnalytics {
         }
 
         val purchaseEvent = PurchaseEvent(
-            session = session!!,
             purchases = listOf(
                 Purchase(
                     id = id,
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
-                    opaqueUserId = opaqueUserId,
+                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
                 ),
             ),
         )
@@ -193,5 +196,37 @@ object Analytics : TopsortAnalytics {
         return applicationContext != null
                 && session != null
                 && workManager != null
+    }
+
+    private fun reportImpressions(
+        impressions : List<Impression>,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val impressionEvent = ImpressionEvent(
+            impressions = impressions,
+        )
+
+        val recordId = Cache.storeImpression(impressionEvent)
+        enqueueEventRequest(recordId, EventType.Impression)
+    }
+
+    private fun reportClicks(
+        clicks: List<Click>
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val clickEvent = ClickEvent(
+            clicks = clicks
+        )
+
+        val recordId = Cache.storeClick(clickEvent)
+        enqueueEventRequest(recordId, EventType.Click)
     }
 }

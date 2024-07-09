@@ -3,20 +3,12 @@ package com.topsort.analytics
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
-import com.google.gson.reflect.TypeToken
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
-import java.lang.reflect.Type
 import java.util.*
 
 private const val preferencesName = "TOPSORT_EVENTS_CACHE"
-
-private val TYPE_IMPRESSION = object : TypeToken<ImpressionEvent>() {}.type
-private val TYPE_CLICK = object : TypeToken<ClickEvent>() {}.type
-private val TYPE_PURCHASE = object : TypeToken<PurchaseEvent>() {}.type
 
 private const val KEY_TOKEN = "KEY_TOKEN"
 private const val KEY_SESSION_ID = "KEY_SESSION_ID"
@@ -28,7 +20,6 @@ internal object Cache {
     private lateinit var applicationContext: Context
     private lateinit var preferences: SharedPreferences
 
-    private val gson = Gson()
     private var recentRecordId: Long = 0
 
     var token: String = ""
@@ -72,7 +63,7 @@ internal object Cache {
     fun storeImpression(
         impressionEvent: ImpressionEvent
     ): Long {
-        val json = gson.toJson(impressionEvent, TYPE_IMPRESSION)
+        val json = impressionEvent.toJsonObject().toString()
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -82,13 +73,13 @@ internal object Cache {
     }
 
     fun readImpression(recordId: Long): ImpressionEvent? {
-        return readEvent(recordId, TYPE_IMPRESSION)
+        return ImpressionEvent.fromJson(readEvent(recordId))
     }
 
     fun storeClick(
         clickEvent: ClickEvent
     ): Long {
-        val json = gson.toJson(clickEvent, TYPE_CLICK)
+        val json = clickEvent.toJsonObject().toString()
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -98,13 +89,13 @@ internal object Cache {
     }
 
     fun readClick(recordId: Long): ClickEvent? {
-        return readEvent(recordId, TYPE_CLICK)
+        return ClickEvent.fromJson(readEvent(recordId))
     }
 
     fun storePurchase(
         purchaseEvent: PurchaseEvent
     ): Long {
-        val json = gson.toJson(purchaseEvent, TYPE_PURCHASE)
+        val json = purchaseEvent.toJsonObject().toString()
         preferences
             .edit()
             .putString(nextRecordKey(), json)
@@ -114,7 +105,7 @@ internal object Cache {
     }
 
     fun readPurchase(recordId: Long): PurchaseEvent? {
-        return readEvent(recordId, TYPE_PURCHASE)
+        return PurchaseEvent.fromJson(readEvent(recordId))
     }
 
     fun deleteEvent(recordId: Long) {
@@ -124,17 +115,13 @@ internal object Cache {
             .apply()
     }
 
-    private fun <T> readEvent(recordId: Long, type: Type): T? {
+    private fun readEvent(recordId: Long): String? {
         val json = preferences.getString(recordKey(recordId), "")
         if (TextUtils.isEmpty(json)) {
             return null
         }
 
-        return try {
-            gson.fromJson<T>(json, type)
-        } catch (e: JsonSyntaxException) {
-            null
-        }
+        return json
     }
 
     private fun recordKey(recordId: Long) = String.format(
