@@ -198,7 +198,7 @@ object Analytics : TopsortAnalytics {
                 && workManager != null
     }
 
-    private fun reportImpressions(
+    public fun reportImpressions(
         impressions : List<Impression>,
     ) {
         if (!assertSetup()) {

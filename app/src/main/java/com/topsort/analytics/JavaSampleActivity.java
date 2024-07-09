@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.activity.ComponentActivity;
 import androidx.annotation.Nullable;
 
+import com.topsort.analytics.model.Entity;
+import com.topsort.analytics.model.EntityType;
 import com.topsort.analytics.model.Impression;
 import com.topsort.analytics.model.Placement;
 import com.topsort.analytics.model.PurchasedItem;
@@ -26,68 +28,74 @@ public class JavaSampleActivity extends ComponentActivity {
     }
 
     private void reportImpressionWithResolvedBidId() {
-        Placement placement = new Placement(
+        Placement placement = Placement.Companion.build(
                 "search_results",
                 null
         );
 
-        Impression impression = new Impression(
-                placement,
-                null,
-                null,
-                null,
-                "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0="
-        );
+        String resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=";
 
         Analytics
                 .INSTANCE
-                .reportImpression(Collections.singletonList(impression));
-    }
-
-    private void reportImpression() {
-        Placement placement = new Placement(
-                "search_results",
-                null
-        );
-
-        Impression impression = new Impression(
-                placement,
-                "p_SA0238",
-                null,
-                null,
-                null
-        );
-
-        Analytics
-                .INSTANCE
-                .reportImpression(Collections.singletonList(impression));
-    }
-
-    private void reportClick() {
-        Placement placement = new Placement(
-                "search_results",
-                null
-        );
-
-        Analytics
-                .INSTANCE
-                .reportClick(placement, "p_SA0238", null, null, null);
-    }
-
-    private void reportClickWithResolvedBidId() {
-        Placement placement = new Placement(
-                "search_results",
-                null
-        );
-
-        Analytics
-                .INSTANCE
-                .reportClick(
+                .reportImpressionPromoted(
+                        resolvedBidId,
                         placement,
                         null,
                         null,
+                        null
+                );
+    }
+
+    private void reportImpression() {
+        Placement placement = Placement.Companion.build(
+                "search_results",
+                null
+        );
+
+        Analytics
+                .INSTANCE
+                .reportImpressionOrganic(
+                        new Entity("p_SA0238", EntityType.Product),
+                        placement,
                         null,
-                        "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0="
+                        null,
+                        null
+                );
+    }
+
+    private void reportClick() {
+        Placement placement = Placement.Companion.build(
+                "search_results",
+                null
+        );
+
+        Analytics
+                .INSTANCE
+                .reportClickOrganic(
+                        new Entity("p_SA0238", EntityType.Product),
+                        placement,
+                        null,
+                        null,
+                        null
+                );
+    }
+
+    private void reportClickWithResolvedBidId() {
+        Placement placement = Placement.Companion.build(
+                "search_results",
+                null
+        );
+
+        String resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0="
+
+        Analytics
+                .INSTANCE
+                .reportClickPromoted(
+                        resolvedBidId,
+                        placement,
+                        null,
+                        null,
+                        null
                 );
     }
 
@@ -97,13 +105,17 @@ public class JavaSampleActivity extends ComponentActivity {
                 "p_SA0238",
                 20,
                 1295,
-                null,
                 null
         );
 
         Analytics
                 .INSTANCE
-                .reportPurchase(Collections.singletonList(item), "o:567-123");
+                .reportPurchase(
+                        Collections.singletonList(item),
+                        "o:567-123",
+                        null,
+                        null
+                );
     }
 
     private void reportPurchaseWithResolvedBidId() {
@@ -111,12 +123,16 @@ public class JavaSampleActivity extends ComponentActivity {
                 "p_SA0238",
                 20,
                 1295,
-                null,
                 "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0="
         );
 
         Analytics
                 .INSTANCE
-                .reportPurchase(Collections.singletonList(item), "o:567-123");
+                .reportPurchase(
+                        Collections.singletonList(item),
+                        "o:567-123",
+                        null,
+                        null
+                );
     }
 }

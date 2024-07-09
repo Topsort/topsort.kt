@@ -2,6 +2,8 @@ package com.topsort.analytics
 
 import android.app.Activity
 import android.os.Bundle
+import com.topsort.analytics.model.Entity
+import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
@@ -49,51 +51,52 @@ class SampleActivity : Activity() {
 
     private fun reportClick() {
         val placement = Placement(
-            page = "search_results",
-            location = "position_1"
+            path = "search_results",
+            location = "position_1",
         )
 
-        Analytics.reportClick(
+        Analytics.reportClickOrganic(
             placement = placement,
-            productId = "p_SA0238"
+            entity = Entity(id = "p_SA0238", type = EntityType.Product),
         )
     }
 
     private fun reportClickWithResolvedBidId() {
         val placement = Placement(
-            page = "search_results",
+            path = "search_results",
             location = "position_1"
         )
 
-        Analytics.reportClickWithResolvedBidId(
+        Analytics.reportClickPromoted(
             resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
-            placement = placement
+            placement = placement,
+            id = "p_SA0238",
         )
     }
 
     private fun reportImpression() {
         val placement = Placement(
-            page = "search_results",
+            path = "search_results",
             location = "position_1"
         )
 
-        val impression = Impression(
-            productId = "p_SA0238",
-            placement = placement
+        Analytics.reportImpressionOrganic(
+            id = "p_SA0238",
+            placement = placement,
+            entity = Entity(id = "p_SA0238", type = EntityType.Product),
         )
-
-        Analytics.reportImpression(listOf(impression))
     }
 
     private fun reportImpressionWithResolvedBidId() {
         val placement = Placement(
-            page = "search_results",
+            path = "search_results",
             location = "position_1"
         )
 
-        Analytics.reportImpressionWithResolvedBidId(
+        Analytics.reportImpressionPromoted(
             resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
-            placement = placement
+            placement = placement,
+            id = "marketPlaceImpressionId"
         )
     }
 }
