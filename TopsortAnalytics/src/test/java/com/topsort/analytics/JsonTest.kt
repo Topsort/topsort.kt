@@ -1,8 +1,8 @@
 package com.topsort.analytics
 
-import com.topsort.analytics.model.Click
-import com.topsort.analytics.model.Impression
-import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.events.Click
+import com.topsort.analytics.model.events.Impression
+import com.topsort.analytics.model.events.Purchase
 import org.json.JSONObject
 import org.junit.Test
 import org.assertj.core.api.Assertions.assertThat

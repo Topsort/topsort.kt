@@ -2,13 +2,13 @@ package com.topsort.analytics
 
 import com.topsort.analytics.core.eventNow
 import com.topsort.analytics.core.randomId
-import com.topsort.analytics.model.Click
-import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.EntityType
-import com.topsort.analytics.model.Impression
-import com.topsort.analytics.model.Placement
-import com.topsort.analytics.model.Purchase
-import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.events.Click
+import com.topsort.analytics.model.events.Entity
+import com.topsort.analytics.model.events.EntityType
+import com.topsort.analytics.model.events.Impression
+import com.topsort.analytics.model.events.Placement
+import com.topsort.analytics.model.events.Purchase
+import com.topsort.analytics.model.events.PurchasedItem
 
 fun getClickPromoted() : Click {
     return Click.Factory.buildPromoted(
@@ -35,7 +35,7 @@ fun getClickOrganic() : Click {
     )
 }
 
-fun getImpressionPromoted() : Impression{
+fun getImpressionPromoted() : Impression {
     return Impression.Factory.buildPromoted (
         placement = getTestPlacement(),
         occurredAt = eventNow(),
@@ -46,7 +46,7 @@ fun getImpressionPromoted() : Impression{
     )
 }
 
-fun getImpressionOrganic() : Impression{
+fun getImpressionOrganic() : Impression {
     return Impression.Factory.buildOrganic (
         placement = getTestPlacement(),
         entity = Entity(
@@ -60,7 +60,7 @@ fun getImpressionOrganic() : Impression{
     )
 }
 
-fun getRandomPurchase() : Purchase{
+fun getRandomPurchase() : Purchase {
     return Purchase(
         opaqueUserId = randomId("oId_"),
         occurredAt = eventNow(),

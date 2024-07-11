@@ -1,4 +1,4 @@
-package com.topsort.analytics.model
+package com.topsort.analytics.model.events
 
 import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray

@@ -8,6 +8,16 @@ import androidx.annotation.NonNull
 import androidx.work.*
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.*
+import com.topsort.analytics.model.events.Click
+import com.topsort.analytics.model.events.ClickEvent
+import com.topsort.analytics.model.events.Entity
+import com.topsort.analytics.model.events.EventType
+import com.topsort.analytics.model.events.Impression
+import com.topsort.analytics.model.events.ImpressionEvent
+import com.topsort.analytics.model.events.Placement
+import com.topsort.analytics.model.events.Purchase
+import com.topsort.analytics.model.events.PurchaseEvent
+import com.topsort.analytics.model.events.PurchasedItem
 import com.topsort.analytics.worker.EventEmitterWorker
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat

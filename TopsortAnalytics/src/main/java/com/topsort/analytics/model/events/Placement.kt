@@ -1,4 +1,4 @@
-package com.topsort.analytics.model
+package com.topsort.analytics.model.events
 
 import com.topsort.analytics.core.getIntOrNull
 import com.topsort.analytics.core.getStringListOrNull

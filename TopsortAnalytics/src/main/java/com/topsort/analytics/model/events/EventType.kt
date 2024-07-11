@@ -1,4 +1,4 @@
-package com.topsort.analytics.model
+package com.topsort.analytics.model.events
 
 enum class EventType {
 

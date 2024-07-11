@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
-import com.topsort.analytics.model.ClickEvent
-import com.topsort.analytics.model.EventType
-import com.topsort.analytics.model.ImpressionEvent
-import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.events.ClickEvent
+import com.topsort.analytics.model.events.EventType
+import com.topsort.analytics.model.events.ImpressionEvent
+import com.topsort.analytics.model.events.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 
 internal class EventEmitterWorker(

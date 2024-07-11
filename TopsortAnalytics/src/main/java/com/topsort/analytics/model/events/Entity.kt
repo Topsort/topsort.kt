@@ -1,4 +1,4 @@
-package com.topsort.analytics.model
+package com.topsort.analytics.model.events
 
 import org.json.JSONObject
 

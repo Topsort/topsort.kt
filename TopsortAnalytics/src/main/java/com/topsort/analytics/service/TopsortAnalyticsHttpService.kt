@@ -3,16 +3,18 @@ package com.topsort.analytics.service
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
-import com.topsort.analytics.model.ClickEvent
-import com.topsort.analytics.model.ImpressionEvent
-import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.events.ClickEvent
+import com.topsort.analytics.model.events.ImpressionEvent
+import com.topsort.analytics.model.events.PurchaseEvent
 import org.json.JSONObject
+import com.topsort.analytics.core.ServiceSettings.baseApiUrl
 
-private const val apiUrl = "https://api.topsort.com/v1/events"
+
+private const val EVENTS_ENDPOINT = "/v2/events"
 
 internal object TopsortAnalyticsHttpService {
 
-    val httpClient: HttpClient = HttpClient(apiUrl)
+    val httpClient: HttpClient = HttpClient("${baseApiUrl}${EVENTS_ENDPOINT}")
 
     val service: Service = buildService()
 

@@ -2,11 +2,10 @@ package com.topsort.analytics
 
 import android.app.Activity
 import android.os.Bundle
-import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.EntityType
-import com.topsort.analytics.model.Impression
-import com.topsort.analytics.model.Placement
-import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.events.Entity
+import com.topsort.analytics.model.events.EntityType
+import com.topsort.analytics.model.events.Placement
+import com.topsort.analytics.model.events.PurchasedItem
 
 class SampleActivity : Activity() {
 
