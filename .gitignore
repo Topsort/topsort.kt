@@ -16,3 +16,4 @@
 local.properties
 .idea
 gradle
+kls_database.db
