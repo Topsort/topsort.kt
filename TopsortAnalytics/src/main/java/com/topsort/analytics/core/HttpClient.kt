@@ -60,9 +60,8 @@ class HttpClient (
  * Wraps an HTTP connection. Callers can either read from the connection via the [ ] or write to the connection via [OutputStream].
  */
 abstract class Connection(
-    val connection: HttpURLConnection,
+    private val connection: HttpURLConnection,
     val outputStream: OutputStream? = null,
-    val inputStream: InputStream? = null,
 ) : Closeable {
     @Throws(IOException::class)
     override fun close() {
@@ -79,7 +78,7 @@ internal fun HttpURLConnection.createPostConnection(): Connection {
             this.outputStream
         }
 
-    return object : Connection(this, outputStream, null) {
+    return object : Connection(this, outputStream) {
         @Throws(IOException::class)
         override fun close() {
             super.close()
@@ -117,7 +116,6 @@ class RequestFactory {
         val connection = requestedURL.openConnection() as HttpURLConnection
         connection.connectTimeout = 15_000 // 15s
         connection.readTimeout = 20_1000 // 20s
-        //connection.doInput = true
         return connection
     }
 }
