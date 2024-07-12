@@ -1,8 +1,8 @@
 package com.topsort.analytics
 
-import com.topsort.analytics.model.events.Entity
-import com.topsort.analytics.model.events.Placement
-import com.topsort.analytics.model.events.PurchasedItem
+import com.topsort.analytics.model.Entity
+import com.topsort.analytics.model.Placement
+import com.topsort.analytics.model.PurchasedItem
 
 interface TopsortAnalytics {
 

@@ -3,9 +3,9 @@ package com.topsort.analytics.service
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
-import com.topsort.analytics.model.events.ClickEvent
-import com.topsort.analytics.model.events.ImpressionEvent
-import com.topsort.analytics.model.events.PurchaseEvent
+import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.PurchaseEvent
 import org.json.JSONObject
 import com.topsort.analytics.core.ServiceSettings.baseApiUrl
 
