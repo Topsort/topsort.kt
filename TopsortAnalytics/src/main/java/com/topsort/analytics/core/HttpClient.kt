@@ -27,7 +27,7 @@ class HttpClient (
     private val requestFactory: RequestFactory = RequestFactory()
 ) {
 
-    fun post(body: String, bearerToken: String?) : HttpResponse {
+    fun post(body: String, bearerToken: String?): HttpResponse {
         val connection: HttpURLConnection = requestFactory.upload(apiHost, bearerToken)
         val postConnection = connection.createPostConnection()
         val writeStream = postConnection.outputStream!!.bufferedWriter()
@@ -36,23 +36,20 @@ class HttpClient (
         writeStream.flush()
         postConnection.outputStream.close()
 
-        val response = if (connection.responseCode in 200..299) {
-            val inputStream =
-                try {
-                    connection.inputStream
-                } catch (ignored: IOException) {
-                    connection.errorStream
-                }
-
-            val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
-            HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
-        } else {
-            HttpResponse(connection.responseCode, connection.responseMessage)
+        if (connection.responseCode !in 200..299) {
+            postConnection.close()
+            return HttpResponse(connection.responseCode, connection.responseMessage)
         }
 
-        postConnection.close()
+        val inputStream =
+            try {
+                connection.inputStream
+            } catch (ignored: IOException) {
+                connection.errorStream
+            }
 
-        return response
+        val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
+        return HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
     }
 }
 
