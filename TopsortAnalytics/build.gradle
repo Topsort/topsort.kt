@@ -43,10 +43,12 @@ tasks.withType(Detekt).configureEach {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation '.core:core-ktx:1.10.1'
 
     //Work Manager
-    implementation "androidx.work:work-runtime-ktx:2.9.0"
+    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     //JodaTime
     implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
