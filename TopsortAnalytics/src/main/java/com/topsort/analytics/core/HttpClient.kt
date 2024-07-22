@@ -15,6 +15,7 @@ data class HttpResponse(
     val message : String,
 ){
     fun isSuccessful() : Boolean {
+        @Suppress("detekt:MagicNumber")
         return code in 200..299
     }
 }
@@ -98,8 +99,10 @@ class RequestFactory {
             throw error
         }
         val connection = requestedURL.openConnection() as HttpURLConnection
+        @Suppress("detekt:MagicNumber")
         connection.connectTimeout = 15_000 // 15s
-        connection.readTimeout = 20_1000 // 20s
+        @Suppress("detekt:MagicNumber")
+        connection.readTimeout = 20_000 // 20s
         //connection.doInput = true
         return connection
     }

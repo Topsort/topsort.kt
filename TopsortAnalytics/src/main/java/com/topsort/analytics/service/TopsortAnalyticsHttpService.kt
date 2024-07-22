@@ -8,11 +8,11 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
 import org.json.JSONObject
 
-private const val apiUrl = "https://api.topsort.com/v1/events"
+private const val API_URL = "https://api.topsort.com/v1/events"
 
 internal object TopsortAnalyticsHttpService {
 
-    val httpClient: HttpClient = HttpClient(apiUrl)
+    val httpClient: HttpClient = HttpClient(API_URL)
 
     val service: Service = buildService()
 

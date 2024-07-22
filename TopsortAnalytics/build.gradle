@@ -41,6 +41,8 @@ android {
 tasks.withType(Detekt).configureEach {
     jvmTarget = '1.8'
     autoCorrect = true
+    buildUponDefaultConfig = true
+    config = files(["$projectDir/../config/detekt.yaml"])
 }
 tasks.withType(DetektCreateBaselineTask).configureEach {
     jvmTarget = '1.8'
