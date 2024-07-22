@@ -1,0 +1,21 @@
+config:
+  validation: true
+  warningsAsErrors: false
+  excludes: ''
+
+# Too opinionated
+complexity:
+  LongParameterList:
+    active: false
+  TooManyFunctions:
+    active: false
+
+# This should be managed by the IDE config
+style:
+  NewLineAtEndOfFile:
+    active: false
+  MaxLineLength:
+    active: false
+  # This is also too opinionated
+  ReturnCount:
+    active: false

@@ -1,0 +1,19 @@
+name: Lints
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+ detekt:
+   runs-on: ubuntu-22.04
+
+   steps:
+     - name: "checkout"
+       uses: actions/checkout@v4
+
+     - name: "detekt"
+       uses: natiginfo/action-detekt-all@1.23.6
+       with:
+        args:  --config detekt.yaml --build-upon-default-config

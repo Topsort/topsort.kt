@@ -8,7 +8,7 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
 import java.util.*
 
-private const val preferencesName = "TOPSORT_EVENTS_CACHE"
+private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
 
 private const val KEY_TOKEN = "KEY_TOKEN"
 private const val KEY_SESSION_ID = "KEY_SESSION_ID"
@@ -42,7 +42,7 @@ internal object Cache {
 
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
-        preferences = applicationContext.getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
+        preferences = applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
         token = preferences.getString(KEY_TOKEN, "")!!
         sessionId = preferences.getString(KEY_SESSION_ID, "")!!

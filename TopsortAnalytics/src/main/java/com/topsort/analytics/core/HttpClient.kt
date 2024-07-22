@@ -18,6 +18,7 @@ data class HttpResponse(
     val body: String? = null,
 ){
     fun isSuccessful() : Boolean {
+        @Suppress("detekt:MagicNumber")
         return code in 200..299
     }
 }
@@ -36,6 +37,7 @@ class HttpClient (
         writeStream.flush()
         postConnection.outputStream.close()
 
+        @Suppress("detekt:MagicNumber")
         if (connection.responseCode !in 200..299) {
             postConnection.close()
             return HttpResponse(connection.responseCode, connection.responseMessage)
@@ -84,8 +86,8 @@ internal fun HttpURLConnection.createPostConnection(): Connection {
     }
 }
 
-class RequestFactory {
 
+class RequestFactory {
     fun upload(apiHost: String, bearerToken : String?): HttpURLConnection {
         val connection: HttpURLConnection = openConnection(apiHost)
         connection.requestMethod = "POST"
@@ -111,8 +113,13 @@ class RequestFactory {
             throw error
         }
         val connection = requestedURL.openConnection() as HttpURLConnection
-        connection.connectTimeout = 15_000 // 15s
-        connection.readTimeout = 20_1000 // 20s
+        connection.connectTimeout = CONNECTION_TIMEOUT
+        connection.readTimeout = READ_TIMETOUT
         return connection
+    }
+
+    companion object {
+        const val CONNECTION_TIMEOUT = 15_000 // 15 seconds
+        const val READ_TIMETOUT = 20_000 // 20 seconds
     }
 }
