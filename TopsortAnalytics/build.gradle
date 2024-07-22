@@ -1,6 +1,10 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'io.gitlab.arturbosch.detekt' version '1.23.6'
 }
 
 android {
@@ -32,6 +36,14 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+}
+
+tasks.withType(Detekt).configureEach {
+    jvmTarget = '1.8'
+    autoCorrect = true
+}
+tasks.withType(DetektCreateBaselineTask).configureEach {
+    jvmTarget = '1.8'
 }
 
 dependencies {
