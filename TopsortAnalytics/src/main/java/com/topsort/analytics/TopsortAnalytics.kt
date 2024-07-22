@@ -1,7 +1,6 @@
 package com.topsort.analytics
 
 import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
 

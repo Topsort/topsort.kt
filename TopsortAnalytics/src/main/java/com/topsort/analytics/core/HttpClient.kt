@@ -1,7 +1,9 @@
 package com.topsort.analytics.core
 
+import java.io.BufferedReader
 import java.io.Closeable
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
@@ -13,6 +15,7 @@ const val LIBRARY_VERSION = 1.0
 data class HttpResponse(
     val code : Int,
     val message : String,
+    val body: String? = null,
 ){
     fun isSuccessful() : Boolean {
         @Suppress("detekt:MagicNumber")
@@ -25,7 +28,7 @@ class HttpClient (
     private val requestFactory: RequestFactory = RequestFactory()
 ) {
 
-    fun post(body: String, bearerToken: String?) : HttpResponse {
+    fun post(body: String, bearerToken: String?): HttpResponse {
         val connection: HttpURLConnection = requestFactory.upload(apiHost, bearerToken)
         val postConnection = connection.createPostConnection()
         val writeStream = postConnection.outputStream!!.bufferedWriter()
@@ -34,10 +37,21 @@ class HttpClient (
         writeStream.flush()
         postConnection.outputStream.close()
 
-        val response = HttpResponse(connection.responseCode, connection.responseMessage)
-        postConnection.close()
+        @Suppress("detekt:MagicNumber")
+        if (connection.responseCode !in 200..299) {
+            postConnection.close()
+            return HttpResponse(connection.responseCode, connection.responseMessage)
+        }
 
-        return response
+        val inputStream =
+            try {
+                connection.inputStream
+            } catch (ignored: IOException) {
+                connection.errorStream
+            }
+
+        val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
+        return HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
     }
 }
 
@@ -46,7 +60,7 @@ class HttpClient (
  */
 abstract class Connection(
     private val connection: HttpURLConnection,
-    val outputStream: OutputStream?
+    val outputStream: OutputStream? = null,
 ) : Closeable {
     @Throws(IOException::class)
     override fun close() {
@@ -59,10 +73,10 @@ internal fun HttpURLConnection.createPostConnection(): Connection {
     val outputStream: OutputStream =
         if (encoding.contains("gzip")) {
             GZIPOutputStream(this.outputStream)
-        }
-        else {
+        } else {
             this.outputStream
         }
+
     return object : Connection(this, outputStream) {
         @Throws(IOException::class)
         override fun close() {
@@ -72,10 +86,10 @@ internal fun HttpURLConnection.createPostConnection(): Connection {
     }
 }
 
-class RequestFactory {
 
+class RequestFactory {
     fun upload(apiHost: String, bearerToken : String?): HttpURLConnection {
-        val connection: HttpURLConnection = openConnection("http://$apiHost/")
+        val connection: HttpURLConnection = openConnection(apiHost)
         connection.requestMethod = "POST"
         bearerToken?.let {
             connection.setRequestProperty("Authorization", "Bearer $bearerToken")
@@ -99,11 +113,13 @@ class RequestFactory {
             throw error
         }
         val connection = requestedURL.openConnection() as HttpURLConnection
-        @Suppress("detekt:MagicNumber")
-        connection.connectTimeout = 15_000 // 15s
-        @Suppress("detekt:MagicNumber")
-        connection.readTimeout = 20_000 // 20s
-        //connection.doInput = true
+        connection.connectTimeout = CONNECTION_TIMEOUT
+        connection.readTimeout = READ_TIMETOUT
         return connection
+    }
+
+    companion object {
+        const val CONNECTION_TIMEOUT = 15_000 // 15 seconds
+        const val READ_TIMETOUT = 20_000 // 20 seconds
     }
 }

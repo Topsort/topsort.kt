@@ -35,7 +35,7 @@ fun getClickOrganic() : Click {
     )
 }
 
-fun getImpressionPromoted() : Impression{
+fun getImpressionPromoted() : Impression {
     return Impression.Factory.buildPromoted (
         placement = getTestPlacement(),
         occurredAt = eventNow(),
@@ -46,7 +46,7 @@ fun getImpressionPromoted() : Impression{
     )
 }
 
-fun getImpressionOrganic() : Impression{
+fun getImpressionOrganic() : Impression {
     return Impression.Factory.buildOrganic (
         placement = getTestPlacement(),
         entity = Entity(
@@ -60,7 +60,7 @@ fun getImpressionOrganic() : Impression{
     )
 }
 
-fun getRandomPurchase() : Purchase{
+fun getRandomPurchase() : Purchase {
     return Purchase(
         opaqueUserId = randomId("oId_"),
         occurredAt = eventNow(),
