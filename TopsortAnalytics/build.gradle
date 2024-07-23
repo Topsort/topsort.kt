@@ -44,7 +44,6 @@ tasks.withType(Detekt).configureEach {
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.10.1'
-    implementation '.core:core-ktx:1.10.1'
 
     //Work Manager
     implementation "androidx.work:work-runtime-ktx:2.8.1"
