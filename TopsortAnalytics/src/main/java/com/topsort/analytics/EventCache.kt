@@ -11,68 +11,37 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
-private const val preferencesName = "TOPSORT_EVENTS_CACHE"
+private const val PREFERENCES_NAME = "topsort_event_cache_async"
 
-private val KEY_TOKEN = stringPreferencesKey("KEY_TOKEN")
-private val KEY_OPAQUE_USER_ID = stringPreferencesKey("KEY_OPAQUE_USER_ID")
 private const val KEY_RECORD_FORMAT = "KEY_RECORD_%d"
 private val KEY_RECENT_RECORD_ID = longPreferencesKey("KEY_RECORD_ID")
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.eventDatastore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_NAME)
 
-internal object CacheAsync {
+internal object EventCache {
 
     private lateinit var applicationContext: Context
 
     private var recentRecordId: Long = 0
 
-    private var token: String = ""
-    fun getToken() = token
-
-    private suspend fun setToken(value: String) {
-       token = value
-       applicationContext.dataStore.edit { store ->
-           store[KEY_TOKEN] = value
-       }
-    }
-
-    private var opaqueUserId: String = ""
-    fun getOpaqueUserId() = opaqueUserId
-    private suspend fun setOpaqueUserId(value: String){
-        opaqueUserId = value
-        applicationContext.dataStore.edit { store ->
-            store[KEY_OPAQUE_USER_ID] = value
-        }
-    }
-
     private fun initialize(context: Context) {
         applicationContext = context.applicationContext
-
-        runBlocking {
-            val store = applicationContext.dataStore.data.first()
-            token = store[KEY_TOKEN] ?: ""
-            opaqueUserId = store[KEY_OPAQUE_USER_ID] ?: ""
-        }
     }
 
     fun setup(
         context: Context,
-        opaqueUserId: String,
-        token: String
     ) {
         initialize(context)
 
         runBlocking {
-            val store = applicationContext.dataStore.data.first()
+            val store = applicationContext.eventDatastore.data.first()
             recentRecordId = store[KEY_RECENT_RECORD_ID] ?: 0L
         }
-
-        this.opaqueUserId = opaqueUserId
-        this.token = token
     }
 
     suspend fun storeImpression(
@@ -109,13 +78,13 @@ internal object CacheAsync {
     }
 
     suspend fun deleteEvent(recordId: Long) {
-        applicationContext.dataStore.edit { store ->
+        applicationContext.eventDatastore.edit { store ->
             store.remove(recordKey(recordId))
         }
     }
 
     private suspend fun readEvent(recordId: Long): String? {
-        val json = applicationContext.dataStore.data.first()[recordKey(recordId)] ?: ""
+        val json = applicationContext.eventDatastore.data.first()[recordKey(recordId)] ?: ""
         if (TextUtils.isEmpty(json)) {
             return null
         }
@@ -124,7 +93,7 @@ internal object CacheAsync {
 
     private suspend fun storeEvent(json: String): Long {
         val recordId = nextRecordKey()
-        applicationContext.dataStore.edit { store ->
+        applicationContext.eventDatastore.edit { store ->
             store[recordId] = json
         }
 
@@ -148,7 +117,7 @@ internal object CacheAsync {
 
         val recentRecordKey = recordKey(recentRecordId)
 
-        applicationContext.dataStore.edit { store ->
+        applicationContext.eventDatastore.edit { store ->
             store[KEY_RECENT_RECORD_ID] = recentRecordId
         }
 
