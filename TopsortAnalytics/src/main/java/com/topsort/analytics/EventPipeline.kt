@@ -2,6 +2,7 @@ package com.topsort.analytics
 
 import android.content.Context
 import android.text.TextUtils
+import androidx.annotation.VisibleForTesting
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -20,10 +21,12 @@ import kotlinx.coroutines.CompletionHandlerException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "topsort_event_cache_async"
@@ -78,7 +81,7 @@ internal object EventPipeline {
         writeChannelPurchases.trySend(purchaseEvent.purchases)
     }
 
-    fun upload(){
+    fun upload() {
         uploadChannel.trySend("UPLOAD")
     }
 
@@ -87,28 +90,14 @@ internal object EventPipeline {
     }
 
     private fun launchUploadLoop() = scope.launch(dispatcher) {
-        uploadChannel.consumeEach { _ ->
-            val data = applicationContext.eventDatastore.data.first()
-            val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
-            val clicks = data[KEY_CLICK_EVENTS]?.trim(',')
-            val purchases = data[KEY_PURCHASE_EVENTS]?.trim(',')
-
-            applicationContext.eventDatastore.edit { store ->
-                store.remove(KEY_IMPRESSION_EVENTS)
-                store.remove(KEY_CLICK_EVENTS)
-                store.remove(KEY_IMPRESSION_EVENTS)
-            }
-
-            val aggregated = StringBuilder()
-            aggregated.append("""{""")
-            impressions?.let { aggregated.append(""""impressions":[$it],""".trimMargin()) }
-            clicks?.let { aggregated.append(""""clicks":[$it],""".trimMargin()) }
-            purchases?.let { aggregated.append(""""purchases":[$it],""".trimMargin()) }
-            aggregated.trim(',')
-            aggregated.append("""}""")
+        for( a in uploadChannel) {
+            val aggregated = aggregateEvents()
 
             // Actually send
-            TopsortAnalyticsHttpService.service.reportAggregated(aggregated.toString())
+            // TopsortAnalyticsHttpService.service.reportAggregated(aggregated)
+            println("uploading: $aggregated")
+
+            clear()
         }
     }
 
@@ -125,9 +114,67 @@ internal object EventPipeline {
                 }
 
                 applicationContext.eventDatastore.edit { store ->
-                    store[key] = store[key] + json.toString()
+                    if(store.contains(key)){
+                        store[key] = store[key] + json.toString()
+                    }
+                    else {
+                        store[key] = json.toString()
+                    }
                 }
             }
         }
+
+    private suspend fun aggregateEvents():String {
+        val data = applicationContext.eventDatastore.data.first()
+        val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
+        val clicks = data[KEY_CLICK_EVENTS]?.trim(',')
+        val purchases = data[KEY_PURCHASE_EVENTS]?.trim(',')
+
+        val aggregated = StringBuilder()
+        aggregated.append("""{""")
+        impressions?.let { aggregated.append(""""impressions":[$it],""".trimMargin()) }
+        clicks?.let { aggregated.append(""""clicks":[$it],""".trimMargin()) }
+        purchases?.let { aggregated.append(""""purchases":[$it],""".trimMargin()) }
+        aggregated.trim(',')
+        aggregated.append("""}""")
+
+        return aggregated.toString()
+    }
+
+    @VisibleForTesting
+    fun readImpressions() : String? {
+        return read(KEY_IMPRESSION_EVENTS)
+    }
+
+    @VisibleForTesting
+    fun readClicks() : String? {
+        return read(KEY_CLICK_EVENTS)
+    }
+
+    @VisibleForTesting
+    fun readPurchases() : String? {
+        return read(KEY_PURCHASE_EVENTS)
+    }
+
+    private fun read(key: Preferences.Key<String>) : String?{
+        return runBlocking {
+            val ret = scope.async {
+                applicationContext.eventDatastore.data.first()[key]
+            }.await()
+
+            ret?.trim(',')
+        }
+    }
+
+    @VisibleForTesting
+    fun clear(){
+        runBlocking{
+            applicationContext.eventDatastore.edit { store ->
+                store.remove(KEY_IMPRESSION_EVENTS)
+                store.remove(KEY_CLICK_EVENTS)
+                store.remove(KEY_IMPRESSION_EVENTS)
+            }
+        }
+    }
 
 }
