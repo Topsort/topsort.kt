@@ -85,9 +85,9 @@ data class PurchasedItem(
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
     val resolvedBidId: String? = null
-) {
+) : JsonSerializable {
 
-    fun toJsonObject(): JSONObject {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("productId", productId)
             .put("quantity", quantity)

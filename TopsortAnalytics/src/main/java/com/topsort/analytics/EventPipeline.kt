@@ -5,32 +5,87 @@ import android.text.TextUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "topsort_event_cache_async"
-
 private const val KEY_RECORD_FORMAT = "KEY_RECORD_%d"
-private val KEY_RECENT_RECORD_ID = longPreferencesKey("KEY_RECORD_ID")
+
+private val KEY_IMPRESSION_EVENTS= stringPreferencesKey("KEY_IMPRESSION_EVENTS")
+private val KEY_CLICK_EVENTS = stringPreferencesKey("KEY_CLICK_EVENTS")
+private val KEY_PURCHASE_EVENTS = stringPreferencesKey("KEY_PURCHASE_EVENTS")
 
 val Context.eventDatastore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_NAME)
 
-internal object EventCache {
+internal object EventPipeline {
 
     private lateinit var applicationContext: Context
 
     private var recentRecordId: Long = 0
 
+    private val scope = CoroutineScope(SupervisorJob())
+    private val dispatcher = Dispatchers.IO
+
+    private val writeChannelImpressions = Channel<List<Impression>>()
+    private val writeChannelClicks = Channel<Click>()
+    private val writeChannelPurchases = Channel<Purchase>()
+
+    private val uploadChannel = Channel<String>()
+
     private fun initialize(context: Context) {
         applicationContext = context.applicationContext
+    }
+
+    private fun uploadLoop() = scope.launch(dispatcher) {
+        uploadChannel.consumeEach { _ ->
+            val data = applicationContext.eventDatastore.data.first()
+            val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
+            val clicks = data[KEY_CLICK_EVENTS]?.trim(',')
+            val purchases = data[KEY_PURCHASE_EVENTS]?.trim(',')
+
+            applicationContext.eventDatastore.edit { store ->
+                store.remove(KEY_IMPRESSION_EVENTS)
+                store.remove(KEY_CLICK_EVENTS)
+                store.remove(KEY_IMPRESSION_EVENTS)
+            }
+
+            val aggregated = StringBuilder()
+            aggregated.append("""{""")
+            impressions?.let { aggregated.append(""""impressions":[$it],""".trimMargin()) }
+            clicks?.let { aggregated.append(""""clicks":[$it],""".trimMargin()) }
+            purchases?.let { aggregated.append(""""purchases":[$it],""".trimMargin()) }
+            aggregated.trim(',')
+            aggregated.append("""}""")
+
+        }
+    }
+
+    private fun writeLoopImpressions() = scope.launch(dispatcher) {
+        for(impressions in writeChannelImpressions){
+            val json = StringBuilder()
+            for(impression in impressions) {
+                json.append(impression.toJsonObject().toString())
+                json.append(",")
+            }
+
+            applicationContext.eventDatastore.edit { store ->
+                store[KEY_IMPRESSION_EVENTS] = store[KEY_IMPRESSION_EVENTS] + json.toString()
+            }
+        }
     }
 
     fun setup(
@@ -38,21 +93,15 @@ internal object EventCache {
     ) {
         initialize(context)
 
-        runBlocking {
-            val store = applicationContext.eventDatastore.data.first()
-            recentRecordId = store[KEY_RECENT_RECORD_ID] ?: 0L
-        }
+        writeLoopImpressions()
+        writeLoopImpressions()
+        uploadLoop()
     }
 
-    suspend fun storeImpression(
+    fun storeImpression(
         impressionEvent: ImpressionEvent
-    ): Long {
-        val json = impressionEvent.toJsonObject().toString()
-        return storeEvent(json)
-    }
-
-    suspend fun readImpression(recordId: Long): ImpressionEvent? {
-        return ImpressionEvent.fromJson(readEvent(recordId))
+    ) {
+        writeChannelImpressions.trySend(impressionEvent.impressions)
     }
 
     suspend fun storeClick(
@@ -94,6 +143,7 @@ internal object EventCache {
     private suspend fun storeEvent(json: String): Long {
         val recordId = nextRecordKey()
         applicationContext.eventDatastore.edit { store ->
+            store[recordId].plus(json)
             store[recordId] = json
         }
 
@@ -117,9 +167,9 @@ internal object EventCache {
 
         val recentRecordKey = recordKey(recentRecordId)
 
-        applicationContext.eventDatastore.edit { store ->
-            store[KEY_RECENT_RECORD_ID] = recentRecordId
-        }
+//        applicationContext.eventDatastore.edit { store ->
+//            store[KEY_RECENT_RECORD_ID] = recentRecordId
+//        }
 
         return recentRecordKey
     }

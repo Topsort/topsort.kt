@@ -63,8 +63,8 @@ data class Click private constructor (
      * The marketplace's ID for the click
      */
     val id: String,
-) {
-    fun toJsonObject(): JSONObject {
+) : JsonSerializable {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
                 if (resolvedBidId == null) {

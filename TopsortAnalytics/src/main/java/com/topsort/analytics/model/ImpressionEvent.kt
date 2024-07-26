@@ -58,8 +58,8 @@ data class Impression private constructor(
      * The marketplace assigned ID for the order
      */
     val id: String,
-) {
-    fun toJsonObject(): JSONObject {
+) : JsonSerializable {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
                 if (resolvedBidId == null) {
