@@ -7,12 +7,16 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.JsonSerializable
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.service.TopsortAnalyticsHttpService
+import kotlinx.coroutines.CompletionHandlerException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,7 +27,6 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "topsort_event_cache_async"
-private const val KEY_RECORD_FORMAT = "KEY_RECORD_%d"
 
 private val KEY_IMPRESSION_EVENTS= stringPreferencesKey("KEY_IMPRESSION_EVENTS")
 private val KEY_CLICK_EVENTS = stringPreferencesKey("KEY_CLICK_EVENTS")
@@ -35,22 +38,55 @@ internal object EventPipeline {
 
     private lateinit var applicationContext: Context
 
-    private var recentRecordId: Long = 0
-
     private val scope = CoroutineScope(SupervisorJob())
     private val dispatcher = Dispatchers.IO
 
     private val writeChannelImpressions = Channel<List<Impression>>()
-    private val writeChannelClicks = Channel<Click>()
-    private val writeChannelPurchases = Channel<Purchase>()
+    private val writeChannelClicks = Channel<List<Click>>()
+    private val writeChannelPurchases = Channel<List<Purchase>>()
 
     private val uploadChannel = Channel<String>()
+
+
+    fun setup(
+        context: Context,
+    ) {
+        initialize(context)
+
+        launchWriteLoop(writeChannelImpressions, KEY_IMPRESSION_EVENTS)
+        launchWriteLoop(writeChannelClicks, KEY_CLICK_EVENTS)
+        launchWriteLoop(writeChannelPurchases, KEY_PURCHASE_EVENTS)
+
+        launchUploadLoop()
+    }
+
+    fun storeImpression(
+        impressionEvent: ImpressionEvent
+    ) {
+        writeChannelImpressions.trySend(impressionEvent.impressions)
+    }
+
+    fun storeClick(
+        clickEvent: ClickEvent
+    ) {
+        writeChannelClicks.trySend(clickEvent.clicks)
+    }
+
+    fun storePurchase(
+        purchaseEvent: PurchaseEvent
+    ) {
+        writeChannelPurchases.trySend(purchaseEvent.purchases)
+    }
+
+    fun upload(){
+        uploadChannel.trySend("UPLOAD")
+    }
 
     private fun initialize(context: Context) {
         applicationContext = context.applicationContext
     }
 
-    private fun uploadLoop() = scope.launch(dispatcher) {
+    private fun launchUploadLoop() = scope.launch(dispatcher) {
         uploadChannel.consumeEach { _ ->
             val data = applicationContext.eventDatastore.data.first()
             val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
@@ -71,106 +107,27 @@ internal object EventPipeline {
             aggregated.trim(',')
             aggregated.append("""}""")
 
+            // Actually send
+            TopsortAnalyticsHttpService.service.reportAggregated(aggregated.toString())
         }
     }
 
-    private fun writeLoopImpressions() = scope.launch(dispatcher) {
-        for(impressions in writeChannelImpressions){
-            val json = StringBuilder()
-            for(impression in impressions) {
-                json.append(impression.toJsonObject().toString())
-                json.append(",")
+    private fun <T : JsonSerializable> launchWriteLoop(
+        channel: Channel<List<T>>,
+        key: Preferences.Key<String>
+    ) =
+        scope.launch(dispatcher) {
+            for (events in channel) {
+                val json = StringBuilder()
+                for (event in events) {
+                    json.append(event.toJsonObject().toString())
+                    json.append(",")
+                }
+
+                applicationContext.eventDatastore.edit { store ->
+                    store[key] = store[key] + json.toString()
+                }
             }
-
-            applicationContext.eventDatastore.edit { store ->
-                store[KEY_IMPRESSION_EVENTS] = store[KEY_IMPRESSION_EVENTS] + json.toString()
-            }
-        }
-    }
-
-    fun setup(
-        context: Context,
-    ) {
-        initialize(context)
-
-        writeLoopImpressions()
-        writeLoopImpressions()
-        uploadLoop()
-    }
-
-    fun storeImpression(
-        impressionEvent: ImpressionEvent
-    ) {
-        writeChannelImpressions.trySend(impressionEvent.impressions)
-    }
-
-    suspend fun storeClick(
-        clickEvent: ClickEvent
-    ): Long {
-        val json = clickEvent.toJsonObject().toString()
-        return storeEvent(json)
-    }
-
-    suspend fun readClick(recordId: Long): ClickEvent? {
-        return ClickEvent.fromJson(readEvent(recordId))
-    }
-
-    suspend fun storePurchase(
-        purchaseEvent: PurchaseEvent
-    ): Long {
-        val json = purchaseEvent.toJsonObject().toString()
-        return storeEvent(json)
-    }
-
-    suspend fun readPurchase(recordId: Long): PurchaseEvent? {
-        return PurchaseEvent.fromJson(readEvent(recordId))
-    }
-
-    suspend fun deleteEvent(recordId: Long) {
-        applicationContext.eventDatastore.edit { store ->
-            store.remove(recordKey(recordId))
-        }
-    }
-
-    private suspend fun readEvent(recordId: Long): String? {
-        val json = applicationContext.eventDatastore.data.first()[recordKey(recordId)] ?: ""
-        if (TextUtils.isEmpty(json)) {
-            return null
-        }
-        return json
-    }
-
-    private suspend fun storeEvent(json: String): Long {
-        val recordId = nextRecordKey()
-        applicationContext.eventDatastore.edit { store ->
-            store[recordId].plus(json)
-            store[recordId] = json
         }
 
-        return recentRecordId
-    }
-
-    private fun recordKey(recordId: Long) = stringPreferencesKey(
-        String.format(
-            Locale.ENGLISH,
-            KEY_RECORD_FORMAT,
-            recordId
-        )
-    )
-
-    private suspend fun nextRecordKey(): Preferences.Key<String> {
-        recentRecordId = if (recentRecordId < Long.MAX_VALUE) {
-            recentRecordId + 1
-        } else {
-            0
-        }
-
-        val recentRecordKey = recordKey(recentRecordId)
-
-//        applicationContext.eventDatastore.edit { store ->
-//            store[KEY_RECENT_RECORD_ID] = recentRecordId
-//        }
-
-        return recentRecordKey
-    }
 }

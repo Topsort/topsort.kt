@@ -36,6 +36,10 @@ internal object TopsortAnalyticsHttpService {
             override fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse {
                 return reportEvent(purchaseEvent)
             }
+
+            override fun reportAggregated(agg: String): HttpResponse {
+                return httpClient.post(agg, Cache.token.ifEmpty { null })
+            }
         }
     }
 
@@ -45,5 +49,7 @@ internal object TopsortAnalyticsHttpService {
         fun reportClick(clickEvent: ClickEvent): HttpResponse
 
         fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse
+
+        fun reportAggregated(agg: String): HttpResponse
     }
 }

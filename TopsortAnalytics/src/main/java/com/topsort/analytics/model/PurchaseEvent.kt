@@ -47,8 +47,8 @@ data class Purchase(
      * Items purchased
      */
     val items: List<PurchasedItem>,
-) {
-    fun toJsonObject(): JSONObject {
+)  : JsonSerializable {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
@@ -85,9 +85,9 @@ data class PurchasedItem(
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
     val resolvedBidId: String? = null
-) : JsonSerializable {
+) {
 
-    override fun toJsonObject(): JSONObject {
+    fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("productId", productId)
             .put("quantity", quantity)
