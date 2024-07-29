@@ -63,22 +63,22 @@ internal object EventPipeline {
         launchUploadLoop()
     }
 
-    fun storeImpression(
+    suspend fun storeImpression(
         impressionEvent: ImpressionEvent
     ) {
-        writeChannelImpressions.trySend(impressionEvent.impressions)
+       writeChannelImpressions.send(impressionEvent.impressions)
     }
 
-    fun storeClick(
+    suspend fun storeClick(
         clickEvent: ClickEvent
     ) {
-        writeChannelClicks.trySend(clickEvent.clicks)
+        writeChannelClicks.send(clickEvent.clicks)
     }
 
-    fun storePurchase(
+    suspend fun storePurchase(
         purchaseEvent: PurchaseEvent
     ) {
-        writeChannelPurchases.trySend(purchaseEvent.purchases)
+        writeChannelPurchases.send(purchaseEvent.purchases)
     }
 
     fun upload() {
@@ -114,10 +114,9 @@ internal object EventPipeline {
                 }
 
                 applicationContext.eventDatastore.edit { store ->
-                    if(store.contains(key)){
+                    if (store.contains(key)) {
                         store[key] = store[key] + json.toString()
-                    }
-                    else {
+                    } else {
                         store[key] = json.toString()
                     }
                 }

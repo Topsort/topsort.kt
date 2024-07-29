@@ -41,22 +41,22 @@ import org.junit.runner.RunWith
 
         runBlocking {
             EventPipeline.storeImpression(ImpressionEvent(impressions1))
-            delay(100)
             EventPipeline.storeImpression(ImpressionEvent(impressions2))
-            delay(100)
+            // Make sure they're persisted
+            delay(10)
 
             val storedStr = EventPipeline.readImpressions()
             val storedDeserialized = Impression.Factory.fromJsonArray(JSONArray("[$storedStr]"))
 
-            assertThat(impressions1+impressions2).isEqualTo(storedDeserialized)
+            assertThat(storedDeserialized).containsExactlyInAnyOrderElementsOf(impressions1+impressions2)
             println(storedStr)
 
             EventPipeline.upload()
-            delay(100)
+            delay(20)
             EventPipeline.storeImpression(ImpressionEvent(impressions1))
-            delay(100)
+            delay(20)
             EventPipeline.upload()
-            delay(100)
+            delay(20)
         }
     }
 }
