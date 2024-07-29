@@ -22,7 +22,7 @@ sealed class BannerConfig private constructor() {
         val geoTargeting: String? = null,
     ) : BannerConfig()
 
-    data class CategoryDisjuntions(
+    data class CategoryDisjunctions(
         val slotId: String,
         val disjunctions: List<List<String>>,
         val device: String? = null,

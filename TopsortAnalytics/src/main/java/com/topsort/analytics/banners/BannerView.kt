@@ -7,21 +7,32 @@ import com.topsort.analytics.model.auctions.Auction
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 
-class BannerView(context: Context) : ImageView(context) {
+class BannerView(context: Context, config: BannerConfig) : ImageView(context) {
     init {
-        // TODO: Run auction and get URL
-        val url = "https://example.com/img/cheems.jpg";
-        this.load(url);
-
-        // TODO: Sets OnClickListeners for reporting the click and to go to the banner's destination
+        val result = runBannerAuction(config)
+        if (result != null) {
+            val url = result.url;
+            this.load(url);
+            // TODO: Sets OnClickListeners for reporting the click and to go to the banner's destination
+        }
     }
 }
 
-fun runBannerAuction(config: BannerConfig) {
+fun runBannerAuction(config: BannerConfig): BannerResponse? {
     val auction = buildBannerAuction(config)
     val request = AuctionRequest(listOf(auction))
     val response = TopsortAuctionsHttpService.runAuctions(request)
-    // TODO: parse the response into something spsecific for the banners, we should have at least the URl and a target for the click
+    if ((response?.results?.isNotEmpty() == true)) {
+        if (response.results[0].winners.isNotEmpty()) {
+            val winner = response.results[0].winners[0]
+            return BannerResponse(
+                id = winner.id,
+                url = winner.asset!!.url,
+                resolvedBidId = winner.resolvedBidId
+            )
+        }
+    }
+    return null
 }
 
 fun buildBannerAuction(config: BannerConfig): Auction {
@@ -56,7 +67,7 @@ fun buildBannerAuction(config: BannerConfig): Auction {
             )
         }
 
-        is BannerConfig.CategoryDisjuntions -> {
+        is BannerConfig.CategoryDisjunctions -> {
             return Auction.Factory.buildBannerAuctionCategoryDisjunctions(
                 1, config.slotId, config.disjunctions, config.device, config.geoTargeting
             )
