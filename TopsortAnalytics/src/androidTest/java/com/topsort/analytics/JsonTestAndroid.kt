@@ -1,18 +1,12 @@
 package com.topsort.analytics
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.topsort.analytics.core.eventNow
-import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Click
-import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
-import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
-import com.topsort.analytics.model.PurchasedItem
+import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.Test
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)

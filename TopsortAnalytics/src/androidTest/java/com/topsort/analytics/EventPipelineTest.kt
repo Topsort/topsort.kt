@@ -2,20 +2,13 @@ package com.topsort.analytics
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.topsort.analytics.core.eventNow
-import com.topsort.analytics.core.randomId
-import com.topsort.analytics.model.Entity
-import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
-import com.topsort.analytics.model.Placement
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -49,7 +42,6 @@ import org.junit.runner.RunWith
             val storedDeserialized = Impression.Factory.fromJsonArray(JSONArray("[$storedStr]"))
 
             assertThat(storedDeserialized).containsExactlyInAnyOrderElementsOf(impressions1+impressions2)
-            println(storedStr)
 
             EventPipeline.upload()
             delay(20)

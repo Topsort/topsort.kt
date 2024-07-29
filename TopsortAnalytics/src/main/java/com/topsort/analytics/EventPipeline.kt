@@ -1,14 +1,12 @@
 package com.topsort.analytics
 
 import android.content.Context
-import android.text.TextUtils
 import androidx.annotation.VisibleForTesting
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Impression
@@ -16,18 +14,14 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.JsonSerializable
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
-import com.topsort.analytics.service.TopsortAnalyticsHttpService
-import kotlinx.coroutines.CompletionHandlerException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.Locale
 
 private const val PREFERENCES_NAME = "topsort_event_cache_async"
 
