@@ -66,7 +66,7 @@ internal object EventPipeline {
     suspend fun storeImpression(
         impressionEvent: ImpressionEvent
     ) {
-       writeChannelImpressions.send(impressionEvent.impressions)
+        writeChannelImpressions.send(impressionEvent.impressions)
     }
 
     suspend fun storeClick(
@@ -90,7 +90,7 @@ internal object EventPipeline {
     }
 
     private fun launchUploadLoop() = scope.launch(dispatcher) {
-        for( a in uploadChannel) {
+        for (a in uploadChannel) {
             val aggregated = aggregateEvents()
 
             // Actually send
@@ -123,7 +123,7 @@ internal object EventPipeline {
             }
         }
 
-    private suspend fun aggregateEvents():String {
+    private suspend fun aggregateEvents(): String {
         val data = applicationContext.eventDatastore.data.first()
         val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
         val clicks = data[KEY_CLICK_EVENTS]?.trim(',')
@@ -141,21 +141,21 @@ internal object EventPipeline {
     }
 
     @VisibleForTesting
-    fun readImpressions() : String? {
+    fun readImpressions(): String? {
         return read(KEY_IMPRESSION_EVENTS)
     }
 
     @VisibleForTesting
-    fun readClicks() : String? {
+    fun readClicks(): String? {
         return read(KEY_CLICK_EVENTS)
     }
 
     @VisibleForTesting
-    fun readPurchases() : String? {
+    fun readPurchases(): String? {
         return read(KEY_PURCHASE_EVENTS)
     }
 
-    private fun read(key: Preferences.Key<String>) : String?{
+    private fun read(key: Preferences.Key<String>): String? {
         return runBlocking {
             val ret = scope.async {
                 applicationContext.eventDatastore.data.first()[key]
@@ -166,8 +166,8 @@ internal object EventPipeline {
     }
 
     @VisibleForTesting
-    fun clear(){
-        runBlocking{
+    fun clear() {
+        runBlocking {
             applicationContext.eventDatastore.edit { store ->
                 store.remove(KEY_IMPRESSION_EVENTS)
                 store.remove(KEY_CLICK_EVENTS)
