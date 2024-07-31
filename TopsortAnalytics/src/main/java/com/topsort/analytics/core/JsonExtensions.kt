@@ -1,5 +1,6 @@
 package com.topsort.analytics.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 fun JSONObject.getStringOrNull(name: String): String? {
@@ -19,4 +20,10 @@ fun JSONObject.getStringListOrNull(name: String): List<String>? {
         val array = getJSONArray(name)
         return (0 until array.length()).map { array[it].toString() }
     } else null
+}
+
+fun <T> getListFromJsonArray(array: JSONArray, jsonDeserializer: (JSONObject) -> T): List<T> {
+    return (0 until array.length()).map {
+        jsonDeserializer(array.getJSONObject(it))
+    }
 }

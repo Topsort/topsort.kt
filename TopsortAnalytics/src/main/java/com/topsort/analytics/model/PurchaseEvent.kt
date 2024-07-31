@@ -2,6 +2,7 @@ package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
 import com.topsort.analytics.core.getIntOrNull
+import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray
 
@@ -69,6 +70,13 @@ data class Purchase(
                 },
             )
         }
+
+        fun fromJsonArray(array: JSONArray): List<Purchase> =
+            getListFromJsonArray(
+                array
+            ) {
+                fromJsonObject(it)
+            }
     }
 }
 

@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.json.JSONArray
 
 private const val PREFERENCES_NAME = "topsort_event_cache_async"
 
@@ -125,16 +126,16 @@ internal object EventPipeline {
         val purchases = data[KEY_PURCHASE_EVENTS]?.trim(',')
 
         val impressionEvent =
-            impressions?.let { ImpressionEvent.fromJson("""{ "impressions":[$it] }""".trimMargin()) }
+            impressions?.let { Impression.Factory.fromJsonArray(JSONArray("[$it]")) }
         val clickEvent =
-            clicks?.let { ClickEvent.fromJson("""{ "clicks":[$it] }""".trimMargin()) }
+            clicks?.let { Click.Factory.fromJsonArray(JSONArray("[$it]")) }
         val purchaseEvent =
-            purchases?.let { PurchaseEvent.fromJson("""{ "purchases":[$it] }""".trimMargin()) }
+            purchases?.let { Purchase.fromJsonArray(JSONArray("[$it]")) }
 
         val aggregated = Event(
-            impressions = impressionEvent?.impressions,
-            clicks = clickEvent?.clicks,
-            purchases = purchaseEvent?.purchases,
+            impressions = impressionEvent,
+            clicks = clickEvent,
+            purchases = purchaseEvent,
         )
 
         return aggregated

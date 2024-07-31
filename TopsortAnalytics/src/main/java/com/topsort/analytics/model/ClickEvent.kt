@@ -1,5 +1,6 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -132,6 +133,12 @@ data class Click private constructor (
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
             )
+        }
+
+        fun fromJsonArray(array: JSONArray): List<Click> = getListFromJsonArray(
+            array
+        ) {
+            fromJsonObject(it)
         }
     }
 }

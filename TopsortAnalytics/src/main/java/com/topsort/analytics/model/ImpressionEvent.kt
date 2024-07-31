@@ -1,5 +1,6 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -129,11 +130,12 @@ data class Impression private constructor(
             )
         }
 
-        fun fromJsonArray(array: JSONArray): List<Impression> {
-            return (0 until array.length()).map {
-                fromJsonObject(array.getJSONObject(it))
+        fun fromJsonArray(array: JSONArray): List<Impression> =
+            getListFromJsonArray(
+                array
+            ) {
+                fromJsonObject(it)
             }
-        }
     }
 }
 
