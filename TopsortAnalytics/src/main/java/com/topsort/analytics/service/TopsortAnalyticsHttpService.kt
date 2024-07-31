@@ -3,11 +3,11 @@ package com.topsort.analytics.service
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
+import com.topsort.analytics.core.ServiceSettings.baseApiUrl
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
-import org.json.JSONObject
-import com.topsort.analytics.core.ServiceSettings.baseApiUrl
 
 
 private const val EVENTS_ENDPOINT = "/v2/events"
@@ -20,25 +20,24 @@ internal object TopsortAnalyticsHttpService {
 
     private fun buildService(): Service {
         return object : Service {
-            private fun reportEvent(event: Any): HttpResponse {
-                val json = JSONObject.wrap(event)!!.toString()
+            private fun reportSerializedEvent(json: String): HttpResponse {
                 return httpClient.post(json, Cache.token.ifEmpty { null })
             }
 
             override fun reportImpression(impressionEvent: ImpressionEvent): HttpResponse {
-                return reportEvent(impressionEvent)
+                return reportSerializedEvent(impressionEvent.toJsonObject().toString())
             }
 
             override fun reportClick(clickEvent: ClickEvent): HttpResponse {
-                return reportEvent(clickEvent)
+                return reportSerializedEvent(clickEvent.toJsonObject().toString())
             }
 
             override fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse {
-                return reportEvent(purchaseEvent)
+                return reportSerializedEvent(purchaseEvent.toJsonObject().toString())
             }
 
-            override fun reportAggregated(agg: String): HttpResponse {
-                return httpClient.post(agg, Cache.token.ifEmpty { null })
+            override fun reportEvent(event: Event): HttpResponse {
+                return reportSerializedEvent(event.toJsonObject().toString())
             }
         }
     }
@@ -50,6 +49,6 @@ internal object TopsortAnalyticsHttpService {
 
         fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse
 
-        fun reportAggregated(agg: String): HttpResponse
+        fun reportEvent(event: Event): HttpResponse
     }
 }

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.JsonSerializable
@@ -88,8 +89,8 @@ internal object EventPipeline {
             val aggregated = aggregateEvents()
 
             // Actually send
-            // TopsortAnalyticsHttpService.service.reportAggregated(aggregated)
-            println("uploading: $aggregated")
+            //TopsortAnalyticsHttpService.service.reportEvent(aggregated)
+            println("uploading: ${aggregated.toJsonObject()}")
 
             clear()
         }
@@ -117,21 +118,26 @@ internal object EventPipeline {
             }
         }
 
-    private suspend fun aggregateEvents(): String {
+    private suspend fun aggregateEvents(): Event {
         val data = applicationContext.eventDatastore.data.first()
         val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
         val clicks = data[KEY_CLICK_EVENTS]?.trim(',')
         val purchases = data[KEY_PURCHASE_EVENTS]?.trim(',')
 
-        val aggregated = StringBuilder()
-        aggregated.append("""{""")
-        impressions?.let { aggregated.append(""""impressions":[$it],""".trimMargin()) }
-        clicks?.let { aggregated.append(""""clicks":[$it],""".trimMargin()) }
-        purchases?.let { aggregated.append(""""purchases":[$it],""".trimMargin()) }
-        aggregated.trim(',')
-        aggregated.append("""}""")
+        val impressionEvent =
+            impressions?.let { ImpressionEvent.fromJson("""{ "impressions":[$it] }""".trimMargin()) }
+        val clickEvent =
+            clicks?.let { ClickEvent.fromJson("""{ "clicks":[$it] }""".trimMargin()) }
+        val purchaseEvent =
+            purchases?.let { PurchaseEvent.fromJson("""{ "purchases":[$it] }""".trimMargin()) }
 
-        return aggregated.toString()
+        val aggregated = Event(
+            impressions = impressionEvent?.impressions,
+            clicks = clickEvent?.clicks,
+            purchases = purchaseEvent?.purchases,
+        )
+
+        return aggregated
     }
 
     @VisibleForTesting
