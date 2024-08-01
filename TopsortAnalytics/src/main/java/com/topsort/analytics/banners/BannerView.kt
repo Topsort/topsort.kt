@@ -3,17 +3,36 @@ package com.topsort.analytics.banners
 import android.content.Context
 import android.widget.ImageView
 import coil.load
+import com.topsort.analytics.Analytics
+import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.Auction
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 
-class BannerView(context: Context, config: BannerConfig) : ImageView(context) {
+class BannerView(
+    context: Context,
+    config: BannerConfig,
+    path: String,
+    location: String,
+    clickCallback: (String) -> Unit
+) : ImageView(context) {
     init {
         val result = runBannerAuction(config)
         if (result != null) {
-            val url = result.url;
-            this.load(url);
-            // TODO: Sets OnClickListeners for reporting the click and to go to the banner's destination
+            this.load(result.url)
+            this.viewTreeObserver.addOnGlobalLayoutListener {
+                Analytics.reportImpressionPromoted(
+                    resolvedBidId = result.resolvedBidId,
+                    placement = Placement(path = path, location = location)
+                )
+            }
+            this.setOnClickListener {
+                Analytics.reportClickPromoted(
+                    resolvedBidId = result.resolvedBidId,
+                    placement = Placement(path = path, location = location)
+                )
+                clickCallback(result.id)
+            }
         }
     }
 }
