@@ -7,6 +7,7 @@ import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.Auction
 import com.topsort.analytics.model.auctions.AuctionRequest
+import com.topsort.analytics.model.auctions.EntityType
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 
 class BannerView(
@@ -14,7 +15,7 @@ class BannerView(
     config: BannerConfig,
     path: String,
     location: String,
-    clickCallback: (String) -> Unit
+    clickCallback: (String, EntityType) -> Unit
 ) : ImageView(context) {
     init {
         val result = runBannerAuction(config)
@@ -31,7 +32,7 @@ class BannerView(
                     resolvedBidId = result.resolvedBidId,
                     placement = Placement(path = path, location = location)
                 )
-                clickCallback(result.id)
+                clickCallback(result.id, result.type)
             }
         }
     }
@@ -47,6 +48,7 @@ fun runBannerAuction(config: BannerConfig): BannerResponse? {
             return BannerResponse(
                 id = winner.id,
                 url = winner.asset!!.url,
+                type = winner.type,
                 resolvedBidId = winner.resolvedBidId
             )
         }

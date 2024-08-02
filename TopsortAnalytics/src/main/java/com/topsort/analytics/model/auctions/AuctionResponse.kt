@@ -41,7 +41,7 @@ data class AuctionResponse private constructor(
 
     data class AuctionWinnerItem(
         val rank: Int,
-        val type: String,
+        val type: EntityType,
         val id: String,
         val resolvedBidId: String,
         val asset: Asset? = null,
@@ -50,7 +50,7 @@ data class AuctionResponse private constructor(
             fun fromJsonObject(json: JSONObject): AuctionWinnerItem {
                 return AuctionWinnerItem(
                     rank = json.getInt("rank"),
-                    type = json.getString("type"),
+                    type = EntityType.fromValue(json.getString("type")),
                     id = json.getString("id"),
                     resolvedBidId = json.getString("resolvedBidId"),
                     asset = Asset.fromJsonObject(json),
@@ -61,14 +61,28 @@ data class AuctionResponse private constructor(
 
     data class Asset(val url: String) {
         companion object {
-            fun fromJsonObject(json: JSONObject): AuctionResponse.Asset? {
-                val asset = json.optJSONObject("asset")
-                if (asset == null) {
-                    return null
-                }
+            fun fromJsonObject(json: JSONObject): Asset? {
+                val asset = json.optJSONObject("asset") ?: return null
                 val url = asset.getString("url")
                 return Asset(url = url)
             }
+        }
+    }
+}
+
+enum class EntityType {
+    PRODUCT,
+    VENDOR,
+    BRAND,
+    URL;
+
+    companion object {
+        fun fromValue(value: String): EntityType = when (value) {
+            "product" -> PRODUCT
+            "vendor" -> VENDOR
+            "brand" -> BRAND
+            "url" -> URL
+            else -> throw IllegalArgumentException()
         }
     }
 }
