@@ -155,7 +155,7 @@ internal object EventPipeline {
         applicationContext.eventDatastore.edit { store ->
             store.remove(KEY_IMPRESSION_EVENTS)
             store.remove(KEY_CLICK_EVENTS)
-            store.remove(KEY_IMPRESSION_EVENTS)
+            store.remove(KEY_PURCHASE_EVENTS)
         }
     }
 }

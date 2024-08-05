@@ -103,7 +103,7 @@ import org.junit.runner.RunWith
             job1.join()
             job2.join()
 
-            val storedStr = EventPipeline.readClicks()
+            val storedStr = EventPipeline.readPurchases()
             val storedDeserialized = Purchase.fromJsonArray(JSONArray("[$storedStr]"))
 
             assertThat(storedDeserialized).containsExactlyInAnyOrderElementsOf(purchases1+purchases2)
