@@ -40,10 +40,6 @@ internal object EventPipeline {
     private val scope = CoroutineScope(SupervisorJob())
     private val dispatcher = Dispatchers.IO
 
-    private val writeChannelImpressions = Channel<List<Impression>>()
-    private val writeChannelClicks = Channel<List<Click>>()
-    private val writeChannelPurchases = Channel<List<Purchase>>()
-
     private val uploadChannel = Channel<String>()
 
 
@@ -52,33 +48,38 @@ internal object EventPipeline {
     ) {
         initialize(context)
 
-        launchWriteLoop(writeChannelImpressions, KEY_IMPRESSION_EVENTS)
-        launchWriteLoop(writeChannelClicks, KEY_CLICK_EVENTS)
-        launchWriteLoop(writeChannelPurchases, KEY_PURCHASE_EVENTS)
-
         launchUploadLoop()
     }
 
-    suspend fun storeImpression(
+    fun storeImpression(
         impressionEvent: ImpressionEvent
-    ) {
-        writeChannelImpressions.send(impressionEvent.impressions)
-    }
+    ) = asyncWrite(impressionEvent.impressions, KEY_IMPRESSION_EVENTS)
 
-    suspend fun storeClick(
+    fun storeClick(
         clickEvent: ClickEvent
-    ) {
-        writeChannelClicks.send(clickEvent.clicks)
-    }
+    ) = asyncWrite(clickEvent.clicks, KEY_CLICK_EVENTS)
 
-    suspend fun storePurchase(
+    fun storePurchase(
         purchaseEvent: PurchaseEvent
-    ) {
-        writeChannelPurchases.send(purchaseEvent.purchases)
-    }
+    ) = asyncWrite(purchaseEvent.purchases, KEY_PURCHASE_EVENTS)
 
     fun upload() {
         uploadChannel.trySend("UPLOAD")
+    }
+
+    @VisibleForTesting
+    fun readImpressions(): String? {
+        return read(KEY_IMPRESSION_EVENTS)
+    }
+
+    @VisibleForTesting
+    fun readClicks(): String? {
+        return read(KEY_CLICK_EVENTS)
+    }
+
+    @VisibleForTesting
+    fun readPurchases(): String? {
+        return read(KEY_PURCHASE_EVENTS)
     }
 
     private fun initialize(context: Context) {
@@ -97,24 +98,22 @@ internal object EventPipeline {
         }
     }
 
-    private fun <T : JsonSerializable> launchWriteLoop(
-        channel: Channel<List<T>>,
+    private fun <T : JsonSerializable> asyncWrite(
+        events: List<T>,
         key: Preferences.Key<String>
     ) =
         scope.launch(dispatcher) {
-            for (events in channel) {
-                val json = StringBuilder()
-                for (event in events) {
-                    json.append(event.toJsonObject().toString())
-                    json.append(",")
-                }
+            val json = StringBuilder()
+            for (event in events) {
+                json.append(event.toJsonObject().toString())
+                json.append(",")
+            }
 
-                applicationContext.eventDatastore.edit { store ->
-                    if (store.contains(key)) {
-                        store[key] = store[key] + json.toString()
-                    } else {
-                        store[key] = json.toString()
-                    }
+            applicationContext.eventDatastore.edit { store ->
+                if (store.contains(key)) {
+                    store[key] = store[key] + json.toString()
+                } else {
+                    store[key] = json.toString()
                 }
             }
         }
@@ -141,21 +140,6 @@ internal object EventPipeline {
         return aggregated
     }
 
-    @VisibleForTesting
-    fun readImpressions(): String? {
-        return read(KEY_IMPRESSION_EVENTS)
-    }
-
-    @VisibleForTesting
-    fun readClicks(): String? {
-        return read(KEY_CLICK_EVENTS)
-    }
-
-    @VisibleForTesting
-    fun readPurchases(): String? {
-        return read(KEY_PURCHASE_EVENTS)
-    }
-
     private fun read(key: Preferences.Key<String>): String? {
         return runBlocking {
             val ret = scope.async {
@@ -167,14 +151,11 @@ internal object EventPipeline {
     }
 
     @VisibleForTesting
-    fun clear() {
-        runBlocking {
-            applicationContext.eventDatastore.edit { store ->
-                store.remove(KEY_IMPRESSION_EVENTS)
-                store.remove(KEY_CLICK_EVENTS)
-                store.remove(KEY_IMPRESSION_EVENTS)
-            }
+    suspend fun clear() {
+        applicationContext.eventDatastore.edit { store ->
+            store.remove(KEY_IMPRESSION_EVENTS)
+            store.remove(KEY_CLICK_EVENTS)
+            store.remove(KEY_IMPRESSION_EVENTS)
         }
     }
-
 }
