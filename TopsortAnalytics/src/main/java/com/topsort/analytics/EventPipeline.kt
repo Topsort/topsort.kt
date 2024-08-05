@@ -118,7 +118,8 @@ internal object EventPipeline {
             }
         }
 
-    private suspend fun aggregateEvents(): Event {
+    @VisibleForTesting
+    suspend fun aggregateEvents(): Event {
         val data = applicationContext.eventDatastore.data.first()
         val impressions = data[KEY_IMPRESSION_EVENTS]?.trim(',')
         val clicks = data[KEY_CLICK_EVENTS]?.trim(',')

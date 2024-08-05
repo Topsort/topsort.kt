@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.Purchase
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
  class EventPipelineTest {
-
 
     @Test
     fun impressions_are_batched() {
@@ -107,6 +107,48 @@ import org.junit.runner.RunWith
             val storedDeserialized = Purchase.fromJsonArray(JSONArray("[$storedStr]"))
 
             assertThat(storedDeserialized).containsExactlyInAnyOrderElementsOf(purchases1+purchases2)
+        }
+    }
+
+    @Test
+    fun aggregate_joins_Events() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        EventPipeline.setup(appContext)
+        
+        val impressions = listOf(
+            getImpressionPromoted(),
+            getImpressionOrganic()
+        )
+
+        val clicks = listOf(
+            getClickPromoted(),
+            getClickOrganic(),
+        )
+
+        val purchases = listOf(
+            getRandomPurchase(),
+            getRandomPurchase(),
+        )
+
+        runBlocking {
+            EventPipeline.clear()
+            val aggregated = Event(
+                impressions = impressions,
+                clicks = clicks,
+                purchases = purchases
+            )
+            val job1 = EventPipeline.storeImpression(ImpressionEvent(impressions))
+            val job2 = EventPipeline.storeClick(ClickEvent(clicks))
+            val job3 = EventPipeline.storePurchase(PurchaseEvent(purchases))
+
+            // Make sure they're persisted
+            job1.join()
+            job2.join()
+            job3.join()
+
+            val storedEvent = EventPipeline.aggregateEvents()
+
+            assertThat(aggregated).isEqualTo(storedEvent)
         }
     }
 }
