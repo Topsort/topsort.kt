@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace 'com.topsort.analytics'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 24
-        targetSdk 33
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -36,10 +36,10 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
 
     //Work Manager
-    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    implementation "androidx.work:work-runtime-ktx:2.9.0"
 
     //JodaTime
     implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
@@ -47,6 +47,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20200518'
     testImplementation 'org.assertj:assertj-core:3.26.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
