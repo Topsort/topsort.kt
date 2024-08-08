@@ -40,7 +40,8 @@ private val KEY_IMPRESSION_EVENTS= stringPreferencesKey("KEY_IMPRESSION_EVENTS")
 private val KEY_CLICK_EVENTS = stringPreferencesKey("KEY_CLICK_EVENTS")
 private val KEY_PURCHASE_EVENTS = stringPreferencesKey("KEY_PURCHASE_EVENTS")
 
-private const val UPLOAD_SIGNAL = "UPLOAD"
+@VisibleForTesting
+const val UPLOAD_SIGNAL = "UPLOAD"
 
 val Context.eventDatastore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_NAME)
 
@@ -86,7 +87,7 @@ internal object EventPipeline {
 
         workManager!!
             .enqueueUniqueWork(
-                "UPLOAD",
+                UPLOAD_SIGNAL,
                 ExistingWorkPolicy.REPLACE,
                 requestBuilder.build()
             )

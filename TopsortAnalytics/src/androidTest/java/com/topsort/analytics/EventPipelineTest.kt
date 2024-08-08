@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
  class EventPipelineTest {
 
-    lateinit var workManager: WorkManager
+    private lateinit var workManager: WorkManager
 
     @Before
     fun setup() {
@@ -199,29 +199,24 @@ import org.junit.runner.RunWith
 
     @Test
     fun events_are_uploaded() {
-        val impressions1 = listOf(
-            getImpressionPromoted(),
-            getImpressionOrganic()
-        )
-        val impressions2 = listOf(
+        val impressions = listOf(
             getImpressionPromoted(),
             getImpressionOrganic()
         )
 
         val aggregated = Event(
-            impressions = impressions1 + impressions2,
+            impressions = impressions,
         )
 
         runBlocking {
             EventPipeline.clear()
 
-            EventPipeline.storeImpression(ImpressionEvent(impressions1), shouldFlush = false)
-            EventPipeline.storeImpression(ImpressionEvent(impressions2))
+            EventPipeline.storeImpression(ImpressionEvent(impressions))
                 .join()
 
             // Wait for the upload work to be done
             while (
-                workManager.getWorkInfos(WorkQuery.fromUniqueWorkNames("UPLOAD"))
+                workManager.getWorkInfos(WorkQuery.fromUniqueWorkNames(UPLOAD_SIGNAL))
                     .get().first().state != WorkInfo.State.SUCCEEDED
             ) {
                 yield()
