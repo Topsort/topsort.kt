@@ -10,7 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -77,7 +76,7 @@ internal object EventPipeline {
     @VisibleForTesting
     fun upload() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED)
+            //.setRequiredNetworkType(NetworkType.UNMETERED)
             .setRequiresBatteryNotLow(false)
             .setRequiresDeviceIdle(false)
             .build()
