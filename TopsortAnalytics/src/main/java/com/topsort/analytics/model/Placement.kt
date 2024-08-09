@@ -3,6 +3,7 @@ package com.topsort.analytics.model
 import com.topsort.analytics.core.getIntOrNull
 import com.topsort.analytics.core.getStringListOrNull
 import com.topsort.analytics.core.getStringOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class Placement(
@@ -63,7 +64,7 @@ data class Placement(
             .put("page", page)
             .put("pageSize", pageSize)
             .put("productId", productId)
-            .put("categoryIds", categoryIds)
+            .put("categoryIds", JSONArray(categoryIds))
             .put("searchQuery", searchQuery)
             .put("location", location)
     }

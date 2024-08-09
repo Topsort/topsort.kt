@@ -1,6 +1,8 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class ImpressionEvent (
@@ -10,13 +12,11 @@ data class ImpressionEvent (
         return JSONObject().put("impressions", impressions)
     }
 
-    companion object{
-        fun fromJson(json : String?) : ImpressionEvent? {
-            if(json == null) return null
+    companion object {
+        fun fromJson(json: String?): ImpressionEvent? {
+            if (json == null) return null
             val array = JSONObject(json).getJSONArray("impressions")
-            val impressions = (0 until array.length()).map {
-                Impression.Factory.fromJsonObject(array.getJSONObject(it))
-            }
+            val impressions = Impression.Factory.fromJsonArray(array)
 
             return ImpressionEvent(impressions = impressions)
         }
@@ -58,8 +58,8 @@ data class Impression private constructor(
      * The marketplace assigned ID for the order
      */
     val id: String,
-) {
-    fun toJsonObject(): JSONObject {
+) : JsonSerializable {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
                 if (resolvedBidId == null) {
@@ -129,6 +129,13 @@ data class Impression private constructor(
                 id = json.getString("id"),
             )
         }
+
+        fun fromJsonArray(array: JSONArray): List<Impression> =
+            getListFromJsonArray(
+                array
+            ) {
+                fromJsonObject(it)
+            }
     }
 }
 

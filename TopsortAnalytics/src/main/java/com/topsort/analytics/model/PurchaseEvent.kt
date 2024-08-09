@@ -2,7 +2,9 @@ package com.topsort.analytics.model
 
 import androidx.annotation.IntRange
 import com.topsort.analytics.core.getIntOrNull
+import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import org.json.JSONArray
 
 import org.json.JSONObject
 
@@ -47,13 +49,13 @@ data class Purchase(
      * Items purchased
      */
     val items: List<PurchasedItem>,
-) {
-    fun toJsonObject(): JSONObject {
+)  : JsonSerializable {
+    override fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
-            .put("items", items)
+            .put("items", JSONArray(items.map { it.toJsonObject() }))
     }
 
     companion object {
@@ -68,6 +70,13 @@ data class Purchase(
                 },
             )
         }
+
+        fun fromJsonArray(array: JSONArray): List<Purchase> =
+            getListFromJsonArray(
+                array
+            ) {
+                fromJsonObject(it)
+            }
     }
 }
 
@@ -92,6 +101,7 @@ data class PurchasedItem(
             .put("productId", productId)
             .put("quantity", quantity)
             .put("unitPrice", unitPrice)
+            .put("resolvedBidId", resolvedBidId)
     }
 
     companion object {
