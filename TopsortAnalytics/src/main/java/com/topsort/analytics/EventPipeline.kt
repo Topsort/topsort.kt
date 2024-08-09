@@ -180,6 +180,7 @@ internal object EventPipeline {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     internal class EventEmitterWorker(
         context: Context,
         params: WorkerParameters
