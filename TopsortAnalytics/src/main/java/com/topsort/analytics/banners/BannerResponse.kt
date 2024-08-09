@@ -15,4 +15,4 @@ data class BannerResponse(
     val type: EntityType,
     val url: String,
     val resolvedBidId: String,
-) {}
+)
