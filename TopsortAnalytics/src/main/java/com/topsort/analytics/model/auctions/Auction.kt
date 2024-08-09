@@ -1,6 +1,6 @@
 package com.topsort.analytics.model.auctions
 
-data class Auction private constructor (
+data class Auction private constructor(
     val type: String,
     val slots: Int,
     val products: Products? = null,
@@ -8,17 +8,17 @@ data class Auction private constructor (
     val searchQuery: String? = null,
     val geoTargeting: GeoTargeting? = null,
     val slotId: String? = null,
-    val device: String? = null,
+    val device: Device? = null,
 ) {
 
-    object Factory{
+    object Factory {
 
         @JvmOverloads
         fun buildSponsoredListingAuctionProductIds(
-            slots : Int,
+            slots: Int,
             ids: List<String>,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -29,10 +29,10 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildSponsoredListingAuctionCategorySingle(
-            slots : Int,
+            slots: Int,
             category: String,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -43,10 +43,10 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildSponsoredListingAuctionCategoryMultiple(
-            slots : Int,
+            slots: Int,
             categories: List<String>,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -57,10 +57,10 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildSponsoredListingAuctionCategoryDisjunctions(
-            slots : Int,
+            slots: Int,
             disjunctions: List<List<String>>,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -71,10 +71,10 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildSponsoredListingAuctionKeyword(
-            slots : Int,
+            slots: Int,
             keyword: String,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -85,12 +85,12 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildBannerAuctionLandingPage(
-            slots : Int,
-            slotId : String,
+            slots: Int,
+            slotId: String,
             ids: List<String>,
-            device: String? = null,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -103,12 +103,12 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildBannerAuctionCategorySingle(
-            slots : Int,
-            slotId : String,
+            slots: Int,
+            slotId: String,
             category: String,
-            device: String? = null,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -121,12 +121,12 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildBannerAuctionCategoryMultiple(
-            slots : Int,
-            slotId : String,
+            slots: Int,
+            slotId: String,
             categories: List<String>,
-            device: String? = null,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -139,12 +139,12 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildBannerAuctionCategoryDisjunctions(
-            slots : Int,
-            slotId : String,
+            slots: Int,
+            slotId: String,
             disjunctions: List<List<String>>,
-            device: String? = null,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -157,12 +157,12 @@ data class Auction private constructor (
 
         @JvmOverloads
         fun buildBannerAuctionKeywords(
-            slots : Int,
-            slotId : String,
+            slots: Int,
+            slotId: String,
             keyword: String,
-            device: String? = null,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
-        ) : Auction {
+        ): Auction {
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -174,7 +174,7 @@ data class Auction private constructor (
         }
     }
 
-    data class Products (
+    data class Products(
         val ids: List<String>,
     )
 

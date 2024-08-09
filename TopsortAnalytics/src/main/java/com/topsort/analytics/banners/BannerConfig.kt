@@ -1,5 +1,7 @@
 package com.topsort.analytics.banners
 
+import com.topsort.analytics.model.auctions.Device
+
 /**
  * Class that handles different type of Banner configurations
  */
@@ -10,13 +12,13 @@ sealed class BannerConfig private constructor() {
      *
      * @property slotId id of the banner slot
      * @property ids ids of the entities that are competing for the banner
-     * @property device can be "desktop" or "mobile"
+     * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class LandingPage(
         val slotId: String,
         val ids: List<String>,
-        val device: String? = null,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null
     ) : BannerConfig()
 
@@ -25,13 +27,13 @@ sealed class BannerConfig private constructor() {
      *
      * @property slotId id of the banner slot
      * @property category category for the banner
-     * @property device can be "desktop" or "mobile"
+     * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class CategorySingle(
         val slotId: String,
         val category: String,
-        val device: String? = null,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null
     ) : BannerConfig()
 
@@ -40,13 +42,13 @@ sealed class BannerConfig private constructor() {
      *
      * @property slotId id of the banner slot
      * @property categories list of categories for the competing banners
-     * @property device can be "desktop" or "mobile"
+     * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class CategoryMultiple(
         val slotId: String,
         val categories: List<String>,
-        val device: String? = null,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 
@@ -55,13 +57,13 @@ sealed class BannerConfig private constructor() {
      *
      * @property slotId id of the banner slot
      * @property disjunctions  category disjunctions for the competing banners
-     * @property device can be "desktop" or "mobile"
+     * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class CategoryDisjunctions(
         val slotId: String,
         val disjunctions: List<List<String>>,
-        val device: String? = null,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 
@@ -70,13 +72,13 @@ sealed class BannerConfig private constructor() {
      *
      * @property slotId id of the banner slot
      * @property keyword keyword for the competing banners
-     * @property device can be "desktop" or "mobile"
+     * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class Keyword(
         val slotId: String,
         val keyword: String,
-        val device: String? = null,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 }
