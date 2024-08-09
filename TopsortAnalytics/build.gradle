@@ -1,6 +1,9 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'io.gitlab.arturbosch.detekt'
 }
 
 android {
@@ -32,6 +35,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+}
+
+tasks.withType(Detekt).configureEach {
+    config = files(["$projectDir/../detekt.yaml"])
 }
 
 dependencies {

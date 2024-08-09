@@ -1,9 +1,12 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'io.gitlab.arturbosch.detekt'
 }
 
-def config = { k -> "\"${project.properties.get(k)}\"" }
+def properties = { k -> "\"${project.properties.get(k)}\"" }
 
 android {
     namespace 'com.topsort.analytics'
@@ -21,13 +24,13 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField 'String', 'TOKEN', config("topsort.sample.bearertoken")
+            buildConfigField 'String', 'TOKEN', properties("topsort.sample.bearertoken")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
         release {
-            buildConfigField 'String', 'TOKEN', config("topsort.sample.bearertoken")
+            buildConfigField 'String', 'TOKEN', properties("topsort.sample.bearertoken")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -42,6 +45,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+}
+
+tasks.withType(Detekt).configureEach {
+    config = files(["$projectDir/../detekt.yaml"])
 }
 
 dependencies {
