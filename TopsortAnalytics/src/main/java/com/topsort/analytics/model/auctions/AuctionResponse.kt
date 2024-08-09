@@ -82,7 +82,7 @@ enum class EntityType {
             "vendor" -> VENDOR
             "brand" -> BRAND
             "url" -> URL
-            else -> throw IllegalArgumentException()
+            else -> throw IllegalArgumentException("not valid entity type: $value")
         }
     }
 }
