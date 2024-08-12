@@ -29,7 +29,7 @@ fun runBannerAuction(config: BannerConfig): BannerResponse? {
 }
 
 /**
- * Builds a low-leve Auction object to be run with TopsortAuctionHttpService.
+ * Builds a low-level Auction object to be run with TopsortAuctionHttpService.
  *
  * Generally, you shouldn't be calling this function yourself and you should use runBannerAuction instead.
  *
