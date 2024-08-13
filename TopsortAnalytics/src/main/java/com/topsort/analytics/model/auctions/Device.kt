@@ -1,6 +1,7 @@
 package com.topsort.analytics.model.auctions
 
+@Suppress("EnumNaming")
 enum class Device {
-    DESKTOP,
-    MOBILE
+    desktop,
+    mobile
 }

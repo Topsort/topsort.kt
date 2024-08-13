@@ -88,7 +88,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             ids: List<String>,
-            device: Device = Device.MOBILE,
+            device: Device = Device.mobile,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -106,7 +106,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             category: String,
-            device: Device = Device.MOBILE,
+            device: Device = Device.mobile,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -124,7 +124,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             categories: List<String>,
-            device: Device = Device.MOBILE,
+            device: Device = Device.mobile,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -142,7 +142,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             disjunctions: List<List<String>>,
-            device: Device = Device.MOBILE,
+            device: Device = Device.mobile,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -160,7 +160,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             keyword: String,
-            device: Device = Device.MOBILE,
+            device: Device = Device.mobile,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
