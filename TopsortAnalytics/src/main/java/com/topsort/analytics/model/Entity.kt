@@ -4,8 +4,8 @@ import org.json.JSONObject
 
 enum class EntityType {
 
-    Product,
-    Vendor,
+    PRODUCT,
+    VENDOR,
 }
 
 data class Entity(
@@ -23,14 +23,14 @@ data class Entity(
     fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("id", id)
-            .put("type", type.name)
+            .put("type", type.name.lowercase())
     }
 
     companion object{
         fun fromJsonObject(json: JSONObject): Entity {
             return Entity(
                 id = json.getString("id"),
-                type = EntityType.valueOf(json.getString("type"))
+                type = EntityType.valueOf(json.getString("type").uppercase())
             )
         }
     }

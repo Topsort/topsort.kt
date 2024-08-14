@@ -54,7 +54,7 @@ public class JavaSampleActivity extends ComponentActivity {
         Analytics
                 .INSTANCE
                 .reportImpressionOrganic(
-                        new Entity("p_SA0238", EntityType.Product),
+                        new Entity("p_SA0238", EntityType.PRODUCT),
                         placement,
                         null,
                         null,
@@ -71,7 +71,7 @@ public class JavaSampleActivity extends ComponentActivity {
         Analytics
                 .INSTANCE
                 .reportClickOrganic(
-                        new Entity("p_SA0238", EntityType.Product),
+                        new Entity("p_SA0238", EntityType.PRODUCT),
                         placement,
                         null,
                         null,
