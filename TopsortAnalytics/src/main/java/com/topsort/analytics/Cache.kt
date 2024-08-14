@@ -6,7 +6,7 @@ import android.text.TextUtils
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
-import java.util.*
+import java.util.Locale
 
 private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
 
@@ -31,7 +31,7 @@ internal object Cache {
                 .apply()
         }
 
-    var sessionId: String = ""
+    private var opaqueUserId: String = ""
         set(value) {
             field = value
             preferences
@@ -45,18 +45,18 @@ internal object Cache {
         preferences = applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
         token = preferences.getString(KEY_TOKEN, "")!!
-        sessionId = preferences.getString(KEY_SESSION_ID, "")!!
+        opaqueUserId = preferences.getString(KEY_SESSION_ID, "")!!
     }
 
     fun setup(
         context: Context,
-        sessionId: String,
+        opaqueUserId: String,
         token: String
     ) {
         initialize(context)
 
         recentRecordId = preferences.getLong(KEY_RECENT_RECORD_ID, 0)
-        this.sessionId = sessionId
+        this.opaqueUserId = opaqueUserId
         this.token = token
     }
 
