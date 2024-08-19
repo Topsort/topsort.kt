@@ -20,16 +20,16 @@ data class Auction private constructor(
             put("type", type)
             put("slots", slots)
             if (products != null) {
-                put("products", products)
+                put("products", JSONObject.wrap(products))
             }
             if (category != null) {
-                put("category", category)
+                put("category", JSONObject.wrap(category))
             }
             if (searchQuery != null) {
                 put("searchQuery", searchQuery)
             }
             if (geoTargeting != null) {
-                put("geoTargeting", geoTargeting)
+                put("geoTargeting", JSONObject.wrap(geoTargeting))
             }
             if (slotId != null) {
                 put("slotId", slotId)

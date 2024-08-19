@@ -1,6 +1,5 @@
 package com.topsort.analytics.service
 
-import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
 import com.topsort.analytics.core.ServiceSettings
@@ -8,7 +7,6 @@ import com.topsort.analytics.core.ServiceSettings.baseApiUrl
 import com.topsort.analytics.core.ServiceSettings.bearerToken
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
-import org.json.JSONObject
 
 private const val AUCTION_ENDPOINT = "/v2/auctions"
 
@@ -29,7 +27,7 @@ internal object TopsortAuctionsHttpService {
             assert(ServiceSettings.isSetup())
             httpClient = HttpClient("${baseApiUrl}${AUCTION_ENDPOINT}")
         }
-        val json = JSONObject.wrap(auctionRequest)!!.toString()
+        val json = auctionRequest.toJsonObject().toString()
         return httpClient.post(json, bearerToken)
     }
 }
