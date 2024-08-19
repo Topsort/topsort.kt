@@ -9,7 +9,11 @@ data class ImpressionEvent (
     val impressions: List<Impression>,
 ) {
     fun toJsonObject(): JSONObject {
-        return JSONObject().put("impressions", impressions)
+        val array = JSONArray()
+        impressions.indices.map {
+            array.put(it, impressions[it].toJsonObject())
+        }
+        return JSONObject().put("impressions", array)
     }
 
     companion object {

@@ -12,7 +12,11 @@ data class PurchaseEvent(
     val purchases: List<Purchase>
 ) {
     fun toJsonObject(): JSONObject {
-        return JSONObject().put("purchases", purchases)
+        val array = JSONArray()
+        purchases.indices.map {
+            array.put(it, purchases[it].toJsonObject())
+        }
+        return JSONObject().put("purchases", array)
     }
 
     companion object{
