@@ -1,5 +1,7 @@
 package com.topsort.analytics.model.auctions
 
+import org.json.JSONObject
+
 data class Auction private constructor(
     val type: String,
     val slots: Int,
@@ -10,6 +12,36 @@ data class Auction private constructor(
     val slotId: String? = null,
     val device: Device? = null,
 ) {
+
+    fun toJsonObject(): JSONObject {
+        val builder = JSONObject()
+
+        with(builder) {
+            put("type", type)
+            put("slots", slots)
+            if (products != null) {
+                put("products", JSONObject.wrap(products))
+            }
+            if (category != null) {
+                put("category", JSONObject.wrap(category))
+            }
+            if (searchQuery != null) {
+                put("searchQuery", searchQuery)
+            }
+            if (geoTargeting != null) {
+                put("geoTargeting", JSONObject.wrap(geoTargeting))
+            }
+            if (slotId != null) {
+                put("slotId", slotId)
+            }
+            if (device != null) {
+                put("device", device.name.lowercase())
+            }
+        }
+
+        return builder
+
+    }
 
     object Factory {
 
@@ -88,7 +120,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             ids: List<String>,
-            device: Device = Device.mobile,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -106,7 +138,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             category: String,
-            device: Device = Device.mobile,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -124,7 +156,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             categories: List<String>,
-            device: Device = Device.mobile,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -142,7 +174,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             disjunctions: List<List<String>>,
-            device: Device = Device.mobile,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(
@@ -160,7 +192,7 @@ data class Auction private constructor(
             slots: Int,
             slotId: String,
             keyword: String,
-            device: Device = Device.mobile,
+            device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
             return Auction(

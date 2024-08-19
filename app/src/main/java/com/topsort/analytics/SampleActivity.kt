@@ -56,7 +56,7 @@ class SampleActivity : Activity() {
 
         Analytics.reportClickOrganic(
             placement = placement,
-            entity = Entity(id = "p_SA0238", type = EntityType.Product),
+            entity = Entity(id = "p_SA0238", type = EntityType.PRODUCT),
         )
     }
 
@@ -82,7 +82,7 @@ class SampleActivity : Activity() {
         Analytics.reportImpressionOrganic(
             id = "p_SA0238",
             placement = placement,
-            entity = Entity(id = "p_SA0238", type = EntityType.Product),
+            entity = Entity(id = "p_SA0238", type = EntityType.PRODUCT),
         )
     }
 
