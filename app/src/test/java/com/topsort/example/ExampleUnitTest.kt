@@ -1,4 +1,4 @@
-package com.topsort.analytics
+package com.topsort.example
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

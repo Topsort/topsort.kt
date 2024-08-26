@@ -9,11 +9,11 @@ plugins {
 def properties = { k -> "\"${project.properties.get(k)}\"" }
 
 android {
-    namespace 'com.topsort.analytics'
+    namespace 'com.topsort.example'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.topsort.analytics"
+        applicationId "com.topsort.example"
         minSdk 24
         targetSdk 34
         versionCode 1

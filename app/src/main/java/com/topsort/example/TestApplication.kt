@@ -1,6 +1,8 @@
-package com.topsort.analytics
+package com.topsort.example
 
 import android.app.Application
+import com.topsort.analytics.Analytics
+import com.topsort.analytics.banners.BannerConfig
 
 class TestApplication : Application() {
 
@@ -14,5 +16,10 @@ class TestApplication : Application() {
             sessionId = sessionId,
             token = BuildConfig.TOKEN
         )
+
+        val config = BannerConfig.LandingPage(slotId = "app", ids = listOf("p1", "p2"))
+        //  val banner = BannerView(context = , config = config)
+
+
     }
 }

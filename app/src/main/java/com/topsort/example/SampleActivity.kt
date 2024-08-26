@@ -1,7 +1,8 @@
-package com.topsort.analytics
+package com.topsort.example
 
 import android.app.Activity
 import android.os.Bundle
+import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Placement
@@ -11,6 +12,7 @@ class SampleActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.sample_activity)
 
         reportPurchaseWithResolvedBidId()
         reportClickWithResolvedBidId()
