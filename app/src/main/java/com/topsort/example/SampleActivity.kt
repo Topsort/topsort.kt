@@ -3,24 +3,42 @@ package com.topsort.example
 import android.app.Activity
 import android.os.Bundle
 import com.topsort.analytics.Analytics
+import com.topsort.analytics.banners.BannerConfig
+import com.topsort.analytics.banners.BannerView
+import com.topsort.analytics.core.ServiceSettings
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.auctions.EntityType as BannerEntityType
 
 class SampleActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ServiceSettings.baseApiUrl = "https://api.topsort.com"
         setContentView(R.layout.sample_activity)
 
-        reportPurchaseWithResolvedBidId()
-        reportClickWithResolvedBidId()
-        reportImpressionWithResolvedBidId()
+        val bannerView = findViewById<BannerView>(R.id.bannerView)
+        val bannerConfig = BannerConfig.LandingPage(slotId = "sample", ids = listOf("p1", "p2"))
+        bannerView.setup(
+            bannerConfig,
+            "sample_activity",
+            null,
+            { id, entityType -> this.onBannerClick(id, entityType) })
 
-        reportPurchase()
-        reportClick()
-        reportImpression()
+
+        //reportPurchaseWithResolvedBidId()
+        //reportClickWithResolvedBidId()
+        //reportImpressionWithResolvedBidId()
+
+        //reportPurchase()
+        //reportClick()
+        //reportImpression()
+    }
+
+    private fun onBannerClick(id: String, entityType: BannerEntityType) {
+
     }
 
     private fun reportPurchaseWithResolvedBidId() {

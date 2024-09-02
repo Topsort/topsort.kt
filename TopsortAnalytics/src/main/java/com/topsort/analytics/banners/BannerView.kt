@@ -13,12 +13,13 @@ class BannerView(
     context: Context,
     attrs: AttributeSet
 ) : ImageView(context, attrs) {
-    lateinit var config: BannerConfig
-    lateinit var location: String
-    lateinit var path: String
-    lateinit var onClick: (String, EntityType) -> Unit
 
-    init {
+    fun setup(
+        config: BannerConfig,
+        path: String,
+        location: String?,
+        onClick: (String, EntityType) -> Unit
+    ) {
         val result = runBannerAuction(config)
         if (result != null) {
             this.load(result.url)
