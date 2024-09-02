@@ -25,7 +25,7 @@ fun getClickOrganic() : Click {
     return Click.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
-            type = EntityType.Product,
+            type = EntityType.PRODUCT,
             id = randomId("product_"),
         ),
         occurredAt = eventNow(),
@@ -50,7 +50,7 @@ fun getImpressionOrganic() : Impression {
     return Impression.Factory.buildOrganic (
         placement = getTestPlacement(),
         entity = Entity(
-            type = EntityType.Product,
+            type = EntityType.PRODUCT,
             id = randomId("product_"),
         ),
         occurredAt = eventNow(),

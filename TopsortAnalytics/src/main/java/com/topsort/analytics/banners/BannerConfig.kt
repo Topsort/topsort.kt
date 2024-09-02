@@ -18,7 +18,7 @@ sealed class BannerConfig private constructor() {
     data class LandingPage(
         val slotId: String,
         val ids: List<String>,
-        val device: Device = Device.mobile,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null
     ) : BannerConfig()
 
@@ -33,7 +33,7 @@ sealed class BannerConfig private constructor() {
     data class CategorySingle(
         val slotId: String,
         val category: String,
-        val device: Device = Device.mobile,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null
     ) : BannerConfig()
 
@@ -48,7 +48,7 @@ sealed class BannerConfig private constructor() {
     data class CategoryMultiple(
         val slotId: String,
         val categories: List<String>,
-        val device: Device = Device.mobile,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 
@@ -63,7 +63,7 @@ sealed class BannerConfig private constructor() {
     data class CategoryDisjunctions(
         val slotId: String,
         val disjunctions: List<List<String>>,
-        val device: Device = Device.mobile,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 
@@ -78,7 +78,7 @@ sealed class BannerConfig private constructor() {
     data class Keyword(
         val slotId: String,
         val keyword: String,
-        val device: Device = Device.mobile,
+        val device: Device = Device.MOBILE,
         val geoTargeting: String? = null,
     ) : BannerConfig()
 }

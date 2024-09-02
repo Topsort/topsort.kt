@@ -40,24 +40,24 @@ object Analytics : TopsortAnalytics {
     /**
      * Setup initial properties required for the analytics library,
      * Call this from the Application class, before submitting any event,
-     * Or when a new sessionId or bearer token has to be used.
+     * Or when a new opaqueUserId or bearer token has to be used.
      *
      * @param application The Application instance of the app.
-     * @param sessionId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
+     * @param opaqueUserId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
      * @param token The bearer token
      */
     @SuppressLint("KotlinNullnessAnnotation")
     fun setup(
         @NonNull application: Application,
-        @NonNull sessionId: String,
+        @NonNull opaqueUserId: String,
         @NonNull token: String
     ) {
         applicationContext = application.applicationContext
         workManager = WorkManager.getInstance(applicationContext!!)
-        Cache.setup(application, sessionId, token)
+        Cache.setup(application, opaqueUserId, token)
 
         session = Session(
-            sessionId = sessionId
+            opaqueUserId = opaqueUserId
         )
     }
 
@@ -72,7 +72,7 @@ object Analytics : TopsortAnalytics {
             Impression.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                 id = id?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
             )
@@ -92,7 +92,7 @@ object Analytics : TopsortAnalytics {
             Impression.Factory.buildOrganic(
                 entity = entity,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                 id = id?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
             )
@@ -112,7 +112,7 @@ object Analytics : TopsortAnalytics {
             Click.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                 id = id?: randomId(),
                 occurredAt = occurredAt ?: eventTime()
             )
@@ -132,7 +132,7 @@ object Analytics : TopsortAnalytics {
             Click.Factory.buildOrganic(
                 entity = entity,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                 id = id?: randomId(),
                 occurredAt = occurredAt ?: eventTime()
             )
@@ -158,7 +158,7 @@ object Analytics : TopsortAnalytics {
                     id = id,
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
-                    opaqueUserId = opaqueUserId ?: session!!.sessionId,
+                    opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                 ),
             ),
         )

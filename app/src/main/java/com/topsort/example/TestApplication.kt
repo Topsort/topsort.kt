@@ -13,7 +13,7 @@ class TestApplication : Application() {
 
         Analytics.setup(
             application = this,
-            sessionId = sessionId,
+            opaqueUserId = sessionId,
             token = BuildConfig.TOKEN
         )
 
