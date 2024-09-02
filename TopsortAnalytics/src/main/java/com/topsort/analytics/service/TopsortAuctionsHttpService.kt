@@ -1,10 +1,9 @@
 package com.topsort.analytics.service
 
+import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
-import com.topsort.analytics.core.ServiceSettings
 import com.topsort.analytics.core.ServiceSettings.baseApiUrl
-import com.topsort.analytics.core.ServiceSettings.bearerToken
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 
@@ -24,10 +23,9 @@ internal object TopsortAuctionsHttpService {
 
     private fun executeRunAuctions(auctionRequest: AuctionRequest): HttpResponse {
         if(!this::httpClient.isInitialized){
-            assert(ServiceSettings.isSetup())
             httpClient = HttpClient("${baseApiUrl}${AUCTION_ENDPOINT}")
         }
         val json = auctionRequest.toJsonObject().toString()
-        return httpClient.post(json, bearerToken)
+        return httpClient.post(json, Cache.token.ifEmpty { null })
     }
 }
