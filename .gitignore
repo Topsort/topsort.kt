@@ -3,13 +3,9 @@
 .cxx
 .externalNativeBuild
 .gradle
-.idea
-/.idea/assetWizardSettings.xml
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/navEditor.xml
-/.idea/workspace.xml
+.idea/caches
+.idea/workspace.xml
+.idea/shelf
 /TopsortAnalytics/build
 /build
 /captures
