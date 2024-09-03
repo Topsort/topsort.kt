@@ -1,32 +1,33 @@
 package com.topsort.example
 
-import android.app.Activity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.topsort.analytics.Analytics
 import com.topsort.analytics.banners.BannerConfig
 import com.topsort.analytics.banners.BannerView
-import com.topsort.analytics.core.ServiceSettings
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
+import kotlinx.coroutines.launch
 import com.topsort.analytics.model.auctions.EntityType as BannerEntityType
 
-class SampleActivity : Activity() {
+class SampleActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ServiceSettings.baseApiUrl = "https://api.topsort.com"
         setContentView(R.layout.sample_activity)
 
-        val bannerView = findViewById<BannerView>(R.id.bannerView)
-        val bannerConfig = BannerConfig.LandingPage(slotId = "sample", ids = listOf("p1", "p2"))
-        bannerView.setup(
-            bannerConfig,
-            "sample_activity",
-            null,
-            { id, entityType -> this.onBannerClick(id, entityType) })
-
+        this.lifecycleScope.launch {
+            val bannerView = findViewById<BannerView>(R.id.bannerView)
+            val bannerConfig = BannerConfig.LandingPage(slotId = "sample", ids = listOf("p1", "p2"))
+            bannerView.setup(
+                bannerConfig,
+                "sample_activity",
+                null,
+                { id, entityType -> onBannerClick(id, entityType) })
+        }
 
         //reportPurchaseWithResolvedBidId()
         //reportClickWithResolvedBidId()
@@ -37,9 +38,6 @@ class SampleActivity : Activity() {
         //reportImpression()
     }
 
-    private fun onBannerClick(id: String, entityType: BannerEntityType) {
-
-    }
 
     private fun reportPurchaseWithResolvedBidId() {
         val item = PurchasedItem(
@@ -118,4 +116,8 @@ class SampleActivity : Activity() {
             id = "marketPlaceImpressionId"
         )
     }
+}
+
+fun onBannerClick(id: String, entityType: BannerEntityType) {
+
 }
