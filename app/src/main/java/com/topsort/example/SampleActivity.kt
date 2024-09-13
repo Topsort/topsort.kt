@@ -29,13 +29,13 @@ class SampleActivity : AppCompatActivity() {
                 { id, entityType -> onBannerClick(id, entityType) })
         }
 
-        //reportPurchaseWithResolvedBidId()
-        //reportClickWithResolvedBidId()
-        //reportImpressionWithResolvedBidId()
+        reportPurchaseWithResolvedBidId()
+        reportClickWithResolvedBidId()
+        reportImpressionWithResolvedBidId()
 
-        //reportPurchase()
-        //reportClick()
-        //reportImpression()
+        reportPurchase()
+        reportClick()
+        reportImpression()
     }
 
 
