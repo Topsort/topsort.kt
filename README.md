@@ -238,4 +238,51 @@ private void reportImpressionWithResolvedBidId() {
     }
 ```
 
+#### Banners on Android
+
+#### Kotlin
+You should first add the `BannerView` into your activity `xml`. You can do so with
+Android Studio's visual editor, but the end file should like like the following
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.topsort.analytics.banners.BannerView
+        android:id="@+id/bannerView"
+        android:layout_width="353dp"
+        android:layout_height="103dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+Then, you have to call the `BannerView.setup()` function with you auction parameters.
+Notice that since this makes network calls, we need to `launch` it in a co-routine.
+```kotlin
+class SampleActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.sample_activity)
+
+        this.lifecycleScope.launch {
+            val bannerView = findViewById<BannerView>(R.id.bannerView)
+            val bannerConfig =
+                BannerConfig.CategorySingle(slotId = "slot", category = "category")
+            bannerView.setup(
+                bannerConfig,
+                "sample_activity",
+                null,
+                { id, entityType -> onBannerClick(id, entityType) })
+        }
+    }
+}
+```
+
+
 [1]: ./LICENSE
