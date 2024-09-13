@@ -16,10 +16,6 @@ class TestApplication : Application() {
             opaqueUserId = sessionId,
             token = BuildConfig.TOKEN
         )
-
-        val config = BannerConfig.LandingPage(slotId = "app", ids = listOf("p1", "p2"))
-        //  val banner = BannerView(context = , config = config)
-
-
+        
     }
 }

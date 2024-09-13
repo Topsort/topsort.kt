@@ -23,7 +23,7 @@ data class Auction private constructor(
                 put("products", JSONObject.wrap(products))
             }
             if (category != null) {
-                put("category", JSONObject.wrap(category))
+                put("category", category.toJsonObject())
             }
             if (searchQuery != null) {
                 put("searchQuery", searchQuery)
@@ -214,7 +214,23 @@ data class Auction private constructor(
         val id: String? = null,
         val ids: List<String>? = null,
         val disjunctions: List<List<String>>? = null,
-    )
+    ) {
+        fun toJsonObject(): JSONObject {
+            val builder = JSONObject()
+            with(builder) {
+                if (id != null) {
+                    put("id", id)
+                }
+                if (ids != null) {
+                    put("ids", JSONObject.wrap(ids))
+                }
+                if (disjunctions != null) {
+                    put("disjunctions", JSONObject.wrap(disjunctions))
+                }
+            }
+            return builder
+        }
+    }
 
     data class GeoTargeting(
         val location: String,

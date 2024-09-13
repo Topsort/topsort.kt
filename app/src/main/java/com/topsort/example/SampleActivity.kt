@@ -21,7 +21,8 @@ class SampleActivity : AppCompatActivity() {
 
         this.lifecycleScope.launch {
             val bannerView = findViewById<BannerView>(R.id.bannerView)
-            val bannerConfig = BannerConfig.LandingPage(slotId = "sample", ids = listOf("p1", "p2"))
+            val bannerConfig =
+                BannerConfig.CategorySingle(slotId = "slot", category = "category")
             bannerView.setup(
                 bannerConfig,
                 "sample_activity",

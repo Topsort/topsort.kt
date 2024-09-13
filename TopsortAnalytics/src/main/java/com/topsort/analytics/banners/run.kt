@@ -21,12 +21,13 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
     val auctionJob = CoroutineScope(Dispatchers.IO).launch {
         response = TopsortAuctionsHttpService.runAuctions(request)
     }
+    auctionJob.join()
     if ((response?.results?.isNotEmpty() == true)) {
         if (response!!.results[0].winners.isNotEmpty()) {
             val winner = response!!.results[0].winners[0]
             return BannerResponse(
                 id = winner.id,
-                url = winner.asset!!.url,
+                url = winner.asset!![0].url,
                 type = winner.type,
                 resolvedBidId = winner.resolvedBidId
             )

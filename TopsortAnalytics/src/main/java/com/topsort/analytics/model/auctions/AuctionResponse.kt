@@ -44,26 +44,33 @@ data class AuctionResponse private constructor(
         val type: EntityType,
         val id: String,
         val resolvedBidId: String,
-        val asset: Asset? = null,
+        val asset: List<Asset>? = null,
     ) {
         companion object {
             fun fromJsonObject(json: JSONObject): AuctionWinnerItem {
+                val assetArray = json.optJSONArray("asset")
+                var assets: List<Asset>? = null
+                if (assetArray != null) {
+                    assets = (0 until assetArray.length()).map {
+                        Asset.fromJsonObject(assetArray.getJSONObject(it))
+                    }
+                }
                 return AuctionWinnerItem(
                     rank = json.getInt("rank"),
                     type = EntityType.fromValue(json.getString("type")),
                     id = json.getString("id"),
                     resolvedBidId = json.getString("resolvedBidId"),
-                    asset = Asset.fromJsonObject(json),
+                    asset = assets,
                 )
             }
         }
     }
 
+
     data class Asset(val url: String) {
         companion object {
-            fun fromJsonObject(json: JSONObject): Asset? {
-                val asset = json.optJSONObject("asset") ?: return null
-                val url = asset.getString("url")
+            fun fromJsonObject(json: JSONObject): Asset {
+                val url = json.getString("url")
                 return Asset(url = url)
             }
         }
