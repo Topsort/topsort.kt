@@ -1,6 +1,7 @@
 package com.topsort.example
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.topsort.analytics.Analytics
@@ -120,5 +121,6 @@ class SampleActivity : AppCompatActivity() {
 }
 
 fun onBannerClick(id: String, entityType: BannerEntityType) {
+    Log.i("BannerClick", "Clicked banner for $entityType with id $id")
 
 }
