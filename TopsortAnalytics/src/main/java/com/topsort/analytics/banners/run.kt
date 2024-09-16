@@ -2,7 +2,11 @@ package com.topsort.analytics.banners
 
 import com.topsort.analytics.model.auctions.Auction
 import com.topsort.analytics.model.auctions.AuctionRequest
+import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Run a banner auction with a single slot
@@ -10,16 +14,20 @@ import com.topsort.analytics.service.TopsortAuctionsHttpService
  * @param config the banner configuration that specifies which kind of banner auction to run
  * @return A BannerResponse if the auction successfully returned a winner or null if not.
  */
-fun runBannerAuction(config: BannerConfig): BannerResponse? {
+suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
     val auction = buildBannerAuction(config)
     val request = AuctionRequest(listOf(auction))
-    val response = TopsortAuctionsHttpService.runAuctions(request)
+    var response: AuctionResponse? = null;
+    val auctionJob = CoroutineScope(Dispatchers.IO).launch {
+        response = TopsortAuctionsHttpService.runAuctions(request)
+    }
+    auctionJob.join()
     if ((response?.results?.isNotEmpty() == true)) {
-        if (response.results[0].winners.isNotEmpty()) {
-            val winner = response.results[0].winners[0]
+        if (response!!.results[0].winners.isNotEmpty()) {
+            val winner = response!!.results[0].winners[0]
             return BannerResponse(
                 id = winner.id,
-                url = winner.asset!!.url,
+                url = winner.asset!![0].url,
                 type = winner.type,
                 resolvedBidId = winner.resolvedBidId
             )

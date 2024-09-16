@@ -1,6 +1,8 @@
-package com.topsort.analytics
+package com.topsort.example
 
 import android.app.Application
+import com.topsort.analytics.Analytics
+import com.topsort.analytics.banners.BannerConfig
 
 class TestApplication : Application() {
 
@@ -14,5 +16,6 @@ class TestApplication : Application() {
             opaqueUserId = sessionId,
             token = BuildConfig.TOKEN
         )
+        
     }
 }

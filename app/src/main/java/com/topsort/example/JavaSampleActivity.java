@@ -1,10 +1,11 @@
-package com.topsort.analytics;
+package com.topsort.example;
 
 import android.os.Bundle;
 
 import androidx.activity.ComponentActivity;
 import androidx.annotation.Nullable;
 
+import com.topsort.analytics.Analytics;
 import com.topsort.analytics.model.Entity;
 import com.topsort.analytics.model.EntityType;
 import com.topsort.analytics.model.Placement;

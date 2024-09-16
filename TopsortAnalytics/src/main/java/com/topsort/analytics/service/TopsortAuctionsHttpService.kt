@@ -1,5 +1,6 @@
 package com.topsort.analytics.service
 
+import android.util.Log
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
@@ -17,12 +18,15 @@ internal object TopsortAuctionsHttpService {
         val response = executeRunAuctions(auctionRequest)
         if (response.isSuccessful()) {
             return AuctionResponse.fromJson(response.body)
+        } else {
+            Log.w("TopsortAuctionsHttpService", "Auction message: " + response.message)
+            Log.w("TopsortAuctionsHttpService", "Auction response: " + response.body.toString())
         }
         return null
     }
 
     private fun executeRunAuctions(auctionRequest: AuctionRequest): HttpResponse {
-        if(!this::httpClient.isInitialized){
+        if (!this::httpClient.isInitialized) {
             httpClient = HttpClient("${baseApiUrl}${AUCTION_ENDPOINT}")
         }
         val json = auctionRequest.toJsonObject().toString()

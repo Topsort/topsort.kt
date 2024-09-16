@@ -52,6 +52,9 @@ dependencies {
     //JodaTime
     implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
 
+    // Image Loading for Banners
+    implementation 'io.coil-kt:coil:2.7.0'
+
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20200518'
     testImplementation 'org.assertj:assertj-core:3.26.0'
