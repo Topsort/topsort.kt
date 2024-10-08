@@ -17,4 +17,4 @@ We follow the format used by [Open Telemetry](https://github.com/open-telemetry/
 
 ### Added
 
-- Added maven publishing configurations by @anonvt in 
+- Added maven publishing configurations by @anonvt in ([#25](https://github.com/Topsort/topsort.kt/pull/25))
