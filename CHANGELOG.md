@@ -11,7 +11,7 @@ We follow the format used by [Open Telemetry](https://github.com/open-telemetry/
 
 ### Added
 
-- Added CD support by @anonvt in 
+- Added CD support by @anonvt in ([#28](https://github.com/Topsort/topsort.kt/pull/28))
 
 ## Version 1.1.0 (2024-09-12)
 
