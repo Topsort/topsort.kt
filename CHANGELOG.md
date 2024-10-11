@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 We follow the format used by [Open Telemetry](https://github.com/open-telemetry/opentelemetry-python/blob/main/CHANGELOG.md).
 
 
-## Version 1.1.0-alpha.0 (2024-09-12)
+## Version 1.1.1 (2024-10-11)
+
+### Added
+
+- Added CD support by @anonvt in 
+
+## Version 1.1.0 (2024-09-12)
 
 ### Added
 
