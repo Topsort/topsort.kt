@@ -5,21 +5,25 @@ on:
     types: [published]
 
 jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build library
+        run: ./gradlew :TopsortAnalytics:compileReleaseKotlin
+
   publishToMaven:
     environment:
       name: "MavenCentral"
+
+    needs: build
 
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
 
       - name: Upload library
         run: ./gradlew :TopsortAnalytics:publishAndReleaseToMavenCentral
