@@ -7,15 +7,25 @@ Licensed under [MIT][1].
 
 ## Installation / Getting started
 
-- Clone the repository from github: `git clone https://github.com/topsort/topsort.kt.git`
-- From Android Studio, import the module: `File -> New -> Import Module`.
-- A popup window will open with the title: Import Module From Source
-- Select the source directory of the downloaded library named: `TopsortAnalytics`, and click finish
-- Right click on the application project module, from the menu select `Open module Settings`
-- From the left side of the displayed panel select `dependencies`
-- Under `Modules` select the application module
-- Under `Declared Dependencies`, click the `+` button, and select `Module Dependency`
-- A popup will show up, select `TopsortAnalytics`, and at the bottom of the dialog select the type of configuration as `implementation`, then click ok
+We recommend installing the library via Gradle.
+Simply add the dependency to your build.gradle file:
+
+```gradle
+dependencies {
+    ...
+
+    implementation 'com.topsort:topsort-kt:1.1.0'
+}
+```
+
+The library is distributed through Maven central, which is usually included by default in your repositories.
+You can also add it directly, if needed:
+
+```gradle
+repositories {
+    mavenCentral()
+}
+```
 
 ## Usage/Examples
 
