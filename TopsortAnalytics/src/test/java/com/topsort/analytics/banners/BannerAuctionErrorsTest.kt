@@ -54,7 +54,7 @@ class BannerAuctionErrorsTest {
             
             httpServiceMock.use {
                 // When the service is called, throw an exception
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenThrow(ioException)
                 
@@ -81,7 +81,7 @@ class BannerAuctionErrorsTest {
             
             httpServiceMock.use {
                 // When the service is called, return null
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenReturn(null)
                 
@@ -109,7 +109,7 @@ class BannerAuctionErrorsTest {
             
             httpServiceMock.use {
                 // When the service is called, return the empty response
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenReturn(emptyResponse)
                 
@@ -171,7 +171,7 @@ class BannerAuctionErrorsTest {
             
             httpServiceMock.use {
                 // Configure mock to delay longer than our timeout
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenAnswer { _ -> 
                     runBlocking {
@@ -214,7 +214,7 @@ class BannerAuctionErrorsTest {
                 Mockito.`when`(mockResponse.results).thenReturn(emptyList())
                 
                 // Configure mock to delay less than our timeout
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenAnswer { _ -> 
                     runBlocking {
@@ -250,7 +250,7 @@ class BannerAuctionErrorsTest {
             
             httpServiceMock.use {
                 // Configure mock to delay longer than the default timeout
-                it.`when` { 
+                it.`when`<AuctionResponse> { 
                     TopsortAuctionsHttpService.runAuctions(Mockito.any(AuctionRequest::class.java)) 
                 }.thenAnswer { _ -> 
                     runBlocking {
