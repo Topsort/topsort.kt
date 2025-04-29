@@ -187,15 +187,11 @@ class BannerViewTest {
 
     @Test
     fun `test multiple callbacks chain correctly`() = runTest {
-        // Given
-        var imageLoadCalled = false
-        var errorCalled = false
-        var noWinnersCalled = false
-        
+        // Given - Just check that chaining methods returns the same object
         val chainedView = mockBannerView
-            .onImageLoad { imageLoadCalled = true }
-            .onError { errorCalled = true }
-            .onNoWinners { noWinnersCalled = true }
+            .onImageLoad { /* no-op */ }
+            .onError { /* no-op */ }
+            .onNoWinners { /* no-op */ }
         
         // When checking that chaining returns the same object
         assertEquals(mockBannerView, chainedView, "Chained method calls should return the original object")
