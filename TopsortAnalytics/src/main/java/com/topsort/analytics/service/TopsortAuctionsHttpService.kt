@@ -24,10 +24,9 @@ internal object TopsortAuctionsHttpService {
                 Log.w("TopsortAuctionsHttpService", "Auction response: " + response.body.toString())
                 throw AuctionError.HttpError(IOException("HTTP Error: ${response.code} - ${response.message}"))
             }
+        } catch (e: AuctionError) {
+            throw e
         } catch (e: Exception) {
-            if (e is AuctionError) {
-                throw e
-            }
             throw AuctionError.HttpError(e)
         }
     }
