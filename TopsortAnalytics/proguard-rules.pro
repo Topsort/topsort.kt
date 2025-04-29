@@ -19,3 +19,54 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep public API
+-keep public class com.topsort.analytics.Analytics {
+    public *;
+}
+
+# Keep public model classes
+-keep public class com.topsort.analytics.model.** {
+    public *;
+}
+
+# Keep public banner classes
+-keep public class com.topsort.analytics.banners.** {
+    public *;
+}
+
+# Keep model classes that will be serialized/deserialized
+-keepclassmembers class com.topsort.analytics.model.** {
+    <fields>;
+}
+
+# Keep enums
+-keepclassmembers enum com.topsort.analytics.** {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Preserve core library classes
+-keep class com.topsort.analytics.core.** {
+    public *;
+}
+
+# WorkManager rules
+-keepclassmembers class * extends androidx.work.Worker {
+    public <init>(android.content.Context,androidx.work.WorkerParameters);
+}
+
+# Preserve annotations
+-keepattributes *Annotation*
+
+# Preserve the special static methods that are required in all enumeration classes
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Preserve line number information for debugging stack traces
+-keepattributes SourceFile,LineNumberTable
+
+# Hide the original source file name
+-renamesourcefileattribute SourceFile
