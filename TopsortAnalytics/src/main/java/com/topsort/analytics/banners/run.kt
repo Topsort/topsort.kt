@@ -8,17 +8,31 @@ import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.IOException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
+/**
+ * Default timeout duration for auction calls
+ */
+val DEFAULT_AUCTION_TIMEOUT: Duration = 10.seconds
 
 /**
  * Run a banner auction with a single slot
  *
  * @param config the banner configuration that specifies which kind of banner auction to run
+ * @param timeout the maximum time to wait for auction response (defaults to 10 seconds)
  * @return A BannerResponse if the auction successfully returned a winner or null if not.
  * @throws AuctionError if there was an error during the auction process
  */
-suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
+suspend fun runBannerAuction(
+    config: BannerConfig,
+    timeout: Duration = DEFAULT_AUCTION_TIMEOUT
+): BannerResponse? {
     try {
         val auction = buildBannerAuction(config)
         
@@ -29,13 +43,16 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
         }
 
         val request = AuctionRequest(listOf(auction))
-        var response: AuctionResponse? = null
         
-        try {
-            val auctionJob = CoroutineScope(Dispatchers.IO).launch {
-                response = TopsortAuctionsHttpService.runAuctions(request)
+        // Execute the auction request with a timeout
+        val response = try {
+            withTimeout(timeout) {
+                withContext(Dispatchers.IO) {
+                    TopsortAuctionsHttpService.runAuctions(request)
+                }
             }
-            auctionJob.join()
+        } catch (e: TimeoutCancellationException) {
+            throw AuctionError.TimeoutError("Auction request timed out after ${timeout.inWholeMilliseconds}ms")
         } catch (e: Exception) {
             throw AuctionError.HttpError(e)
         }
@@ -45,9 +62,9 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
             throw AuctionError.EmptyResponse
         }
         
-        if (response!!.results.isNotEmpty()) {
-            if (response!!.results[0].winners.isNotEmpty()) {
-                val winner = response!!.results[0].winners[0]
+        if (response.results.isNotEmpty()) {
+            if (response.results[0].winners.isNotEmpty()) {
+                val winner = response.results[0].winners[0]
                 return BannerResponse(
                     id = winner.id,
                     url = winner.asset!![0].url,

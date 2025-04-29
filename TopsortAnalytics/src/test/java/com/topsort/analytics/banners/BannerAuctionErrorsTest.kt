@@ -7,8 +7,11 @@ import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
 import org.junit.Test
+import org.junit.After
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
@@ -18,8 +21,11 @@ import org.mockito.junit.MockitoJUnitRunner
 import java.io.IOException
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 @RunWith(MockitoJUnitRunner::class)
+@ExperimentalCoroutinesApi
 class BannerAuctionErrorsTest {
 
     // Test to verify that when an HTTP error occurs, an AuctionError.HttpError is thrown
@@ -127,6 +133,105 @@ class BannerAuctionErrorsTest {
             val maxField = ApiConstants::class.java.getDeclaredField("MAX_AUCTIONS")
             maxField.isAccessible = true
             maxField.set(null, originalMaxAuctions)
+        }
+    }
+    
+    /**
+     * Test that auctions properly timeout if they take too long
+     */
+    @Test
+    fun `auction requests should timeout if they exceed the specified duration`() = runBlocking {
+        // Create test configuration
+        val config = BannerConfig.LandingPage("test-slot", listOf("test-id"))
+        
+        // Mock the TopsortAuctionsHttpService to delay longer than our timeout
+        val httpServiceMock = Mockito.mockStatic(TopsortAuctionsHttpService::class.java)
+        
+        httpServiceMock.use {
+            // Configure mock to delay longer than our timeout
+            it.`when`<AuctionResponse> { 
+                TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
+            }.then { 
+                // Delay longer than our timeout
+                delay(500)
+                Mockito.mock(AuctionResponse::class.java)
+            }
+            
+            // Set a short timeout (100ms)
+            val timeout = 100.milliseconds
+            
+            // The auction should throw a TimeoutError
+            val exception = assertFailsWith<AuctionError.TimeoutError> {
+                runBannerAuction(config, timeout)
+            }
+            
+            // Verify the error message contains timeout information
+            assertTrue(exception.message?.contains(timeout.toString()) ?: false,
+                     "Timeout error message should include the timeout duration")
+        }
+    }
+    
+    /**
+     * Test that auctions complete normally if they finish within the timeout
+     */
+    @Test
+    fun `auction requests should complete normally if they finish within timeout`() = runBlocking {
+        // Create test configuration
+        val config = BannerConfig.LandingPage("test-slot", listOf("test-id"))
+        
+        // Mock the TopsortAuctionsHttpService
+        val httpServiceMock = Mockito.mockStatic(TopsortAuctionsHttpService::class.java)
+        
+        httpServiceMock.use {
+            // Mock response
+            val mockResponse = Mockito.mock(AuctionResponse::class.java)
+            Mockito.`when`(mockResponse.results).thenReturn(emptyList())
+            
+            // Configure mock to delay less than our timeout
+            it.`when`<AuctionResponse> { 
+                TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
+            }.then { 
+                // Delay shorter than our timeout
+                delay(50)
+                mockResponse
+            }
+            
+            // Set a longer timeout (500ms)
+            val timeout = 500.milliseconds
+            
+            // The auction should complete successfully (return null for empty results)
+            val result = runBannerAuction(config, timeout)
+            
+            // Result is null because we mocked an empty response list
+            assertTrue(result == null, "Auction should complete normally with null result for empty winner list")
+        }
+    }
+    
+    /**
+     * Test that the default timeout is applied when not explicitly specified
+     */
+    @Test
+    fun `default timeout should be applied when not explicitly specified`() = runBlocking {
+        // Create test configuration
+        val config = BannerConfig.LandingPage("test-slot", listOf("test-id"))
+        
+        // Mock the TopsortAuctionsHttpService
+        val httpServiceMock = Mockito.mockStatic(TopsortAuctionsHttpService::class.java)
+        
+        httpServiceMock.use {
+            // Configure mock to delay longer than the default timeout
+            it.`when`<AuctionResponse> { 
+                TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
+            }.then { 
+                // This delay is much longer than any reasonable default timeout
+                delay(DEFAULT_AUCTION_TIMEOUT.inWholeMilliseconds * 2)
+                Mockito.mock(AuctionResponse::class.java)
+            }
+            
+            // The auction should throw a TimeoutError
+            assertFailsWith<AuctionError.TimeoutError> {
+                runBannerAuction(config) // Using default timeout
+            }
         }
     }
 } 

@@ -34,4 +34,10 @@ sealed class AuctionError(message: String, cause: Throwable? = null) : Exception
      * Error that occurs when the auction response is empty
      */
     object EmptyResponse : AuctionError("Auction returned an empty response")
+    
+    /**
+     * Error that occurs when the auction request times out
+     * @param message Detailed message about the timeout
+     */
+    class TimeoutError(message: String) : AuctionError(message)
 } 

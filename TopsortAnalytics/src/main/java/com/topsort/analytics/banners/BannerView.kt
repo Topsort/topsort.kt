@@ -8,6 +8,7 @@ import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.EntityType
+import kotlin.time.Duration
 
 
 /**
@@ -29,6 +30,7 @@ class BannerView(
     private var onErrorCallback: ((Throwable) -> Unit)? = null
     private var onImageLoadCallback: (() -> Unit)? = null
     private var onAuctionErrorCallback: ((AuctionError) -> Unit)? = null
+    private var onTimeoutCallback: (() -> Unit)? = null
 
     /**
      * Set a callback to be invoked when no winners are returned from the auction.
@@ -75,11 +77,23 @@ class BannerView(
     }
 
     /**
+     * Set a callback to be invoked when the auction request times out.
+     *
+     * @param callback function to invoke when a timeout occurs
+     * @return this BannerView instance for method chaining
+     */
+    fun onTimeout(callback: () -> Unit): BannerView {
+        this.onTimeoutCallback = callback
+        return this
+    }
+
+    /**
      * Setup the banner in the view by running an auction in the background.
      *
      * @param config a BannerConfig object that specifies the parameters for the auction
      * @param path identifier for the activity where the banner is displayed. It's recommended to be the deeplink for the view.
      * @param location optional name for the location within the view where the banner is displayed.
+     * @param timeout optional timeout duration for the auction request. If not specified, the default timeout will be used.
      * @param onClick callback for when the banner is clicked. Usually this should navigate to an activity related to the banner (e.g. the product page for the product shown in the banner).
      * @receiver
      */
@@ -87,10 +101,11 @@ class BannerView(
         config: BannerConfig,
         path: String,
         location: String?,
+        timeout: Duration = DEFAULT_AUCTION_TIMEOUT,
         onClick: (String, EntityType) -> Unit
     ) {
         try {
-            val result = runBannerAuction(config)
+            val result = runBannerAuction(config, timeout)
             if (result != null) {
                 this.load(result.url) {
                     listener(
@@ -122,6 +137,11 @@ class BannerView(
             // Handle specific auction errors
             when (e) {
                 is AuctionError.EmptyResponse -> onNoWinnersCallback?.invoke()
+                is AuctionError.TimeoutError -> {
+                    onTimeoutCallback?.invoke()
+                    onAuctionErrorCallback?.invoke(e)
+                    onErrorCallback?.invoke(e)
+                }
                 is AuctionError.HttpError -> {
                     onAuctionErrorCallback?.invoke(e)
                     onErrorCallback?.invoke(e)
