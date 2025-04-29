@@ -11,8 +11,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.kotlin.whenever
-import coil.request.ErrorResult
-import coil.request.ImageRequest
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

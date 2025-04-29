@@ -12,6 +12,7 @@ import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.EntityType
 import kotlin.time.Duration
 import kotlin.Throwable
+import androidx.annotation.VisibleForTesting
 
 
 /**
@@ -24,7 +25,8 @@ import kotlin.Throwable
  * @param attrs AttributeSet for the view. Since this view inherits from `ImageView`
  * you can set attributes as you would with a regular `ImageView`.
  */
-class BannerView(
+@VisibleForTesting
+open class BannerView(
     context: Context,
     attrs: AttributeSet
 ) : ImageView(context, attrs) {
@@ -115,7 +117,7 @@ class BannerView(
                         onSuccess = { _: Any, _: Any ->
                             onImageLoadCallback?.invoke()
                         },
-                        onError = { request: coil.request.ImageRequest, throwable: coil.request.ErrorResult ->
+                        onError = { _ : ImageRequest, throwable: ErrorResult ->
                             onErrorCallback?.invoke(throwable)
                         }
                     )
