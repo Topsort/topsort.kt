@@ -16,6 +16,8 @@ style:
     active: false
   MaxLineLength:
     active: false
+  ThrowsCount:
+    active: false
   # This is also too opinionated
   ReturnCount:
     active: false
