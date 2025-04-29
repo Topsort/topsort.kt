@@ -5,6 +5,12 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
+# Keep JodaTime and JodaConvert classes
+-keep class org.joda.time.** { *; }
+-keep class org.joda.convert.** { *; }
+-dontwarn org.joda.convert.**
+-dontwarn org.joda.time.**
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
