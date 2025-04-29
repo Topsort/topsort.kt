@@ -24,6 +24,8 @@ style:
     active: false
 
 exceptions:
-  # This will require a greater refactor in a follow up PR
+  # These will require a greater refactor in a follow up PR
   TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
     active: false
