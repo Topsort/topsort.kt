@@ -14,33 +14,36 @@ data class Auction private constructor(
 ) {
 
     fun toJsonObject(): JSONObject {
-        val builder = JSONObject()
+        try {
+            val builder = JSONObject()
 
-        with(builder) {
-            put("type", type)
-            put("slots", slots)
-            if (products != null) {
-                put("products", JSONObject.wrap(products))
+            with(builder) {
+                put("type", type)
+                put("slots", slots)
+                if (products != null) {
+                    put("products", JSONObject.wrap(products))
+                }
+                if (category != null) {
+                    put("category", category.toJsonObject())
+                }
+                if (searchQuery != null) {
+                    put("searchQuery", searchQuery)
+                }
+                if (geoTargeting != null) {
+                    put("geoTargeting", JSONObject.wrap(geoTargeting))
+                }
+                if (slotId != null) {
+                    put("slotId", slotId)
+                }
+                if (device != null) {
+                    put("device", device.name.lowercase())
+                }
             }
-            if (category != null) {
-                put("category", category.toJsonObject())
-            }
-            if (searchQuery != null) {
-                put("searchQuery", searchQuery)
-            }
-            if (geoTargeting != null) {
-                put("geoTargeting", JSONObject.wrap(geoTargeting))
-            }
-            if (slotId != null) {
-                put("slotId", slotId)
-            }
-            if (device != null) {
-                put("device", device.name.lowercase())
-            }
+
+            return builder
+        } catch (e: Exception) {
+            throw AuctionError.SerializationError
         }
-
-        return builder
-
     }
 
     object Factory {
@@ -51,6 +54,11 @@ data class Auction private constructor(
             ids: List<String>,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            if (ids.isEmpty()) {
+                throw IllegalArgumentException("Product IDs list cannot be empty")
+            }
+            
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -65,6 +73,11 @@ data class Auction private constructor(
             category: String,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            if (category.isBlank()) {
+                throw IllegalArgumentException("Category cannot be blank")
+            }
+            
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -79,6 +92,11 @@ data class Auction private constructor(
             categories: List<String>,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            if (categories.isEmpty()) {
+                throw IllegalArgumentException("Categories list cannot be empty")
+            }
+            
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -93,6 +111,11 @@ data class Auction private constructor(
             disjunctions: List<List<String>>,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            if (disjunctions.isEmpty()) {
+                throw IllegalArgumentException("Disjunctions list cannot be empty")
+            }
+            
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -107,6 +130,11 @@ data class Auction private constructor(
             keyword: String,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            if (keyword.isBlank()) {
+                throw IllegalArgumentException("Keyword cannot be blank")
+            }
+            
             return Auction(
                 type = "listings",
                 slots = slots,
@@ -123,6 +151,12 @@ data class Auction private constructor(
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            validateSlotId(slotId)
+            if (ids.isEmpty()) {
+                throw IllegalArgumentException("Product IDs list cannot be empty")
+            }
+            
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -141,6 +175,12 @@ data class Auction private constructor(
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            validateSlotId(slotId)
+            if (category.isBlank()) {
+                throw IllegalArgumentException("Category cannot be blank")
+            }
+            
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -159,6 +199,12 @@ data class Auction private constructor(
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            validateSlotId(slotId)
+            if (categories.isEmpty()) {
+                throw IllegalArgumentException("Categories list cannot be empty")
+            }
+            
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -177,6 +223,12 @@ data class Auction private constructor(
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            validateSlotId(slotId)
+            if (disjunctions.isEmpty()) {
+                throw IllegalArgumentException("Disjunctions list cannot be empty")
+            }
+            
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -195,6 +247,12 @@ data class Auction private constructor(
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
         ): Auction {
+            validateSlots(slots)
+            validateSlotId(slotId)
+            if (keyword.isBlank()) {
+                throw IllegalArgumentException("Keyword cannot be blank")
+            }
+            
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -203,6 +261,18 @@ data class Auction private constructor(
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
             )
+        }
+        
+        private fun validateSlots(slots: Int) {
+            if (slots <= 0) {
+                throw IllegalArgumentException("Number of slots must be positive")
+            }
+        }
+        
+        private fun validateSlotId(slotId: String) {
+            if (slotId.isBlank()) {
+                throw IllegalArgumentException("Slot ID cannot be blank")
+            }
         }
     }
 
@@ -216,19 +286,23 @@ data class Auction private constructor(
         val disjunctions: List<List<String>>? = null,
     ) {
         fun toJsonObject(): JSONObject {
-            val builder = JSONObject()
-            with(builder) {
-                if (id != null) {
-                    put("id", id)
+            try {
+                val builder = JSONObject()
+                with(builder) {
+                    if (id != null) {
+                        put("id", id)
+                    }
+                    if (ids != null) {
+                        put("ids", JSONObject.wrap(ids))
+                    }
+                    if (disjunctions != null) {
+                        put("disjunctions", JSONObject.wrap(disjunctions))
+                    }
                 }
-                if (ids != null) {
-                    put("ids", JSONObject.wrap(ids))
-                }
-                if (disjunctions != null) {
-                    put("disjunctions", JSONObject.wrap(disjunctions))
-                }
+                return builder
+            } catch (e: Exception) {
+                throw AuctionError.SerializationError
             }
-            return builder
         }
     }
 

@@ -6,11 +6,24 @@ import org.json.JSONObject
 data class AuctionRequest(
     val auctions : List<Auction>
 ){
-    fun toJsonObject(): JSONObject {
-        val array = JSONArray()
-        auctions.indices.map {
-            array.put(it, auctions[it].toJsonObject())
+    init {
+        if (auctions.isEmpty() || auctions.size < ApiConstants.MIN_AUCTIONS) {
+            throw AuctionError.InvalidNumberAuctions(auctions.size)
         }
-        return JSONObject().put("auctions", array)
+        if (auctions.size > ApiConstants.MAX_AUCTIONS) {
+            throw AuctionError.InvalidNumberAuctions(auctions.size)
+        }
+    }
+    
+    fun toJsonObject(): JSONObject {
+        try {
+            val array = JSONArray()
+            auctions.indices.map {
+                array.put(it, auctions[it].toJsonObject())
+            }
+            return JSONObject().put("auctions", array)
+        } catch (e: Exception) {
+            throw AuctionError.SerializationError
+        }
     }
 }
