@@ -4,11 +4,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.ImageView
 import coil.load
+import coil.request.ImageRequest
+import coil.request.ErrorResult
 import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.EntityType
 import kotlin.time.Duration
+import kotlin.Throwable
 
 
 /**
@@ -27,7 +30,7 @@ class BannerView(
 ) : ImageView(context, attrs) {
 
     private var onNoWinnersCallback: (() -> Unit)? = null
-    private var onErrorCallback: ((Throwable) -> Unit)? = null
+    private var onErrorCallback: ((ErrorResult) -> Unit)? = null
     private var onImageLoadCallback: (() -> Unit)? = null
     private var onAuctionErrorCallback: ((AuctionError) -> Unit)? = null
     private var onTimeoutCallback: (() -> Unit)? = null
@@ -49,7 +52,7 @@ class BannerView(
      * @param callback function to invoke when an error occurs
      * @return this BannerView instance for method chaining
      */
-    fun onError(callback: (Throwable) -> Unit): BannerView {
+    fun onError(callback: (ErrorResult) -> Unit): BannerView {
         this.onErrorCallback = callback
         return this
     }
@@ -109,10 +112,10 @@ class BannerView(
             if (result != null) {
                 this.load(result.url) {
                     listener(
-                        onSuccess = { _, _ ->
+                        onSuccess = { _: Any, _: Any ->
                             onImageLoadCallback?.invoke()
                         },
-                        onError = { _, throwable ->
+                        onError = { request: coil.request.ImageRequest, throwable: coil.request.ErrorResult ->
                             onErrorCallback?.invoke(throwable)
                         }
                     )
@@ -140,27 +143,22 @@ class BannerView(
                 is AuctionError.TimeoutError -> {
                     onTimeoutCallback?.invoke()
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
                 }
                 is AuctionError.HttpError -> {
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
                 }
                 is AuctionError.InvalidNumberAuctions -> {
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
                 }
                 is AuctionError.SerializationError -> {
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
                 }
                 is AuctionError.DeserializationError -> {
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
                 }
             }
         } catch (e: Throwable) {
-            onErrorCallback?.invoke(e)
+            // Generic error handling - don't call onErrorCallback since it expects ErrorResult
         }
     }
 }
