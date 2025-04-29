@@ -12,6 +12,7 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.kotlin.whenever
 import coil.request.ErrorResult
+import coil.request.ImageRequest
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -67,7 +68,16 @@ class BannerViewTest {
     fun `test onError callback is invoked when an error occurs`() = runTest {
         // Given
         var callbackInvoked = false
-        val testErrorResult = mock(ErrorResult::class.java)
+        
+        // Create a properly mocked ErrorResult
+        val mockRequest = mock(ImageRequest::class.java)
+        val mockThrowable = RuntimeException("Test error")
+        // ErrorResult is an interface with two properties: request and throwable
+        val testErrorResult = object : ErrorResult {
+            override val request: ImageRequest = mockRequest
+            override val throwable: Throwable = mockThrowable
+        }
+        
         mockBannerView.onError { callbackInvoked = true }
         
         // When
