@@ -11,6 +11,13 @@
 -dontwarn org.joda.convert.**
 -dontwarn org.joda.time.**
 
+# Keep StringConcatFactory which is required for Java 9+ string concatenation
+-keep class java.lang.invoke.StringConcatFactory { *; }
+-keepclassmembers class * {
+    java.lang.String toString();
+}
+-dontwarn java.lang.invoke.StringConcatFactory
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:

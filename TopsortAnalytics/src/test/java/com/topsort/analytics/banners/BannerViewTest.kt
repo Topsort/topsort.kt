@@ -10,10 +10,12 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
-import org.mockito.Mockito.thenAnswer
+import org.mockito.kotlin.whenever
+import coil.request.ErrorResult
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration
 
 @ExperimentalCoroutinesApi
 class BannerViewTest {
@@ -34,14 +36,17 @@ class BannerViewTest {
         mockBannerView.onNoWinners { callbackInvoked = true }
         
         // When
-        `when`(mockBannerView.setup(
+        whenever(mockBannerView.setup(
             any(),
             anyString(),
             anyString(),
+            any<Duration>(),
             any()
         )).thenAnswer {
-            // Simulate no winners
-            val callback = mockBannerView.onNoWinnersCallback
+            // Use reflection to access private callback
+            val field = BannerView::class.java.getDeclaredField("onNoWinnersCallback")
+            field.isAccessible = true
+            val callback = field.get(mockBannerView) as? (() -> Unit)
             callback?.invoke()
             Unit
         }
@@ -50,8 +55,9 @@ class BannerViewTest {
         mockBannerView.setup(
             BannerConfig.LandingPage("test-slot", listOf("id1", "id2")),
             "test-path",
-            "test-location"
-        ) { _, _ -> }
+            "test-location",
+            onClick = { _, _ -> }
+        )
         
         // Then
         assertTrue(callbackInvoked, "onNoWinners callback should have been invoked")
@@ -61,19 +67,22 @@ class BannerViewTest {
     fun `test onError callback is invoked when an error occurs`() = runTest {
         // Given
         var callbackInvoked = false
-        val testException = Exception("Test exception")
+        val testErrorResult = mock(ErrorResult::class.java)
         mockBannerView.onError { callbackInvoked = true }
         
         // When
-        `when`(mockBannerView.setup(
+        whenever(mockBannerView.setup(
             any(),
             anyString(),
             anyString(),
+            any<Duration>(),
             any()
         )).thenAnswer {
-            // Simulate error
-            val callback = mockBannerView.onErrorCallback
-            callback?.invoke(testException)
+            // Use reflection to access private callback
+            val field = BannerView::class.java.getDeclaredField("onErrorCallback")
+            field.isAccessible = true
+            val callback = field.get(mockBannerView) as? ((ErrorResult) -> Unit)
+            callback?.invoke(testErrorResult)
             Unit
         }
         
@@ -81,8 +90,9 @@ class BannerViewTest {
         mockBannerView.setup(
             BannerConfig.LandingPage("test-slot", listOf("id1", "id2")),
             "test-path",
-            "test-location"
-        ) { _, _ -> }
+            "test-location",
+            onClick = { _, _ -> }
+        )
         
         // Then
         assertTrue(callbackInvoked, "onError callback should have been invoked")
@@ -101,14 +111,17 @@ class BannerViewTest {
         }
         
         // When
-        `when`(mockBannerView.setup(
+        whenever(mockBannerView.setup(
             any(),
             anyString(),
             anyString(),
+            any<Duration>(),
             any()
         )).thenAnswer {
-            // Simulate auction error
-            val callback = mockBannerView.onAuctionErrorCallback
+            // Use reflection to access private callback
+            val field = BannerView::class.java.getDeclaredField("onAuctionErrorCallback")
+            field.isAccessible = true
+            val callback = field.get(mockBannerView) as? ((AuctionError) -> Unit)
             callback?.invoke(testError)
             Unit
         }
@@ -117,8 +130,9 @@ class BannerViewTest {
         mockBannerView.setup(
             BannerConfig.LandingPage("test-slot", listOf("id1", "id2")),
             "test-path",
-            "test-location"
-        ) { _, _ -> }
+            "test-location",
+            onClick = { _, _ -> }
+        )
         
         // Then
         assertTrue(callbackInvoked, "onAuctionError callback should have been invoked")
@@ -132,14 +146,17 @@ class BannerViewTest {
         mockBannerView.onImageLoad { callbackInvoked = true }
         
         // When
-        `when`(mockBannerView.setup(
+        whenever(mockBannerView.setup(
             any(),
             anyString(),
             anyString(),
+            any<Duration>(),
             any()
         )).thenAnswer {
-            // Simulate successful image load
-            val callback = mockBannerView.onImageLoadCallback
+            // Use reflection to access private callback
+            val field = BannerView::class.java.getDeclaredField("onImageLoadCallback")
+            field.isAccessible = true
+            val callback = field.get(mockBannerView) as? (() -> Unit)
             callback?.invoke()
             Unit
         }
@@ -148,8 +165,9 @@ class BannerViewTest {
         mockBannerView.setup(
             BannerConfig.LandingPage("test-slot", listOf("id1", "id2")),
             "test-path",
-            "test-location"
-        ) { _, _ -> }
+            "test-location",
+            onClick = { _, _ -> }
+        )
         
         // Then
         assertTrue(callbackInvoked, "onImageLoad callback should have been invoked")

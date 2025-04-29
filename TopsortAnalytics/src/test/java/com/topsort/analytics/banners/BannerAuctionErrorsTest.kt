@@ -151,10 +151,12 @@ class BannerAuctionErrorsTest {
             // Configure mock to delay longer than our timeout
             it.`when`<AuctionResponse> { 
                 TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
-            }.then { 
-                // Delay longer than our timeout
-                delay(500)
-                Mockito.mock(AuctionResponse::class.java)
+            }.thenAnswer { invocation -> 
+                kotlinx.coroutines.runBlocking {
+                    // Delay longer than our timeout
+                    delay(500)
+                    Mockito.mock(AuctionResponse::class.java)
+                }
             }
             
             // Set a short timeout (100ms)
@@ -190,10 +192,12 @@ class BannerAuctionErrorsTest {
             // Configure mock to delay less than our timeout
             it.`when`<AuctionResponse> { 
                 TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
-            }.then { 
-                // Delay shorter than our timeout
-                delay(50)
-                mockResponse
+            }.thenAnswer { invocation -> 
+                kotlinx.coroutines.runBlocking {
+                    // Delay shorter than our timeout
+                    delay(50)
+                    mockResponse
+                }
             }
             
             // Set a longer timeout (500ms)
@@ -222,10 +226,12 @@ class BannerAuctionErrorsTest {
             // Configure mock to delay longer than the default timeout
             it.`when`<AuctionResponse> { 
                 TopsortAuctionsHttpService.runAuctions(any(AuctionRequest::class.java)) 
-            }.then { 
-                // This delay is much longer than any reasonable default timeout
-                delay(DEFAULT_AUCTION_TIMEOUT.inWholeMilliseconds * 2)
-                Mockito.mock(AuctionResponse::class.java)
+            }.thenAnswer { invocation -> 
+                kotlinx.coroutines.runBlocking {
+                    // This delay is much longer than any reasonable default timeout
+                    delay(DEFAULT_AUCTION_TIMEOUT.inWholeMilliseconds * 2)
+                    Mockito.mock(AuctionResponse::class.java)
+                }
             }
             
             // The auction should throw a TimeoutError
