@@ -45,6 +45,7 @@ class BannerViewTest {
             // Use reflection to access private callback
             val field = BannerView::class.java.getDeclaredField("onNoWinnersCallback")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val callback = field.get(mockBannerView) as? (() -> Unit)
             callback?.invoke()
             Unit
@@ -89,6 +90,7 @@ class BannerViewTest {
             // Use reflection to access private callback
             val field = BannerView::class.java.getDeclaredField("onErrorCallback")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val callback = field.get(mockBannerView) as? ((ErrorResult) -> Unit)
             callback?.invoke(testErrorResult)
             Unit
@@ -129,6 +131,7 @@ class BannerViewTest {
             // Use reflection to access private callback
             val field = BannerView::class.java.getDeclaredField("onAuctionErrorCallback")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val callback = field.get(mockBannerView) as? ((AuctionError) -> Unit)
             callback?.invoke(testError)
             Unit
@@ -164,6 +167,7 @@ class BannerViewTest {
             // Use reflection to access private callback
             val field = BannerView::class.java.getDeclaredField("onImageLoadCallback")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val callback = field.get(mockBannerView) as? (() -> Unit)
             callback?.invoke()
             Unit
