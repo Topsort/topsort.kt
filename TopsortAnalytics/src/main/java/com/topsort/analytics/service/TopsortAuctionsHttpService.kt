@@ -1,6 +1,5 @@
 package com.topsort.analytics.service
 
-import android.util.Log
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
@@ -20,8 +19,6 @@ internal object TopsortAuctionsHttpService {
             if (response.isSuccessful()) {
                 return AuctionResponse.fromJson(response.body)
             } else {
-                Log.w("TopsortAuctionsHttpService", "Auction message: " + response.message)
-                Log.w("TopsortAuctionsHttpService", "Auction response: " + response.body.toString())
                 throw AuctionError.HttpError(IOException("HTTP Error: ${response.code} - ${response.message}"))
             }
         } catch (e: AuctionError) {
