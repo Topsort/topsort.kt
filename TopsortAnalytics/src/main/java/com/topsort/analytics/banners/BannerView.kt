@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.ImageView
 import coil.load
+import coil.request.ErrorResult
+import coil.request.ImageRequest
 import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.AuctionError
@@ -97,8 +99,8 @@ class BannerView(
                         onSuccess = { _, _ ->
                             onImageLoadCallback?.invoke()
                         },
-                        onError = { _, throwable ->
-                            onErrorCallback?.invoke(throwable)
+                        onError = { _: ImageRequest, error: ErrorResult ->
+                            onErrorCallback?.invoke(error.throwable)
                         }
                     )
                 }
@@ -119,24 +121,11 @@ class BannerView(
                 onNoWinnersCallback?.invoke()
             }
         } catch (e: AuctionError) {
-            // Handle specific auction errors
             when (e) {
                 is AuctionError.EmptyResponse -> onNoWinnersCallback?.invoke()
-                is AuctionError.HttpError -> {
+                else -> {
                     onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
-                }
-                is AuctionError.InvalidNumberAuctions -> {
-                    onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
-                }
-                is AuctionError.SerializationError -> {
-                    onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
-                }
-                is AuctionError.DeserializationError -> {
-                    onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e)
+                    onErrorCallback?.invoke(e as Throwable)
                 }
             }
         } catch (e: Throwable) {
