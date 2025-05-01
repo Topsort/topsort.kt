@@ -55,9 +55,7 @@ data class Auction private constructor(
             geoTargeting: String? = null,
         ): Auction {
             validateSlots(slots)
-            if (ids.isEmpty()) {
-                throw IllegalArgumentException("Product IDs list cannot be empty")
-            }
+            require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
             
             return Auction(
                 type = "listings",
@@ -74,9 +72,7 @@ data class Auction private constructor(
             geoTargeting: String? = null,
         ): Auction {
             validateSlots(slots)
-            if (category.isBlank()) {
-                throw IllegalArgumentException("Category cannot be blank")
-            }
+            require(!category.isBlank()) { "Category cannot be blank" }
             
             return Auction(
                 type = "listings",
@@ -93,9 +89,7 @@ data class Auction private constructor(
             geoTargeting: String? = null,
         ): Auction {
             validateSlots(slots)
-            if (categories.isEmpty()) {
-                throw IllegalArgumentException("Categories list cannot be empty")
-            }
+            require(categories.isNotEmpty()) { "Categories list cannot be empty" }
             
             return Auction(
                 type = "listings",
@@ -112,9 +106,7 @@ data class Auction private constructor(
             geoTargeting: String? = null,
         ): Auction {
             validateSlots(slots)
-            if (disjunctions.isEmpty()) {
-                throw IllegalArgumentException("Disjunctions list cannot be empty")
-            }
+            require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
             
             return Auction(
                 type = "listings",
@@ -131,9 +123,7 @@ data class Auction private constructor(
             geoTargeting: String? = null,
         ): Auction {
             validateSlots(slots)
-            if (keyword.isBlank()) {
-                throw IllegalArgumentException("Keyword cannot be blank")
-            }
+            require(!keyword.isBlank()) { "Keyword cannot be blank" }
             
             return Auction(
                 type = "listings",
@@ -153,9 +143,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            if (ids.isEmpty()) {
-                throw IllegalArgumentException("Product IDs list cannot be empty")
-            }
+            require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
             
             return Auction(
                 type = "banners",
@@ -177,9 +165,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            if (category.isBlank()) {
-                throw IllegalArgumentException("Category cannot be blank")
-            }
+            require(!category.isBlank()) { "Category cannot be blank" }
             
             return Auction(
                 type = "banners",
@@ -201,9 +187,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            if (categories.isEmpty()) {
-                throw IllegalArgumentException("Categories list cannot be empty")
-            }
+            require(categories.isNotEmpty()) { "Categories list cannot be empty" }
             
             return Auction(
                 type = "banners",
@@ -225,9 +209,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            if (disjunctions.isEmpty()) {
-                throw IllegalArgumentException("Disjunctions list cannot be empty")
-            }
+            require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
             
             return Auction(
                 type = "banners",
@@ -249,9 +231,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            if (keyword.isBlank()) {
-                throw IllegalArgumentException("Keyword cannot be blank")
-            }
+            require(!keyword.isBlank()) { "Keyword cannot be blank" }
             
             return Auction(
                 type = "banners",
@@ -264,15 +244,11 @@ data class Auction private constructor(
         }
         
         private fun validateSlots(slots: Int) {
-            if (slots <= 0) {
-                throw IllegalArgumentException("Number of slots must be positive")
-            }
+            require(slots > 0) { "Number of slots must be positive" }
         }
         
         private fun validateSlotId(slotId: String) {
-            if (slotId.isBlank()) {
-                throw IllegalArgumentException("Slot ID cannot be blank")
-            }
+            require(!slotId.isBlank()) { "Slot ID cannot be blank" }
         }
     }
 
