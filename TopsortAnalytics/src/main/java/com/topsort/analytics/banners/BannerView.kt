@@ -120,14 +120,20 @@ class BannerView(
             } else {
                 onNoWinnersCallback?.invoke()
             }
-        } catch (e: AuctionError) {
-            when (e) {
-                is AuctionError.EmptyResponse -> onNoWinnersCallback?.invoke()
-                else -> {
-                    onAuctionErrorCallback?.invoke(e)
-                    onErrorCallback?.invoke(e as Throwable)
-                }
-            }
+        } catch (e: AuctionError.EmptyResponse) {
+            onNoWinnersCallback?.invoke()
+        } catch (e: AuctionError.HttpError) {
+            onAuctionErrorCallback?.invoke(e)
+            onErrorCallback?.invoke(e)
+        } catch (e: AuctionError.InvalidNumberAuctions) {
+            onAuctionErrorCallback?.invoke(e)
+            onErrorCallback?.invoke(e)
+        } catch (e: AuctionError.SerializationError) {
+            onAuctionErrorCallback?.invoke(e)
+            onErrorCallback?.invoke(e)
+        } catch (e: AuctionError.DeserializationError) {
+            onAuctionErrorCallback?.invoke(e)
+            onErrorCallback?.invoke(e)
         } catch (e: Throwable) {
             onErrorCallback?.invoke(e)
         }

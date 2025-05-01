@@ -28,8 +28,9 @@ data class AuctionResponse private constructor(
                 return AuctionResponse(
                     results = results,
                 )
+            } catch (e: AuctionError) {
+                throw e
             } catch (e: Exception) {
-                if (e is AuctionError) throw e
                 throw AuctionError.DeserializationError(e, json.toByteArray())
             }
         }
@@ -59,8 +60,9 @@ data class AuctionResponse private constructor(
                         error = json.getBoolean("error"),
                         winners = winners,
                     )
+                } catch (e: AuctionError) {
+                    throw e
                 } catch (e: Exception) {
-                    if (e is AuctionError) throw e
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
             }
@@ -91,8 +93,9 @@ data class AuctionResponse private constructor(
                         resolvedBidId = json.getString("resolvedBidId"),
                         asset = assets,
                     )
+                } catch (e: AuctionError) {
+                    throw e
                 } catch (e: Exception) {
-                    if (e is AuctionError) throw e
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
             }
