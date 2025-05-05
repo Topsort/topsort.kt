@@ -123,6 +123,7 @@ class BannerView(
         } catch (e: AuctionError.EmptyResponse) {
             onNoWinnersCallback?.invoke()
         } catch (e: AuctionError.HttpError) {
+            println("HttpError: ${e.message}")
             onAuctionErrorCallback?.invoke(e)
             onErrorCallback?.invoke(e)
         } catch (e: AuctionError.InvalidNumberAuctions) {

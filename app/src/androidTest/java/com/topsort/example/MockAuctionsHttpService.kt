@@ -24,36 +24,42 @@ class MockAuctionsHttpService : AuctionsHttpService {
      * Suspend version that matches the suspend method signature in TopsortAuctionsHttpService
      */
     override suspend fun runAuctions(request: AuctionRequest): AuctionResponse {
-        return createMockResponse()
+        return createMockResponse() ?: throw RuntimeException("Failed to create mock response")
     }
     
     /**
      * Creates a mock auction response with a single result and winner
      */
-    private fun createMockResponse(): AuctionResponse {
-        // Create a mock response JSON structure
-        val responseJson = JSONObject().apply {
-            put("results", JSONArray().apply {
-                put(JSONObject().apply {
-                    put("winners", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("id", "product-1")
-                            put("type", EntityType.PRODUCT.name)
-                            put("resolvedBidId", "mock-bid-123456")
-                            put("asset", JSONArray().apply {
-                                put(JSONObject().apply {
-                                    put("url", "https://example.com/test-banner.jpg")
-                                    put("width", 300)
-                                    put("height", 250)
+    private fun createMockResponse(): AuctionResponse? {
+        try {
+            // Create a mock response JSON structure that matches the expected format
+            val responseJson = JSONObject().apply {
+                put("results", JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("resultType", "banner")
+                        put("error", false)
+                        put("winners", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("id", "product-1")
+                                put("type", "url") 
+                                put("rank", 1)
+                                put("resolvedBidId", "mock-bid-123456")
+                                put("asset", JSONArray().apply {
+                                    put(JSONObject().apply {
+                                        put("url", "https://example.com/test-banner.jpg")
+                                    })
                                 })
                             })
                         })
                     })
                 })
-            })
+            }
+            
+            // Parse and return the response
+            return AuctionResponse.fromJson(responseJson.toString())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
         }
-        
-        // Return the mock response
-        return AuctionResponse.fromJson(responseJson.toString())
     }
 } 

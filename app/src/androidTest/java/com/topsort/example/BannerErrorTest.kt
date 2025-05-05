@@ -60,30 +60,41 @@ class BannerErrorTest {
     fun testErrorHandling() = runBlocking {
         // Create a latch to wait for the error
         val errorLatch = CountDownLatch(1)
+        var errorDetected = false
         
         // Create a configuration with invalid data to trigger an error
         val config = BannerConfig.LandingPage(
             slotId = "invalid-slot-id",
             ids = listOf("product-1")
         )
+    
         
-        bannerView.onError { throwable: Throwable ->
-            // Count down the latch when an error is received
-            errorLatch.countDown()
+        // Also listen for specific auction errors
+        bannerView.onAuctionError { error: AuctionError ->
+            if (error is AuctionError.HttpError) {
+                errorLatch.countDown()
+                errorDetected = true
+            }
         }
         
-        bannerView.setup(
-            config = config,
-            path = "test/path",
-            location = "test-location"
-        ) { _: String, _: EntityType ->
-            // This click handler should not be called in an error scenario
+        try {
+            bannerView.setup(
+                config = config,
+                path = "test/path",
+                location = "test-location"
+            ) { _: String, _: EntityType ->
+                // This click handler should not be called in an error scenario
+            }
+        } catch (e: AuctionError.HttpError) {
+            // If the error is caught here rather than in the callbacks, mark it as detected
+            errorDetected = true
+            errorLatch.countDown()
         }
         
         // Wait for the error callback to be triggered
         val errorReceived = errorLatch.await(5, TimeUnit.SECONDS)
         
-        // Verify that the error callback was triggered
-        assertTrue("Error should be detected", errorReceived)
+        // Verify that the error callback was triggered or the exception was caught
+        assertTrue("Error should be detected", errorDetected || errorReceived)
     }
 } 

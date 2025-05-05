@@ -19,7 +19,7 @@ object TestAttributeSet {
      */
     fun create(context: Context): AttributeSet {
         val resourceId = android.R.layout.simple_list_item_1
-        val parser = context.resources.getLayout(resourceId)
+        val parser = context.resources.getLayoutParser(resourceId)
         
         try {
             var eventType = parser.eventType
@@ -42,6 +42,6 @@ object TestAttributeSet {
 /**
  * Extension function to safely get an XmlPullParser from a layout resource ID
  */
-private fun Resources.getLayout(id: Int): XmlPullParser {
+private fun Resources.getLayoutParser(id: Int): XmlPullParser {
     return getXml(id)
 } 

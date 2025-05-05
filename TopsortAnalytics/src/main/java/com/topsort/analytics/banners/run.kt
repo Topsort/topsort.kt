@@ -8,7 +8,7 @@ import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 /**
@@ -32,10 +32,9 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
         var response: AuctionResponse? = null
         
         try {
-            val auctionJob = CoroutineScope(Dispatchers.IO).launch {
-                response = TopsortAuctionsHttpService.runAuctions(request)
+            response = withContext(Dispatchers.IO) {
+                TopsortAuctionsHttpService.runAuctions(request)
             }
-            auctionJob.join()
         } catch (e: Exception) {
             throw AuctionError.HttpError(e)
         }

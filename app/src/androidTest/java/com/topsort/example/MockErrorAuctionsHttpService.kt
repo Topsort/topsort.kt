@@ -16,7 +16,7 @@ class MockErrorAuctionsHttpService : AuctionsHttpService {
      */
     override fun runAuctionsSync(request: AuctionRequest): AuctionResponse? {
         throw AuctionError.HttpError(
-            IOException("HTTP Error: 401 - Unauthorized (Mock for testing)")
+            IOException("HTTP error during auction")
         )
     }
     
@@ -25,7 +25,7 @@ class MockErrorAuctionsHttpService : AuctionsHttpService {
      */
     override suspend fun runAuctions(request: AuctionRequest): AuctionResponse {
         throw AuctionError.HttpError(
-            IOException("HTTP Error: 401 - Unauthorized (Mock for testing)")
+            IOException("HTTP error during auction")
         )
     }
 } 
