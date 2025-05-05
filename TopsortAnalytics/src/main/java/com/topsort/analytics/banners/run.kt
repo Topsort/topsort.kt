@@ -29,24 +29,15 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
         }
 
         val request = AuctionRequest(listOf(auction))
-        var response: AuctionResponse? = null
         
         try {
-            response = withContext(Dispatchers.IO) {
+            val response = withContext(Dispatchers.IO) {
                 TopsortAuctionsHttpService.runAuctions(request)
             }
-        } catch (e: Exception) {
-            throw AuctionError.HttpError(e)
-        }
-        
-        // Check for empty response
-        if (response == null) {
-            throw AuctionError.EmptyResponse
-        }
-        
-        if (response!!.results.isNotEmpty()) {
-            if (response!!.results[0].winners.isNotEmpty()) {
-                val winner = response!!.results[0].winners[0]
+            
+            // Check if there are any results with winners
+            if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
+                val winner = response.results[0].winners[0]
                 return BannerResponse(
                     id = winner.id,
                     url = winner.asset!![0].url,
@@ -54,9 +45,11 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
                     resolvedBidId = winner.resolvedBidId
                 )
             }
+            // No error, but no winners either
+            return null
+        } catch (e: Exception) {
+            throw AuctionError.HttpError(e)
         }
-        // No error, but no winners either
-        return null
     } catch (e: AuctionError) {
         // Re-throw AuctionError exceptions
         throw e

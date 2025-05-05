@@ -23,6 +23,7 @@ class MockAuctionsHttpService : AuctionsHttpService {
     /**
      * Suspend version that matches the suspend method signature in TopsortAuctionsHttpService
      */
+    @Suppress("TooGenericExceptionThrown")
     override suspend fun runAuctions(request: AuctionRequest): AuctionResponse {
         return createMockResponse() ?: throw RuntimeException("Failed to create mock response")
     }
@@ -58,6 +59,7 @@ class MockAuctionsHttpService : AuctionsHttpService {
             // Parse and return the response
             return AuctionResponse.fromJson(responseJson.toString())
         } catch (e: Exception) {
+            @Suppress("PrintStackTrace")
             e.printStackTrace()
             return null
         }
