@@ -18,7 +18,7 @@ Simply add the dependency to your build.gradle file:
 dependencies {
     ...
 
-    implementation 'com.topsort:topsort-kt:1.2.0'
+    implementation 'com.topsort:topsort-kt:2.0.0'
 }
 ```
 
