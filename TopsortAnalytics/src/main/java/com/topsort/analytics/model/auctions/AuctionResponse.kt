@@ -7,15 +7,32 @@ data class AuctionResponse private constructor(
 ) {
     companion object {
         fun fromJson(json: String?): AuctionResponse? {
-            if (json == null) return null
-            val array = JSONObject(json).getJSONArray("results")
-            val results = (0 until array.length()).map {
-                AuctionResponseItem.fromJsonObject(array.getJSONObject(it))
+            if (json == null) {
+                throw AuctionError.EmptyResponse
             }
+            
+            try {
+                val jsonObject = JSONObject(json)
+                if (!jsonObject.has("results")) {
+                    throw AuctionError.DeserializationError(
+                        IllegalArgumentException("Missing 'results' field"),
+                        json.toByteArray()
+                    )
+                }
+                
+                val array = jsonObject.getJSONArray("results")
+                val results = (0 until array.length()).map {
+                    AuctionResponseItem.fromJsonObject(array.getJSONObject(it))
+                }
 
-            return AuctionResponse(
-                results = results,
-            )
+                return AuctionResponse(
+                    results = results,
+                )
+            } catch (e: AuctionError) {
+                throw e
+            } catch (e: Exception) {
+                throw AuctionError.DeserializationError(e, json.toByteArray())
+            }
         }
     }
 
@@ -26,15 +43,28 @@ data class AuctionResponse private constructor(
     ) {
         companion object {
             fun fromJsonObject(json: JSONObject): AuctionResponseItem {
-                val array = json.getJSONArray("winners")
-                val winners = (0 until array.length()).map {
-                    AuctionWinnerItem.fromJsonObject(array.getJSONObject(it))
+                try {
+                    if (!json.has("winners")) {
+                        throw AuctionError.DeserializationError(
+                            IllegalArgumentException("Missing 'winners' field"),
+                            json.toString().toByteArray()
+                        )
+                    }
+                    
+                    val array = json.getJSONArray("winners")
+                    val winners = (0 until array.length()).map {
+                        AuctionWinnerItem.fromJsonObject(array.getJSONObject(it))
+                    }
+                    return AuctionResponseItem(
+                        resultType = json.getString("resultType"),
+                        error = json.getBoolean("error"),
+                        winners = winners,
+                    )
+                } catch (e: AuctionError) {
+                    throw e
+                } catch (e: Exception) {
+                    throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
-                return AuctionResponseItem(
-                    resultType = json.getString("resultType"),
-                    error = json.getBoolean("error"),
-                    winners = winners,
-                )
             }
         }
     }
@@ -48,30 +78,39 @@ data class AuctionResponse private constructor(
     ) {
         companion object {
             fun fromJsonObject(json: JSONObject): AuctionWinnerItem {
-                val assetArray = json.optJSONArray("asset")
-                var assets: List<Asset>? = null
-                if (assetArray != null) {
-                    assets = (0 until assetArray.length()).map {
-                        Asset.fromJsonObject(assetArray.getJSONObject(it))
+                try {
+                    val assetArray = json.optJSONArray("asset")
+                    var assets: List<Asset>? = null
+                    if (assetArray != null) {
+                        assets = (0 until assetArray.length()).map {
+                            Asset.fromJsonObject(assetArray.getJSONObject(it))
+                        }
                     }
+                    return AuctionWinnerItem(
+                        rank = json.getInt("rank"),
+                        type = EntityType.fromValue(json.getString("type")),
+                        id = json.getString("id"),
+                        resolvedBidId = json.getString("resolvedBidId"),
+                        asset = assets,
+                    )
+                } catch (e: AuctionError) {
+                    throw e
+                } catch (e: Exception) {
+                    throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
-                return AuctionWinnerItem(
-                    rank = json.getInt("rank"),
-                    type = EntityType.fromValue(json.getString("type")),
-                    id = json.getString("id"),
-                    resolvedBidId = json.getString("resolvedBidId"),
-                    asset = assets,
-                )
             }
         }
     }
 
-
     data class Asset(val url: String) {
         companion object {
             fun fromJsonObject(json: JSONObject): Asset {
-                val url = json.getString("url")
-                return Asset(url = url)
+                try {
+                    val url = json.getString("url")
+                    return Asset(url = url)
+                } catch (e: Exception) {
+                    throw AuctionError.DeserializationError(e, json.toString().toByteArray())
+                }
             }
         }
     }

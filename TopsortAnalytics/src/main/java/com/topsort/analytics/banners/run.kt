@@ -1,39 +1,62 @@
 package com.topsort.analytics.banners
 
 import com.topsort.analytics.model.auctions.Auction
+import com.topsort.analytics.model.auctions.ApiConstants
+import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 /**
  * Run a banner auction with a single slot
  *
  * @param config the banner configuration that specifies which kind of banner auction to run
  * @return A BannerResponse if the auction successfully returned a winner or null if not.
+ * @throws AuctionError if there was an error during the auction process
  */
 suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
-    val auction = buildBannerAuction(config)
-    val request = AuctionRequest(listOf(auction))
-    var response: AuctionResponse? = null;
-    val auctionJob = CoroutineScope(Dispatchers.IO).launch {
-        response = TopsortAuctionsHttpService.runAuctions(request)
-    }
-    auctionJob.join()
-    if ((response?.results?.isNotEmpty() == true)) {
-        if (response!!.results[0].winners.isNotEmpty()) {
-            val winner = response!!.results[0].winners[0]
-            return BannerResponse(
-                id = winner.id,
-                url = winner.asset!![0].url,
-                type = winner.type,
-                resolvedBidId = winner.resolvedBidId
-            )
+    try {
+        val auction = buildBannerAuction(config)
+        
+        // Validate auction count
+        val auctionCount = 1 // Single auction for now
+        if (auctionCount < ApiConstants.MIN_AUCTIONS || auctionCount > ApiConstants.MAX_AUCTIONS) {
+            throw AuctionError.InvalidNumberAuctions(auctionCount)
         }
+
+        val request = AuctionRequest(listOf(auction))
+        
+        try {
+            val response = withContext(Dispatchers.IO) {
+                TopsortAuctionsHttpService.runAuctions(request)
+            }
+            
+            // Check if there are any results with winners
+            if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
+                val winner = response.results[0].winners[0]
+                return BannerResponse(
+                    id = winner.id,
+                    url = winner.asset!![0].url,
+                    type = winner.type,
+                    resolvedBidId = winner.resolvedBidId
+                )
+            }
+            // No error, but no winners either
+            return null
+        } catch (e: Exception) {
+            throw AuctionError.HttpError(e)
+        }
+    } catch (e: AuctionError) {
+        // Re-throw AuctionError exceptions
+        throw e
+    } catch (e: Exception) {
+        // Wrap other exceptions
+        throw AuctionError.HttpError(e)
     }
-    return null
 }
 
 /**

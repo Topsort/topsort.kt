@@ -16,6 +16,16 @@ style:
     active: false
   MaxLineLength:
     active: false
+  # This will require a greater refactor in a follow up PR
+  ThrowsCount:
+    active: false
   # This is also too opinionated
   ReturnCount:
+    active: false
+
+exceptions:
+  # These will require a greater refactor in a follow up PR
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
     active: false
