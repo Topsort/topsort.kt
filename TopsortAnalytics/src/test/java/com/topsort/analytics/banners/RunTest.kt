@@ -52,4 +52,45 @@ internal class RunTest {
             "{\"slots\":1,\"slotId\":\"$slot\",\"type\":\"banners\",\"category\":{\"disjunctions\":[[\"${disjunctions[0][0]}\",\"${disjunctions[0][1]}\"],[\"${disjunctions[1][0]}\"]]},\"device\":\"mobile\"}"
         assertThat(json).isEqualTo(expectedJson)
     }
+
+    @Test
+    fun buildLandingPageBannerWithoutProducts() {
+        val slot = "slot"
+        val bannerConfig = BannerConfig.LandingPage(slotId = slot, ids = null)
+        val bannerAuction = buildBannerAuction(bannerConfig)
+        val json = bannerAuction.toJsonObject().toString()
+        val expectedJson = "{\"slots\":1,\"slotId\":\"$slot\",\"type\":\"banners\",\"device\":\"mobile\"}"
+        assertThat(json).isEqualTo(expectedJson)
+    }
+
+    @Test
+    fun buildLandingPageBannerWithEmptyProductList() {
+        val slot = "slot"
+        val bannerConfig = BannerConfig.LandingPage(slotId = slot, ids = emptyList())
+        val bannerAuction = buildBannerAuction(bannerConfig)
+        val json = bannerAuction.toJsonObject().toString()
+        val expectedJson = "{\"slots\":1,\"slotId\":\"$slot\",\"type\":\"banners\",\"device\":\"mobile\"}"
+        assertThat(json).isEqualTo(expectedJson)
+    }
+
+    @Test
+    fun buildLandingPageBannerOmittingIds() {
+        val slot = "slot"
+        val bannerConfig = BannerConfig.LandingPage(slotId = slot)
+        val bannerAuction = buildBannerAuction(bannerConfig)
+        val json = bannerAuction.toJsonObject().toString()
+        val expectedJson = "{\"slots\":1,\"slotId\":\"$slot\",\"type\":\"banners\",\"device\":\"mobile\"}"
+        assertThat(json).isEqualTo(expectedJson)
+    }
+
+    @Test
+    fun buildLandingPageBannerWithGeoTargetingButNoProducts() {
+        val slot = "slot"
+        val geoTargeting = "US"
+        val bannerConfig = BannerConfig.LandingPage(slotId = slot, ids = null, geoTargeting = geoTargeting)
+        val bannerAuction = buildBannerAuction(bannerConfig)
+        val json = bannerAuction.toJsonObject().toString()
+        val expectedJson = "{\"geoTargeting\":{\"location\":\"$geoTargeting\"},\"slots\":1,\"slotId\":\"$slot\",\"type\":\"banners\",\"device\":\"mobile\"}"
+        assertThat(json).isEqualTo(expectedJson)
+    }
 }

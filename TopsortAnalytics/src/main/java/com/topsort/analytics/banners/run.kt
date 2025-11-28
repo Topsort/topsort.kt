@@ -73,7 +73,7 @@ fun buildBannerAuction(config: BannerConfig): Auction {
             return Auction.Factory.buildBannerAuctionLandingPage(
                 1,
                 config.slotId,
-                config.ids,
+                config.ids ?: emptyList(),
                 config.device,
                 config.geoTargeting
             )
