@@ -11,13 +11,13 @@ sealed class BannerConfig private constructor() {
      * Banner configuration for landing page banners
      *
      * @property slotId id of the banner slot
-     * @property ids ids of the entities that are competing for the banner
+     * @property ids ids of the entities that are competing for the banner (optional for no-context banners)
      * @property device target device for the banner
      * @property geoTargeting optional location for geo-targeted banners
      */
     data class LandingPage(
         val slotId: String,
-        val ids: List<String>,
+        val ids: List<String>? = null,
         val device: Device = Device.MOBILE,
         val geoTargeting: String? = null
     ) : BannerConfig()

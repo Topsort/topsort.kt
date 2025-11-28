@@ -143,13 +143,14 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
-            require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
-            
+
+            val products = if (ids.isNotEmpty()) Products(ids) else null
+
             return Auction(
                 type = "banners",
                 slots = slots,
                 slotId = slotId,
-                products = Products(ids),
+                products = products,
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
             )
