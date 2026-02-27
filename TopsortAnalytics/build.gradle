@@ -1,10 +1,10 @@
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
-    id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
-    id 'io.gitlab.arturbosch.detekt'
-    id 'com.vanniktech.maven.publish'
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.vanniktech.publish)
 }
 
 android {
@@ -47,28 +47,21 @@ tasks.withType(Detekt).configureEach {
 }
 
 dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.annotation
+    implementation libs.androidx.work.runtime
+    implementation libs.androidx.datastore.preferences
+    implementation libs.jodatime
+    implementation libs.coil
 
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.annotation:annotation:1.7.1'
+    testImplementation libs.junit4
+    testImplementation libs.org.json
+    testImplementation libs.assertj.core
+    testImplementation libs.mockk
+    testImplementation libs.kotlinx.coroutines.test
 
-    //Work Manager
-    implementation 'androidx.work:work-runtime-ktx:2.9.0'
-    implementation 'androidx.datastore:datastore-preferences:1.1.1'
-
-    //JodaTime
-    implementation group: 'joda-time', name: 'joda-time', version: '2.12.5'
-
-    // Image Loading for Banners
-    implementation 'io.coil-kt:coil:2.7.0'
-
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.json:json:20200518'
-    testImplementation 'org.assertj:assertj-core:3.26.0'
-    testImplementation 'io.mockk:mockk:1.13.12'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
-
-    androidTestImplementation 'org.assertj:assertj-core:3.26.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation 'androidx.work:work-testing:2.9.0'
+    androidTestImplementation libs.assertj.core
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.espresso.core
+    androidTestImplementation libs.androidx.work.testing
 }
