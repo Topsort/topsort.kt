@@ -29,3 +29,6 @@ jobs:
 
       - name: Run detekt
         run: ./gradlew detekt
+
+      - name: Check binary compatibility
+        run: ./gradlew :TopsortAnalytics:apiCheck
