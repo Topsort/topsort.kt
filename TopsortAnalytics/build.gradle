@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.bcv)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -45,6 +46,23 @@ kotlin {
 
 tasks.withType(Detekt).configureEach {
     config = files(["$projectDir/../detekt.yaml"])
+}
+
+kover {
+    reports {
+        verify {
+            rule {
+                minBound(35)
+            }
+        }
+        filters {
+            excludes {
+                classes("com.topsort.analytics.BuildConfig")
+                classes("com.topsort.analytics.EventPipeline\$EventEmitterWorker")
+                packages("com.topsort.analytics.worker")
+            }
+        }
+    }
 }
 
 dependencies {
