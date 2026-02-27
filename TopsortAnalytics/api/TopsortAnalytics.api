@@ -16,10 +16,15 @@ public final class com/topsort/analytics/EventPipelineKt {
 
 public abstract interface class com/topsort/analytics/TopsortAnalytics {
 	public abstract fun reportClickOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportClickOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportClickPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportClickPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportImpressionOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportImpressionOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportImpressionPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportImpressionPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportPurchase$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 }
 
 public final class com/topsort/analytics/TopsortAnalytics$DefaultImpls {
