@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.detekt)              apply false
     alias(libs.plugins.vanniktech.publish)  apply false
     alias(libs.plugins.bcv)                 apply false
+    alias(libs.plugins.kover)               apply false
+    alias(libs.plugins.dokka)               apply false
 }
 
 subprojects {

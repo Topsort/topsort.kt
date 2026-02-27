@@ -783,4 +783,3 @@ public final class com/topsort/analytics/service/TopsortAuctionsHttpService : co
 	public final fun setMockService (Lcom/topsort/analytics/service/AuctionsHttpService;)V
 	public final fun setServiceInstance (Lcom/topsort/analytics/service/AuctionsHttpService;)V
 }
-

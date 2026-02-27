@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.bcv)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 android {
@@ -45,6 +47,39 @@ kotlin {
 
 tasks.withType(Detekt).configureEach {
     config = files(["$projectDir/../detekt.yaml"])
+}
+
+kover {
+    reports {
+        verify {
+            rule {
+                minBound(35)
+            }
+        }
+        filters {
+            excludes {
+                classes("com.topsort.analytics.BuildConfig")
+                classes("com.topsort.analytics.EventPipeline\$EventEmitterWorker")
+                packages("com.topsort.analytics.worker")
+            }
+        }
+    }
+}
+
+tasks.named('dokkaHtml') {
+    outputDirectory = layout.buildDirectory.dir('dokka/html')
+    dokkaSourceSets {
+        named('main') {
+            moduleName = 'Topsort Analytics'
+            includeNonPublic = false
+            skipEmptyPackages = true
+            sourceLink {
+                localDirectory = file("src/main/java")
+                remoteUrl = new URL("https://github.com/Topsort/topsort.kt/blob/main/TopsortAnalytics/src/main/java")
+                remoteLineSuffix = "#L"
+            }
+        }
+    }
 }
 
 dependencies {
