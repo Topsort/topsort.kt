@@ -1,5 +1,5 @@
 [versions]
-agp                    = "8.5.1"
+agp                    = "9.0.1"
 kotlin                 = "2.3.10"
 detekt                 = "1.23.8"
 vanniktech-publish     = "0.29.0"
