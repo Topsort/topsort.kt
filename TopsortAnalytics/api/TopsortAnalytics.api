@@ -1,0 +1,786 @@
+public final class com/topsort/analytics/Analytics : com/topsort/analytics/TopsortAnalytics {
+	public static final field INSTANCE Lcom/topsort/analytics/Analytics;
+	public fun reportClickOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun reportClickPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun reportImpressionOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun reportImpressionPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun reportImpressions (Ljava/util/List;)V
+	public fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun setup (Landroid/app/Application;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/topsort/analytics/EventPipelineKt {
+	public static final field UPLOAD_SIGNAL Ljava/lang/String;
+	public static final fun getEventDatastore (Landroid/content/Context;)Landroidx/datastore/core/DataStore;
+}
+
+public abstract interface class com/topsort/analytics/TopsortAnalytics {
+	public abstract fun reportClickOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun reportClickPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun reportImpressionOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun reportImpressionPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/topsort/analytics/TopsortAnalytics$DefaultImpls {
+	public static synthetic fun reportClickOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun reportClickPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun reportImpressionOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun reportImpressionPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun reportPurchase$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+}
+
+public abstract class com/topsort/analytics/banners/BannerConfig {
+}
+
+public final class com/topsort/analytics/banners/BannerConfig$CategoryDisjunctions : com/topsort/analytics/banners/BannerConfig {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerConfig$CategoryDisjunctions;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerConfig$CategoryDisjunctions;Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerConfig$CategoryDisjunctions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getDisjunctions ()Ljava/util/List;
+	public final fun getGeoTargeting ()Ljava/lang/String;
+	public final fun getSlotId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerConfig$CategoryMultiple : com/topsort/analytics/banners/BannerConfig {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerConfig$CategoryMultiple;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerConfig$CategoryMultiple;Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerConfig$CategoryMultiple;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategories ()Ljava/util/List;
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getGeoTargeting ()Ljava/lang/String;
+	public final fun getSlotId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerConfig$CategorySingle : com/topsort/analytics/banners/BannerConfig {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerConfig$CategorySingle;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerConfig$CategorySingle;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerConfig$CategorySingle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategory ()Ljava/lang/String;
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getGeoTargeting ()Ljava/lang/String;
+	public final fun getSlotId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerConfig$Keyword : com/topsort/analytics/banners/BannerConfig {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerConfig$Keyword;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerConfig$Keyword;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerConfig$Keyword;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getGeoTargeting ()Ljava/lang/String;
+	public final fun getKeyword ()Ljava/lang/String;
+	public final fun getSlotId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerConfig$LandingPage : com/topsort/analytics/banners/BannerConfig {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerConfig$LandingPage;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerConfig$LandingPage;Ljava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerConfig$LandingPage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getGeoTargeting ()Ljava/lang/String;
+	public final fun getIds ()Ljava/util/List;
+	public final fun getSlotId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerResponse {
+	public fun <init> (Ljava/lang/String;Lcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/topsort/analytics/model/auctions/EntityType;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/banners/BannerResponse;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/banners/BannerResponse;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/banners/BannerResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getResolvedBidId ()Ljava/lang/String;
+	public final fun getType ()Lcom/topsort/analytics/model/auctions/EntityType;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/banners/BannerView : android/widget/ImageView {
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public final fun onAuctionError (Lkotlin/jvm/functions/Function1;)Lcom/topsort/analytics/banners/BannerView;
+	public final fun onError (Lkotlin/jvm/functions/Function1;)Lcom/topsort/analytics/banners/BannerView;
+	public final fun onImageLoad (Lkotlin/jvm/functions/Function0;)Lcom/topsort/analytics/banners/BannerView;
+	public final fun onNoWinners (Lkotlin/jvm/functions/Function0;)Lcom/topsort/analytics/banners/BannerView;
+	public final fun setup (Lcom/topsort/analytics/banners/BannerConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/topsort/analytics/banners/RunKt {
+	public static final fun buildBannerAuction (Lcom/topsort/analytics/banners/BannerConfig;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static final fun runBannerAuction (Lcom/topsort/analytics/banners/BannerConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/topsort/analytics/core/Connection : java/io/Closeable {
+	public fun <init> (Ljava/net/HttpURLConnection;Ljava/io/OutputStream;)V
+	public synthetic fun <init> (Ljava/net/HttpURLConnection;Ljava/io/OutputStream;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun getOutputStream ()Ljava/io/OutputStream;
+}
+
+public final class com/topsort/analytics/core/EventTimestampKt {
+	public static final fun eventNow ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/core/HttpClient {
+	public fun <init> (Ljava/lang/String;Lcom/topsort/analytics/core/RequestFactory;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/topsort/analytics/core/RequestFactory;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun post (Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/core/HttpResponse;
+}
+
+public final class com/topsort/analytics/core/HttpClientKt {
+	public static final field LIBRARY_VERSION D
+}
+
+public final class com/topsort/analytics/core/HttpResponse {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/core/HttpResponse;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/core/HttpResponse;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/core/HttpResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/String;
+	public final fun getCode ()I
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isSuccessful ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/core/JsonExtensionsKt {
+	public static final fun getIntOrNull (Lorg/json/JSONObject;Ljava/lang/String;)Ljava/lang/Integer;
+	public static final fun getListFromJsonArray (Lorg/json/JSONArray;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+	public static final fun getStringListOrNull (Lorg/json/JSONObject;Ljava/lang/String;)Ljava/util/List;
+	public static final fun getStringOrNull (Lorg/json/JSONObject;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/core/Logger {
+	public static final field INSTANCE Lcom/topsort/analytics/core/Logger;
+	public final fun getLog ()Ljava/util/List;
+}
+
+public final class com/topsort/analytics/core/RandomGeneratorKt {
+	public static final fun randomId (Ljava/lang/String;I)Ljava/lang/String;
+	public static synthetic fun randomId$default (Ljava/lang/String;IILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/core/RequestFactory {
+	public static final field CONNECTION_TIMEOUT I
+	public static final field Companion Lcom/topsort/analytics/core/RequestFactory$Companion;
+	public static final field READ_TIMETOUT I
+	public fun <init> ()V
+	public final fun upload (Ljava/lang/String;Ljava/lang/String;)Ljava/net/HttpURLConnection;
+}
+
+public final class com/topsort/analytics/core/RequestFactory$Companion {
+}
+
+public final class com/topsort/analytics/core/ServiceSettings {
+	public static final field INSTANCE Lcom/topsort/analytics/core/ServiceSettings;
+	public final fun getBaseApiUrl ()Ljava/lang/String;
+	public final fun setBaseApiUrl (Ljava/lang/String;)V
+}
+
+public final class com/topsort/analytics/model/Click : com/topsort/analytics/model/JsonSerializable {
+	public synthetic fun <init> (Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/topsort/analytics/model/Entity;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lcom/topsort/analytics/model/Placement;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Click;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Click;Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Click;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAdditionalAttribution ()Ljava/lang/String;
+	public final fun getEntity ()Lcom/topsort/analytics/model/Entity;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getOccurredAt ()Ljava/lang/String;
+	public final fun getOpaqueUserId ()Ljava/lang/String;
+	public final fun getPlacement ()Lcom/topsort/analytics/model/Placement;
+	public final fun getResolvedBidId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Click$Factory {
+	public static final field INSTANCE Lcom/topsort/analytics/model/Click$Factory;
+	public final fun buildOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Click;
+	public final fun buildOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Click;
+	public static synthetic fun buildOrganic$default (Lcom/topsort/analytics/model/Click$Factory;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Click;
+	public final fun buildPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Click;
+	public final fun buildPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Click;
+	public static synthetic fun buildPromoted$default (Lcom/topsort/analytics/model/Click$Factory;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Click;
+	public final fun fromJsonArray (Lorg/json/JSONArray;)Ljava/util/List;
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Click;
+}
+
+public final class com/topsort/analytics/model/ClickEvent {
+	public static final field Companion Lcom/topsort/analytics/model/ClickEvent$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/ClickEvent;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/ClickEvent;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/ClickEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClicks ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/ClickEvent$Companion {
+	public final fun fromJson (Ljava/lang/String;)Lcom/topsort/analytics/model/ClickEvent;
+}
+
+public final class com/topsort/analytics/model/Entity {
+	public static final field Companion Lcom/topsort/analytics/model/Entity$Companion;
+	public fun <init> (Ljava/lang/String;Lcom/topsort/analytics/model/EntityType;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/topsort/analytics/model/EntityType;
+	public final fun copy (Ljava/lang/String;Lcom/topsort/analytics/model/EntityType;)Lcom/topsort/analytics/model/Entity;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/EntityType;ILjava/lang/Object;)Lcom/topsort/analytics/model/Entity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getType ()Lcom/topsort/analytics/model/EntityType;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Entity$Companion {
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Entity;
+}
+
+public final class com/topsort/analytics/model/EntityType : java/lang/Enum {
+	public static final field PRODUCT Lcom/topsort/analytics/model/EntityType;
+	public static final field VENDOR Lcom/topsort/analytics/model/EntityType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/model/EntityType;
+	public static fun values ()[Lcom/topsort/analytics/model/EntityType;
+}
+
+public final class com/topsort/analytics/model/Event {
+	public static final field Companion Lcom/topsort/analytics/model/Event$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lcom/topsort/analytics/model/Event;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Event;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/Event;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClicks ()Ljava/util/List;
+	public final fun getImpressions ()Ljava/util/List;
+	public final fun getPurchases ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Event$Companion {
+	public final fun fromJson (Ljava/lang/String;)Lcom/topsort/analytics/model/Event;
+}
+
+public final class com/topsort/analytics/model/EventType : java/lang/Enum {
+	public static final field Click Lcom/topsort/analytics/model/EventType;
+	public static final field Impression Lcom/topsort/analytics/model/EventType;
+	public static final field Purchase Lcom/topsort/analytics/model/EventType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/model/EventType;
+	public static fun values ()[Lcom/topsort/analytics/model/EventType;
+}
+
+public final class com/topsort/analytics/model/Impression : com/topsort/analytics/model/JsonSerializable {
+	public synthetic fun <init> (Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/topsort/analytics/model/Entity;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lcom/topsort/analytics/model/Placement;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Impression;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Impression;Ljava/lang/String;Lcom/topsort/analytics/model/Entity;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Impression;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAdditionalAttribution ()Ljava/lang/String;
+	public final fun getEntity ()Lcom/topsort/analytics/model/Entity;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getOccurredAt ()Ljava/lang/String;
+	public final fun getOpaqueUserId ()Ljava/lang/String;
+	public final fun getPlacement ()Lcom/topsort/analytics/model/Placement;
+	public final fun getResolvedBidId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Impression$Factory {
+	public static final field INSTANCE Lcom/topsort/analytics/model/Impression$Factory;
+	public final fun buildOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Impression;
+	public final fun buildOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Impression;
+	public static synthetic fun buildOrganic$default (Lcom/topsort/analytics/model/Impression$Factory;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Impression;
+	public final fun buildPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Impression;
+	public final fun buildPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Impression;
+	public static synthetic fun buildPromoted$default (Lcom/topsort/analytics/model/Impression$Factory;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Impression;
+	public final fun fromJsonArray (Lorg/json/JSONArray;)Ljava/util/List;
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Impression;
+}
+
+public final class com/topsort/analytics/model/ImpressionEvent {
+	public static final field Companion Lcom/topsort/analytics/model/ImpressionEvent$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/ImpressionEvent;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/ImpressionEvent;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/ImpressionEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getImpressions ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/ImpressionEvent$Companion {
+	public final fun fromJson (Ljava/lang/String;)Lcom/topsort/analytics/model/ImpressionEvent;
+}
+
+public abstract interface class com/topsort/analytics/model/JsonSerializable {
+	public abstract fun toJsonObject ()Lorg/json/JSONObject;
+}
+
+public final class com/topsort/analytics/model/Placement {
+	public static final field Companion Lcom/topsort/analytics/model/Placement$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Placement;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Placement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategoryIds ()Ljava/util/List;
+	public final fun getLocation ()Ljava/lang/String;
+	public final fun getPage ()Ljava/lang/Integer;
+	public final fun getPageSize ()Ljava/lang/Integer;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getPosition ()Ljava/lang/Integer;
+	public final fun getProductId ()Ljava/lang/String;
+	public final fun getSearchQuery ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Placement$Companion {
+	public final fun build (Ljava/lang/String;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/Placement;
+	public final fun build (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Placement;
+	public static synthetic fun build$default (Lcom/topsort/analytics/model/Placement$Companion;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Placement;
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Placement;
+}
+
+public final class com/topsort/analytics/model/Purchase : com/topsort/analytics/model/JsonSerializable {
+	public static final field Companion Lcom/topsort/analytics/model/Purchase$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/Purchase;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Purchase;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/Purchase;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getItems ()Ljava/util/List;
+	public final fun getOccurredAt ()Ljava/lang/String;
+	public final fun getOpaqueUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Purchase$Companion {
+	public final fun fromJsonArray (Lorg/json/JSONArray;)Ljava/util/List;
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Purchase;
+}
+
+public final class com/topsort/analytics/model/PurchaseEvent {
+	public static final field Companion Lcom/topsort/analytics/model/PurchaseEvent$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/PurchaseEvent;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/PurchaseEvent;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/PurchaseEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPurchases ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/PurchaseEvent$Companion {
+	public final fun fromJson (Ljava/lang/String;)Lcom/topsort/analytics/model/PurchaseEvent;
+}
+
+public final class com/topsort/analytics/model/PurchasedItem {
+	public static final field Companion Lcom/topsort/analytics/model/PurchasedItem$Companion;
+	public fun <init> (Ljava/lang/String;ILjava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ILjava/lang/Integer;Ljava/lang/String;)Lcom/topsort/analytics/model/PurchasedItem;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/PurchasedItem;Ljava/lang/String;ILjava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/PurchasedItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getProductId ()Ljava/lang/String;
+	public final fun getQuantity ()I
+	public final fun getResolvedBidId ()Ljava/lang/String;
+	public final fun getUnitPrice ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/PurchasedItem$Companion {
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/PurchasedItem;
+}
+
+public final class com/topsort/analytics/model/Session {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/topsort/analytics/model/Session;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Session;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Session;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOpaqueUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/ApiConstants {
+	public static final field AUCTIONS_TOPSORT_URL Ljava/lang/String;
+	public static final field AUCTION_ENDPOINT Ljava/lang/String;
+	public static final field BASE_API_URL Ljava/lang/String;
+	public static final field EVENTS_ENDPOINT Ljava/lang/String;
+	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/ApiConstants;
+	public static final field MAX_AUCTIONS I
+	public static final field MIN_AUCTIONS I
+	public final fun getBaseApiUrl ()Ljava/lang/String;
+	public final fun setBaseApiUrl (Ljava/lang/String;)V
+}
+
+public final class com/topsort/analytics/model/auctions/Auction {
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Lcom/topsort/analytics/model/auctions/Auction$Products;
+	public final fun component4 ()Lcom/topsort/analytics/model/auctions/Auction$Category;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun copy (Ljava/lang/String;ILcom/topsort/analytics/model/auctions/Auction$Products;Lcom/topsort/analytics/model/auctions/Auction$Category;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/Auction;Ljava/lang/String;ILcom/topsort/analytics/model/auctions/Auction$Products;Lcom/topsort/analytics/model/auctions/Auction$Category;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategory ()Lcom/topsort/analytics/model/auctions/Auction$Category;
+	public final fun getDevice ()Lcom/topsort/analytics/model/auctions/Device;
+	public final fun getGeoTargeting ()Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;
+	public final fun getProducts ()Lcom/topsort/analytics/model/auctions/Auction$Products;
+	public final fun getSearchQuery ()Ljava/lang/String;
+	public final fun getSlotId ()Ljava/lang/String;
+	public final fun getSlots ()I
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/Auction$Category {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction$Category;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/Auction$Category;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction$Category;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDisjunctions ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getIds ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/Auction$Factory {
+	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/Auction$Factory;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildBannerAuctionCategoryDisjunctions$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildBannerAuctionCategoryMultiple$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildBannerAuctionCategorySingle$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildBannerAuctionKeywords$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildBannerAuctionLandingPage$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildSponsoredListingAuctionCategoryDisjunctions$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildSponsoredListingAuctionCategoryMultiple$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildSponsoredListingAuctionCategorySingle$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildSponsoredListingAuctionKeyword$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public static synthetic fun buildSponsoredListingAuctionProductIds$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+}
+
+public final class com/topsort/analytics/model/auctions/Auction$GeoTargeting {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction$GeoTargeting;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLocation ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/Auction$Products {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction$Products;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/Auction$Products;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction$Products;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIds ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/topsort/analytics/model/auctions/AuctionError : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionError$DeserializationError : com/topsort/analytics/model/auctions/AuctionError {
+	public fun <init> (Ljava/lang/Throwable;[B)V
+	public final fun getData ()[B
+	public final fun getError ()Ljava/lang/Throwable;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionError$EmptyResponse : com/topsort/analytics/model/auctions/AuctionError {
+	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/AuctionError$EmptyResponse;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionError$HttpError : com/topsort/analytics/model/auctions/AuctionError {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getError ()Ljava/lang/Throwable;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionError$InvalidNumberAuctions : com/topsort/analytics/model/auctions/AuctionError {
+	public fun <init> (I)V
+	public final fun getCount ()I
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionError$SerializationError : com/topsort/analytics/model/auctions/AuctionError {
+	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/AuctionError$SerializationError;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionRequest {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/auctions/AuctionRequest;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/AuctionRequest;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/AuctionRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAuctions ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse {
+	public static final field Companion Lcom/topsort/analytics/model/auctions/AuctionResponse$Companion;
+	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/topsort/analytics/model/auctions/AuctionResponse;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/AuctionResponse;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/AuctionResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResults ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$Asset {
+	public static final field Companion Lcom/topsort/analytics/model/auctions/AuctionResponse$Asset$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/AuctionResponse$Asset;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/AuctionResponse$Asset;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/AuctionResponse$Asset;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$Asset$Companion {
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/auctions/AuctionResponse$Asset;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem {
+	public static final field Companion Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Z)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Z)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem;Ljava/lang/String;Ljava/util/List;ZILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Z
+	public final fun getResultType ()Ljava/lang/String;
+	public final fun getWinners ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem$Companion {
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionResponseItem;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem {
+	public static final field Companion Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem$Companion;
+	public fun <init> (ILcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (ILcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Lcom/topsort/analytics/model/auctions/EntityType;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (ILcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem;ILcom/topsort/analytics/model/auctions/EntityType;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAsset ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getRank ()I
+	public final fun getResolvedBidId ()Ljava/lang/String;
+	public final fun getType ()Lcom/topsort/analytics/model/auctions/EntityType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem$Companion {
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/auctions/AuctionResponse$AuctionWinnerItem;
+}
+
+public final class com/topsort/analytics/model/auctions/AuctionResponse$Companion {
+	public final fun fromJson (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/AuctionResponse;
+}
+
+public final class com/topsort/analytics/model/auctions/Device : java/lang/Enum {
+	public static final field DESKTOP Lcom/topsort/analytics/model/auctions/Device;
+	public static final field MOBILE Lcom/topsort/analytics/model/auctions/Device;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Device;
+	public static fun values ()[Lcom/topsort/analytics/model/auctions/Device;
+}
+
+public final class com/topsort/analytics/model/auctions/EntityType : java/lang/Enum {
+	public static final field BRAND Lcom/topsort/analytics/model/auctions/EntityType;
+	public static final field Companion Lcom/topsort/analytics/model/auctions/EntityType$Companion;
+	public static final field PRODUCT Lcom/topsort/analytics/model/auctions/EntityType;
+	public static final field URL Lcom/topsort/analytics/model/auctions/EntityType;
+	public static final field VENDOR Lcom/topsort/analytics/model/auctions/EntityType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/EntityType;
+	public static fun values ()[Lcom/topsort/analytics/model/auctions/EntityType;
+}
+
+public final class com/topsort/analytics/model/auctions/EntityType$Companion {
+	public final fun fromValue (Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/EntityType;
+}
+
+public abstract interface class com/topsort/analytics/service/AuctionsHttpService {
+	public abstract fun runAuctions (Lcom/topsort/analytics/model/auctions/AuctionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun runAuctionsSync (Lcom/topsort/analytics/model/auctions/AuctionRequest;)Lcom/topsort/analytics/model/auctions/AuctionResponse;
+}
+
+public final class com/topsort/analytics/service/TopsortAuctionsHttpService : com/topsort/analytics/service/AuctionsHttpService {
+	public static final field INSTANCE Lcom/topsort/analytics/service/TopsortAuctionsHttpService;
+	public final fun getServiceInstance ()Lcom/topsort/analytics/service/AuctionsHttpService;
+	public final fun resetToDefaultService ()V
+	public fun runAuctions (Lcom/topsort/analytics/model/auctions/AuctionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun runAuctionsSync (Lcom/topsort/analytics/model/auctions/AuctionRequest;)Lcom/topsort/analytics/model/auctions/AuctionResponse;
+	public final fun setMockService (Lcom/topsort/analytics/service/AuctionsHttpService;)V
+	public final fun setServiceInstance (Lcom/topsort/analytics/service/AuctionsHttpService;)V
+}
+

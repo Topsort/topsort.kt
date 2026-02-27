@@ -18,6 +18,7 @@ androidx-test-ext      = "1.2.1"
 espresso               = "3.6.1"
 kotlinx-coroutines     = "1.7.3"
 mockk                  = "1.13.12"
+bcv                    = "0.16.3"
 
 [libraries]
 androidx-core-ktx              = { module = "androidx.core:core-ktx",                          version.ref = "core-ktx" }
@@ -45,3 +46,4 @@ android-library        = { id = "com.android.library",                 version.r
 kotlin-android         = { id = "org.jetbrains.kotlin.android",        version.ref = "kotlin" }
 detekt                 = { id = "io.gitlab.arturbosch.detekt",         version.ref = "detekt" }
 vanniktech-publish     = { id = "com.vanniktech.maven.publish",        version.ref = "vanniktech-publish" }
+bcv                    = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
