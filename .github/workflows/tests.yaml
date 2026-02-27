@@ -32,6 +32,17 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :TopsortAnalytics:test
 
+      - name: Generate coverage report
+        run: ./gradlew :TopsortAnalytics:koverHtmlReport :TopsortAnalytics:koverVerify
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        if: always()
+        with:
+          name: coverage-report
+          path: TopsortAnalytics/build/reports/kover/html/
+          retention-days: 14
+
       - name: Publish unit test results
         uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe  # v4
         if: always()
