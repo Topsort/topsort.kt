@@ -6,6 +6,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -46,6 +50,7 @@ jobs:
       with:
         api-level: 34
         arch: x86_64
+        force-avd-creation: false
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: false
         script: echo "Generated AVD snapshot for caching."
@@ -55,6 +60,9 @@ jobs:
       with:
         api-level: 34
         arch: x86_64
+        force-avd-creation: false
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
-        script: ./gradlew connectedCheck
+        script: |
+          adb uninstall com.topsort.analytics.test 2>/dev/null || true
+          ./gradlew connectedCheck
