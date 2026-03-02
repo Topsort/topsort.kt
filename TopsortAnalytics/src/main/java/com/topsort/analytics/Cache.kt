@@ -130,6 +130,7 @@ internal object Cache {
         recordId
     )
 
+    @Synchronized
     private fun nextRecordKey(): String {
         recentRecordId = if (recentRecordId < Long.MAX_VALUE) {
             recentRecordId + 1
@@ -140,7 +141,7 @@ internal object Cache {
         preferences
             .edit()
             .putLong(KEY_RECENT_RECORD_ID, recentRecordId)
-            .apply()
+            .commit()
         return recordKey(recentRecordId)
     }
 }
