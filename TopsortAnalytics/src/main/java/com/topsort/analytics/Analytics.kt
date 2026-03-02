@@ -68,6 +68,11 @@ object Analytics : TopsortAnalytics {
         id: String?,
         occurredAt: String?,
     ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
         val impressions = listOf(
             Impression.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
@@ -88,6 +93,11 @@ object Analytics : TopsortAnalytics {
         id: String?,
         occurredAt: String?,
     ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
         val impressions = listOf(
             Impression.Factory.buildOrganic(
                 entity = entity,
@@ -108,6 +118,11 @@ object Analytics : TopsortAnalytics {
         id: String?,
         occurredAt: String?,
     ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
         val clicks = listOf(
             Click.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
@@ -128,6 +143,11 @@ object Analytics : TopsortAnalytics {
         id: String?,
         occurredAt: String?,
     ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
         val clicks = listOf(
             Click.Factory.buildOrganic(
                 entity = entity,
@@ -196,7 +216,12 @@ object Analytics : TopsortAnalytics {
             .setConstraints(constraints)
 
 
-        val continuation = workManager!!
+        val wm = workManager ?: run {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val continuation = wm
             .beginUniqueWork(
                 EventEmitterWorker.WORK_NAME,
                 ExistingWorkPolicy.APPEND,

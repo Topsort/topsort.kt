@@ -38,9 +38,10 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
             // Check if there are any results with winners
             if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
                 val winner = response.results[0].winners[0]
+                val assetUrl = winner.asset?.firstOrNull()?.url ?: return null
                 return BannerResponse(
                     id = winner.id,
-                    url = winner.asset!![0].url,
+                    url = assetUrl,
                     type = winner.type,
                     resolvedBidId = winner.resolvedBidId
                 )
