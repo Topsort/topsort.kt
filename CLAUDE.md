@@ -6,7 +6,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup, release process, and cont
 
 ## Development Environment
 
-- **JDK 17 required** (Temurin). JDK 25 is the system default but is **incompatible** — Groovy DSL fails with "Unsupported class file major version 69".
+- **JDK 17 required** (Temurin). Later JDKs are **incompatible** — Groovy DSL fails with "Unsupported class file major version".
 - Always prefix Gradle commands with:
   ```
   JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
@@ -88,8 +88,16 @@ Package layout:
 
 ## Git Workflow
 
-Follow the git workflow in `~/.claude/CLAUDE.md` (never commit to main, feature branches, conventional commits, stacked PRs for large changes).
-Project-specific: run `apiCheck` before pushing any PR that touches library source.
+- **Never commit directly to `main`.** All changes go through PRs from a dedicated branch.
+- Branch names should be descriptive (e.g., `feat/add-google-environment`, `fix/merge-pagination-offset`).
+- **Large changes must be broken into stacked PRs** — each PR should be independently reviewable and represent a single logical unit of work. Avoid monolithic PRs that touch many unrelated things at once.
+- Each PR in a stack should be based on the previous branch, not `main`, so they can be reviewed and merged in order.
+- **Admin override** (`gh pr merge --admin`) is only appropriate to bypass the review requirement when all CI checks pass. Never use it to force-merge a PR with failing CI — fix the failures first.
+- Keep branches up to date with `main` before merging — rebase or merge `main` into your branch to resolve conflicts locally, not in the merge commit.
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages (e.g., `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
+- Never approve or merge a PR that has unresolved review comments — address or explicitly dismiss each one first. Always check nested/threaded comments (e.g. replies under bot comments) as they may contain substantive issues not visible at the top level.
+- Before merging with `--admin`, wait at least **5 minutes** after the last CI check finishes. This gives Bugbot and other async bots time to post their comments. After the wait, check all PR comments (including nested/threaded replies) for unresolved issues before merging. Run the wait in the background and do **not** block on `TaskOutput` — let the completion notification come to you so the session stays responsive.
+- **Project-specific**: run `apiCheck` before pushing any PR that touches library source.
 
 ## CI Pipeline
 
