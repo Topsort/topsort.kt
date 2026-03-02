@@ -2,6 +2,8 @@ package com.topsort.analytics.banners
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import coil.load
 import coil.request.ErrorResult
@@ -104,12 +106,17 @@ class BannerView(
                         }
                     )
                 }
-                this.viewTreeObserver.addOnGlobalLayoutListener {
-                    Analytics.reportImpressionPromoted(
-                        resolvedBidId = result.resolvedBidId,
-                        placement = Placement(path = path, location = location)
-                    )
-                }
+                this.viewTreeObserver.addOnGlobalLayoutListener(
+                    object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            viewTreeObserver.removeOnGlobalLayoutListener(this)
+                            Analytics.reportImpressionPromoted(
+                                resolvedBidId = result.resolvedBidId,
+                                placement = Placement(path = path, location = location)
+                            )
+                        }
+                    }
+                )
                 this.setOnClickListener {
                     Analytics.reportClickPromoted(
                         resolvedBidId = result.resolvedBidId,
@@ -123,7 +130,7 @@ class BannerView(
         } catch (e: AuctionError.EmptyResponse) {
             onNoWinnersCallback?.invoke()
         } catch (e: AuctionError.HttpError) {
-            println("HttpError: ${e.message}")
+            Log.e("BannerView", "HttpError: ${e.message}")
             onAuctionErrorCallback?.invoke(e)
             onErrorCallback?.invoke(e)
         } catch (e: AuctionError.InvalidNumberAuctions) {
