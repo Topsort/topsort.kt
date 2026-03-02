@@ -44,7 +44,7 @@ internal class EventEmitterWorker(
                     Cache.deleteEvent(recordId)
                     Result.success()
                 } else {
-                    Result.failure()
+                    Result.retry()
                 }
             }
             EventType.Click -> {
@@ -53,7 +53,7 @@ internal class EventEmitterWorker(
                     Cache.deleteEvent(recordId)
                     Result.success()
                 } else {
-                    Result.failure()
+                    Result.retry()
                 }
             }
             EventType.Purchase -> {
@@ -62,7 +62,7 @@ internal class EventEmitterWorker(
                     Cache.deleteEvent(recordId)
                     Result.success()
                 } else {
-                    Result.failure()
+                    Result.retry()
                 }
             }
         }
