@@ -49,6 +49,10 @@ tasks.withType(Detekt).configureEach {
     config = files(["$projectDir/../detekt.yaml"])
 }
 
+tasks.withType(Test).configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).toInteger() ?: 1
+}
+
 kover {
     reports {
         verify {
