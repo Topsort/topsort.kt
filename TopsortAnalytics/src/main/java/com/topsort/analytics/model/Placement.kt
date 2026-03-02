@@ -64,7 +64,7 @@ data class Placement(
             .put("page", page)
             .put("pageSize", pageSize)
             .put("productId", productId)
-            .put("categoryIds", JSONArray(categoryIds))
+            .put("categoryIds", categoryIds?.let { JSONArray(it) })
             .put("searchQuery", searchQuery)
             .put("location", location)
     }

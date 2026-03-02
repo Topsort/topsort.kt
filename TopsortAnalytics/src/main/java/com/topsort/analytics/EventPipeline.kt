@@ -85,8 +85,12 @@ internal object EventPipeline {
         val requestBuilder = OneTimeWorkRequestBuilder<EventEmitterWorker>()
             .setConstraints(constraints)
 
-        workManager!!
-            .enqueueUniqueWork(
+        val wm = workManager ?: run {
+            Logger.log.add("EventPipeline: workManager not initialized, skipping upload")
+            return
+        }
+
+        wm.enqueueUniqueWork(
                 UPLOAD_SIGNAL,
                 ExistingWorkPolicy.REPLACE,
                 requestBuilder.build()

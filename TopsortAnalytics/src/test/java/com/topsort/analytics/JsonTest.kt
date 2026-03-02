@@ -2,6 +2,7 @@ package com.topsort.analytics
 
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.Impression
+import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import org.json.JSONObject
 import org.junit.Test
@@ -49,5 +50,83 @@ internal class JsonTest {
 
         assertThat(purchase).isNotSameAs(deserialized)
         assertThat(purchase).isEqualTo(deserialized)
+    }
+
+    @Test
+    fun `placement toJsonObject with null categoryIds does not crash`() {
+        val placement = Placement(
+            path = "test/path",
+            categoryIds = null,
+        )
+
+        val json = placement.toJsonObject()
+
+        assertThat(json.getString("path")).isEqualTo("test/path")
+        assertThat(json.isNull("categoryIds")).isTrue()
+    }
+
+    @Test
+    fun `placement toJsonObject with categoryIds serializes array`() {
+        val placement = Placement(
+            path = "test/path",
+            categoryIds = listOf("cat1", "cat2"),
+        )
+
+        val json = placement.toJsonObject()
+
+        assertThat(json.getString("path")).isEqualTo("test/path")
+        val categoryArray = json.getJSONArray("categoryIds")
+        assertThat(categoryArray.length()).isEqualTo(2)
+        assertThat(categoryArray.getString(0)).isEqualTo("cat1")
+        assertThat(categoryArray.getString(1)).isEqualTo("cat2")
+    }
+
+    @Test
+    fun `placement roundtrip with all optional fields null`() {
+        val placement = Placement(path = "minimal/path")
+
+        val serialized = placement.toJsonObject().toString()
+        val deserialized = Placement.fromJsonObject(JSONObject(serialized))
+
+        assertThat(deserialized.path).isEqualTo("minimal/path")
+        assertThat(deserialized.position).isNull()
+        assertThat(deserialized.page).isNull()
+        assertThat(deserialized.pageSize).isNull()
+        assertThat(deserialized.productId).isNull()
+        assertThat(deserialized.categoryIds).isNull()
+        assertThat(deserialized.searchQuery).isNull()
+        assertThat(deserialized.location).isNull()
+    }
+
+    @Test
+    fun `placement roundtrip with all fields populated`() {
+        val placement = Placement(
+            path = "full/path",
+            position = 3,
+            page = 2,
+            pageSize = 10,
+            productId = "prod-1",
+            categoryIds = listOf("cat-a", "cat-b"),
+            searchQuery = "shoes",
+            location = "top-banner",
+        )
+
+        val serialized = placement.toJsonObject().toString()
+        val deserialized = Placement.fromJsonObject(JSONObject(serialized))
+
+        assertThat(deserialized).isEqualTo(placement)
+    }
+
+    @Test
+    fun `placement build factory with null categoryIds`() {
+        val placement = Placement.build(
+            path = "factory/path",
+            categoryIds = null,
+        )
+
+        val json = placement.toJsonObject()
+
+        assertThat(json.getString("path")).isEqualTo("factory/path")
+        assertThat(json.isNull("categoryIds")).isTrue()
     }
 }
