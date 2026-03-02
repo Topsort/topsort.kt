@@ -20,7 +20,7 @@ kotlinx-coroutines     = "1.10.2"
 mockk                  = "1.13.12"
 bcv                    = "0.16.3"
 kover                  = "0.8.3"
-dokka                  = "1.9.20"
+dokka                  = "2.1.0"
 
 [libraries]
 androidx-core-ktx              = { module = "androidx.core:core-ktx",                          version.ref = "core-ktx" }
