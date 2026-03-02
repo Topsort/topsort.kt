@@ -8,6 +8,7 @@ Licensed under [MIT][1].
 
 - Minimum Java version: 17
 - Android SDK: 24+
+- `INTERNET` permission (add to your `AndroidManifest.xml` if not already present)
 
 ## Installation / Getting started
 
@@ -98,74 +99,91 @@ public class JavaApplication extends Application {
 
 #### Reporting Events
 
-The following samples show how report different events after setting up:
+The following samples show how to report different events after setting up.
 
-##### Kotlin
+The `Placement` constructor requires a `path` parameter (the URL path or deeplink for the current view). Other fields like `location`, `page`, `position`, `pageSize`, `productId`, `categoryIds`, and `searchQuery` are optional:
+
+```kotlin
+val placement = Placement(
+    path = "/search/results",
+    location = "position_1",
+    page = 1,
+    pageSize = 20
+)
+```
+
+##### Promoted events (with resolvedBidId from auction)
+
+```kotlin
+fun reportPromotedImpression() {
+    val placement = Placement(
+        path = "/search/results",
+        location = "position_1"
+    )
+
+    Analytics.reportImpressionPromoted(
+        resolvedBidId = "<The bid id from the auction winner>",
+        placement = placement
+    )
+}
+
+fun reportPromotedClick() {
+    val placement = Placement(
+        path = "/search/results",
+        location = "position_1"
+    )
+
+    Analytics.reportClickPromoted(
+        resolvedBidId = "<The bid id from the auction winner>",
+        placement = placement
+    )
+}
+```
+
+##### Organic events (with entity instead of resolvedBidId)
+
+```kotlin
+fun reportOrganicImpression() {
+    val placement = Placement(
+        path = "/search/results",
+        location = "position_1"
+    )
+
+    Analytics.reportImpressionOrganic(
+        entity = Entity(id = "productId", type = EntityType.PRODUCT),
+        placement = placement
+    )
+}
+
+fun reportOrganicClick() {
+    val placement = Placement(
+        path = "/search/results",
+        location = "position_1"
+    )
+
+    Analytics.reportClickOrganic(
+        entity = Entity(id = "productId", type = EntityType.PRODUCT),
+        placement = placement
+    )
+}
+```
+
+##### Purchase events
+
 ```kotlin
 fun reportPurchase() {
     val item = PurchasedItem(
-        resolvedBidId = "<The bid id from the auction winner>",
         productId = "productId",
+        quantity = 20,
         unitPrice = 1295,
-        quantity = 20
+        resolvedBidId = "<The bid id from the auction winner>"
     )
 
     Analytics.reportPurchase(
-        id = "marketPlaceId",
+        id = "orderId",
         items = listOf(item)
     )
 }
-
-fun reportClick() {
-    val placement = Placement(
-        page = "search_results",
-        location = "position_1"
-    )
-
-    Analytics.reportClick(
-        placement = placement,
-        productId = "productId"
-    )
-}
-
-fun reportClick() {
-    val placement = Placement(
-        page = "search_results",
-        location = "position_1"
-    )
-
-    Analytics.reportClickWithResolvedBidId(
-        resolvedBidId = "<The bid id from the auction winner>",
-        placement = placement
-    )
-}
-
-fun reportImpression() {
-    val placement = Placement(
-        page = "search_results",
-        location = "position_1"
-    )
-
-    val impression = Impression(
-        productId = "productId",
-        placement = placement
-    )
-
-    Analytics.reportImpression(listOf(impression))
-}
-
-fun reportImpressionWithResolvedBidId() {
-    val placement = Placement(
-        page = "search_results",
-        location = "position_1"
-    )
-
-    Analytics.reportImpressionWithResolvedBidId(
-        resolvedBidId = "<The bid id from the auction winner>",
-        placement = placement
-    )
-}
-
 ```
 
 ## Banner Auctions with Error Handling and Callbacks
@@ -225,7 +243,7 @@ lifecycleScope.launch {
         // Handle banner click
         when (type) {
             EntityType.PRODUCT -> openProductPage(id)
-            EntityType.CATEGORY -> openCategoryPage(id)
+            EntityType.VENDOR -> openVendorPage(id)
             else -> openUrl(id)
         }
     }
