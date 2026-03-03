@@ -1,6 +1,7 @@
 package com.topsort.analytics.service
 
 import com.topsort.analytics.model.auctions.Auction
+import com.topsort.analytics.model.auctions.AuctionConfig
 import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
@@ -21,7 +22,7 @@ class TopsortAuctionsHttpServiceTest {
     private val mockService = mockk<AuctionsHttpService>()
 
     private val minimalRequest = AuctionRequest(
-        listOf(Auction.Factory.buildSponsoredListingAuctionProductIds(1, listOf("p1")))
+        listOf(Auction.fromConfig(AuctionConfig.ProductIds(numSlots = 1, ids = listOf("p1"))))
     )
 
     @Before

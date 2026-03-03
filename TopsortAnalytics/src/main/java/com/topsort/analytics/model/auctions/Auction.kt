@@ -46,8 +46,58 @@ data class Auction private constructor(
         }
     }
 
+    companion object {
+        /**
+         * Builds an [Auction] from an [AuctionConfig] sealed class instance.
+         *
+         * This is the preferred way to create sponsored listing auctions:
+         * ```
+         * val config = AuctionConfig.ProductIds(numSlots = 1, ids = listOf("p1", "p2"))
+         * val auction = Auction.fromConfig(config)
+         * ```
+         */
+        fun fromConfig(config: AuctionConfig): Auction {
+            return when (config) {
+                is AuctionConfig.ProductIds -> Auction(
+                    type = "listings",
+                    slots = config.slots,
+                    products = Products(config.ids),
+                    geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                )
+                is AuctionConfig.CategorySingle -> Auction(
+                    type = "listings",
+                    slots = config.slots,
+                    category = Category(id = config.category),
+                    geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                )
+                is AuctionConfig.CategoryMultiple -> Auction(
+                    type = "listings",
+                    slots = config.slots,
+                    category = Category(ids = config.categories),
+                    geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                )
+                is AuctionConfig.CategoryDisjunctions -> Auction(
+                    type = "listings",
+                    slots = config.slots,
+                    category = Category(disjunctions = config.disjunctions),
+                    geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                )
+                is AuctionConfig.Keyword -> Auction(
+                    type = "listings",
+                    slots = config.slots,
+                    searchQuery = config.keyword,
+                    geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                )
+            }
+        }
+    }
+
     object Factory {
 
+        @Deprecated(
+            "Use AuctionConfig.ProductIds with Auction.fromConfig() instead",
+            ReplaceWith("Auction.fromConfig(AuctionConfig.ProductIds(slots, ids, geoTargeting))")
+        )
         @JvmOverloads
         fun buildSponsoredListingAuctionProductIds(
             slots: Int,
@@ -65,6 +115,10 @@ data class Auction private constructor(
             )
         }
 
+        @Deprecated(
+            "Use AuctionConfig.CategorySingle with Auction.fromConfig() instead",
+            ReplaceWith("Auction.fromConfig(AuctionConfig.CategorySingle(slots, category, geoTargeting))")
+        )
         @JvmOverloads
         fun buildSponsoredListingAuctionCategorySingle(
             slots: Int,
@@ -82,6 +136,10 @@ data class Auction private constructor(
             )
         }
 
+        @Deprecated(
+            "Use AuctionConfig.CategoryMultiple with Auction.fromConfig() instead",
+            ReplaceWith("Auction.fromConfig(AuctionConfig.CategoryMultiple(slots, categories, geoTargeting))")
+        )
         @JvmOverloads
         fun buildSponsoredListingAuctionCategoryMultiple(
             slots: Int,
@@ -99,6 +157,10 @@ data class Auction private constructor(
             )
         }
 
+        @Deprecated(
+            "Use AuctionConfig.CategoryDisjunctions with Auction.fromConfig() instead",
+            ReplaceWith("Auction.fromConfig(AuctionConfig.CategoryDisjunctions(slots, disjunctions, geoTargeting))")
+        )
         @JvmOverloads
         fun buildSponsoredListingAuctionCategoryDisjunctions(
             slots: Int,
@@ -116,6 +178,10 @@ data class Auction private constructor(
             )
         }
 
+        @Deprecated(
+            "Use AuctionConfig.Keyword with Auction.fromConfig() instead",
+            ReplaceWith("Auction.fromConfig(AuctionConfig.Keyword(slots, keyword, geoTargeting))")
+        )
         @JvmOverloads
         fun buildSponsoredListingAuctionKeyword(
             slots: Int,
