@@ -31,27 +31,30 @@ class HttpClient (
     fun post(body: String, bearerToken: String?): HttpResponse {
         val connection: HttpURLConnection = requestFactory.upload(apiHost, bearerToken)
         val postConnection = connection.createPostConnection()
-        val writeStream = postConnection.outputStream!!.bufferedWriter()
+        try {
+            val writeStream = postConnection.outputStream!!.bufferedWriter()
 
-        writeStream.write(body)
-        writeStream.flush()
-        postConnection.outputStream.close()
+            writeStream.write(body)
+            writeStream.flush()
+            postConnection.outputStream.close()
 
-        @Suppress("detekt:MagicNumber")
-        if (connection.responseCode !in 200..299) {
-            postConnection.close()
-            return HttpResponse(connection.responseCode, connection.responseMessage)
-        }
-
-        val inputStream =
-            try {
-                connection.inputStream
-            } catch (ignored: IOException) {
-                connection.errorStream
+            @Suppress("detekt:MagicNumber")
+            if (connection.responseCode !in 200..299) {
+                return HttpResponse(connection.responseCode, connection.responseMessage)
             }
 
-        val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
-        return HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
+            val inputStream =
+                try {
+                    connection.inputStream
+                } catch (ignored: IOException) {
+                    connection.errorStream
+                }
+
+            val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
+            return HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
+        } finally {
+            postConnection.close()
+        }
     }
 }
 
@@ -114,12 +117,12 @@ class RequestFactory {
         }
         val connection = requestedURL.openConnection() as HttpURLConnection
         connection.connectTimeout = CONNECTION_TIMEOUT
-        connection.readTimeout = READ_TIMETOUT
+        connection.readTimeout = READ_TIMEOUT
         return connection
     }
 
     companion object {
         const val CONNECTION_TIMEOUT = 15_000 // 15 seconds
-        const val READ_TIMETOUT = 20_000 // 20 seconds
+        const val READ_TIMEOUT = 20_000 // 20 seconds
     }
 }

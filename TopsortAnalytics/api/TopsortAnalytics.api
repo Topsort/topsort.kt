@@ -217,7 +217,7 @@ public final class com/topsort/analytics/core/RandomGeneratorKt {
 public final class com/topsort/analytics/core/RequestFactory {
 	public static final field CONNECTION_TIMEOUT I
 	public static final field Companion Lcom/topsort/analytics/core/RequestFactory$Companion;
-	public static final field READ_TIMETOUT I
+	public static final field READ_TIMEOUT I
 	public fun <init> ()V
 	public final fun upload (Ljava/lang/String;Ljava/lang/String;)Ljava/net/HttpURLConnection;
 }
