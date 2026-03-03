@@ -1,6 +1,7 @@
 package com.topsort.analytics.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
@@ -71,8 +72,12 @@ internal class EventEmitterWorker(
     private fun reportImpression(impressionEvent: ImpressionEvent): Boolean {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportImpression(impressionEvent)
+            if (!response.isSuccessful()) {
+                Log.e(TAG, "Failed to report impression: ${response.code} ${response.message}")
+            }
             response.isSuccessful()
-        } catch (ignored: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting impression", e)
             false
         }
     }
@@ -80,8 +85,12 @@ internal class EventEmitterWorker(
     private fun reportClick(clickEvent: ClickEvent): Boolean {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportClick(clickEvent)
+            if (!response.isSuccessful()) {
+                Log.e(TAG, "Failed to report click: ${response.code} ${response.message}")
+            }
             response.isSuccessful()
-        } catch (ignored: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting click", e)
             false
         }
     }
@@ -89,13 +98,19 @@ internal class EventEmitterWorker(
     private fun reportPurchase(purchaseEvent: PurchaseEvent): Boolean {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportPurchase(purchaseEvent)
+            if (!response.isSuccessful()) {
+                Log.e(TAG, "Failed to report purchase: ${response.code} ${response.message}")
+            }
             response.isSuccessful()
-        } catch (ignored: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting purchase", e)
             false
         }
     }
 
     companion object {
+        private const val TAG = "TopsortEventEmitter"
+
         const val EXTRA_RECORD_ID = "EXTRA_RECORD_ID"
         const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
 
