@@ -76,6 +76,11 @@ internal object Cache {
     @Suppress("TooGenericExceptionCaught")
     private fun migrateFromPlaintextPreferences(context: Context) {
         val plaintext = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+        // Skip migration if encryption failed and we fell back to the same plaintext prefs.
+        // Clearing would wipe all data since both references point to the same instance.
+        if (plaintext === preferences) return
+
         val plaintextToken = plaintext.getString(KEY_TOKEN, "")
         if (plaintextToken.isNullOrEmpty()) return
 
