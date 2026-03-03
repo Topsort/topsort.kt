@@ -3,26 +3,26 @@ package com.topsort.analytics.core
 import org.json.JSONArray
 import org.json.JSONObject
 
-fun JSONObject.getStringOrNull(name: String): String? {
+internal fun JSONObject.getStringOrNull(name: String): String? {
     return if (has(name)) {
         getString(name)
     } else null
 }
 
-fun JSONObject.getIntOrNull(name: String): Int? {
+internal fun JSONObject.getIntOrNull(name: String): Int? {
     return if (has(name)) {
         getInt(name)
     } else null
 }
 
-fun JSONObject.getStringListOrNull(name: String): List<String>? {
+internal fun JSONObject.getStringListOrNull(name: String): List<String>? {
     return if (has(name)) {
         val array = getJSONArray(name)
         return (0 until array.length()).map { array[it].toString() }
     } else null
 }
 
-fun <T> getListFromJsonArray(array: JSONArray, jsonDeserializer: (JSONObject) -> T): List<T> {
+internal fun <T> getListFromJsonArray(array: JSONArray, jsonDeserializer: (JSONObject) -> T): List<T> {
     return (0 until array.length()).map {
         jsonDeserializer(array.getJSONObject(it))
     }
