@@ -44,7 +44,7 @@ jobs:
           retention-days: 14
 
       - name: Publish unit test results
-        uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe  # v4
+        uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4  # v6.3.1
         if: always()
         with:
           report_paths: '**/build/test-results/test*/*.xml'
