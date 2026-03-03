@@ -92,6 +92,11 @@ data class PurchasedItem(
     val productId: String,
 
     @IntRange(from = 1) val quantity: Int,
+
+    /**
+     * Unit price in the smallest currency unit (e.g., cents for USD).
+     * Example: 1295 = $12.95
+     */
     @IntRange(from = 1) val unitPrice: Int? = null,
 
     /**

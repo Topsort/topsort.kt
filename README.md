@@ -19,6 +19,8 @@ Simply add the dependency to your build.gradle file:
 dependencies {
     ...
 
+    // Check Maven Central for the latest version:
+    // https://central.sonatype.com/artifact/com.topsort/topsort-kt
     implementation 'com.topsort:topsort-kt:2.0.0'
 }
 ```
@@ -175,7 +177,7 @@ fun reportPurchase() {
     val item = PurchasedItem(
         productId = "productId",
         quantity = 20,
-        unitPrice = 1295,
+        unitPrice = 1295, // price in cents ($12.95)
         resolvedBidId = "<The bid id from the auction winner>"
     )
 
