@@ -6,7 +6,7 @@ Licensed under [MIT][1].
 
 ## Requirements
 
-- Minimum Java version: 17
+- Minimum Java version: 11
 - Android SDK: 24+
 - `INTERNET` permission (add to your `AndroidManifest.xml` if not already present)
 
@@ -25,17 +25,17 @@ dependencies {
 }
 ```
 
-Ensure your project is configured to use Java 17:
+Ensure your project is configured to use at least Java 11:
 
 ```gradle
 android {
     // Other configurations...
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '11'
     }
 }
 ```
