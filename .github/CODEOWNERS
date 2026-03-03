@@ -1,0 +1,9 @@
+# Source code
+*.kt @Topsort/integrations
+*.kts @Topsort/integrations
+
+# Build config
+*.gradle @Topsort/integrations
+
+# CI
+.github/ @Topsort/integrations
