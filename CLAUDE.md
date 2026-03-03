@@ -34,9 +34,6 @@ Analytics.report*()
 Cache (SharedPreferences)     ◄── persistent, synchronous
     │
     ▼
-EventPipeline (DataStore)     ◄── batching, coroutines
-    │
-    ▼
 WorkManager                   ◄── background, network-constrained
     │
     ▼

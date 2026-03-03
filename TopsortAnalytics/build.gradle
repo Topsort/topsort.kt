@@ -63,7 +63,6 @@ kover {
         filters {
             excludes {
                 classes("com.topsort.analytics.BuildConfig")
-                classes("com.topsort.analytics.EventPipeline\$EventEmitterWorker")
                 packages("com.topsort.analytics.worker")
             }
         }
@@ -90,7 +89,6 @@ dependencies {
     implementation libs.androidx.core.ktx
     implementation libs.androidx.annotation
     implementation libs.androidx.work.runtime
-    implementation libs.androidx.datastore.preferences
     implementation libs.jodatime
     implementation libs.coil
 
