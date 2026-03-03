@@ -1,5 +1,5 @@
 package com.topsort.analytics.core
 
-object Logger {
+internal object Logger {
     val log = mutableListOf<String>()
 }

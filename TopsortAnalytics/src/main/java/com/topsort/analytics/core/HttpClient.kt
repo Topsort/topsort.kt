@@ -10,9 +10,9 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.zip.GZIPOutputStream
 
-const val LIBRARY_VERSION = 1.0
+internal const val LIBRARY_VERSION = 1.0
 
-data class HttpResponse(
+internal data class HttpResponse(
     val code : Int,
     val message : String,
     val body: String? = null,
@@ -23,7 +23,7 @@ data class HttpResponse(
     }
 }
 
-class HttpClient (
+internal class HttpClient (
     private val apiHost: String,
     private val requestFactory: RequestFactory = RequestFactory()
 ) {
@@ -61,7 +61,7 @@ class HttpClient (
 /**
  * Wraps an HTTP connection. Callers can either read from the connection via the [ ] or write to the connection via [OutputStream].
  */
-abstract class Connection(
+internal abstract class Connection(
     private val connection: HttpURLConnection,
     val outputStream: OutputStream? = null,
 ) : Closeable {
@@ -90,7 +90,7 @@ internal fun HttpURLConnection.createPostConnection(): Connection {
 }
 
 
-class RequestFactory {
+internal class RequestFactory {
     fun upload(apiHost: String, bearerToken : String?): HttpURLConnection {
         val connection: HttpURLConnection = openConnection(apiHost)
         connection.requestMethod = "POST"
