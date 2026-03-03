@@ -206,7 +206,7 @@ object Analytics : TopsortAnalytics {
             .build()
 
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(false)
             .setRequiresDeviceIdle(false)
             .build()
