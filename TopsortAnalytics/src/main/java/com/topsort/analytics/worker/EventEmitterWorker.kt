@@ -38,74 +38,83 @@ internal class EventEmitterWorker(
             eventType = EventType.values()[eventTypeOrdinal]
         }
 
-        when (eventType) {
+        val sendResult = when (eventType) {
             EventType.Impression -> {
                 val event = Cache.readImpression(recordId) ?: return Result.success()
-                return if (reportImpression(event)) {
-                    Cache.deleteEvent(recordId)
-                    Result.success()
-                } else {
-                    Result.retry()
-                }
+                reportImpression(event)
             }
             EventType.Click -> {
                 val event = Cache.readClick(recordId) ?: return Result.success()
-                return if (reportClick(event)) {
-                    Cache.deleteEvent(recordId)
-                    Result.success()
-                } else {
-                    Result.retry()
-                }
+                reportClick(event)
             }
             EventType.Purchase -> {
                 val event = Cache.readPurchase(recordId) ?: return Result.success()
-                return if (reportPurchase(event)) {
-                    Cache.deleteEvent(recordId)
-                    Result.success()
-                } else {
-                    Result.retry()
-                }
+                reportPurchase(event)
             }
+        }
+
+        return when (sendResult) {
+            SendResult.SUCCESS -> {
+                Cache.deleteEvent(recordId)
+                Result.success()
+            }
+            SendResult.PERMANENT_FAILURE -> {
+                Cache.deleteEvent(recordId)
+                Result.failure()
+            }
+            SendResult.TRANSIENT_FAILURE -> Result.retry()
         }
     }
 
-    private fun reportImpression(impressionEvent: ImpressionEvent): Boolean {
+    private fun reportImpression(impressionEvent: ImpressionEvent): SendResult {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportImpression(impressionEvent)
-            if (!response.isSuccessful()) {
-                Log.e(TAG, "Failed to report impression: ${response.code} ${response.message}")
-            }
-            response.isSuccessful()
+            toSendResult(response.code, response.message, "impression")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting impression", e)
-            false
+            SendResult.TRANSIENT_FAILURE
         }
     }
 
-    private fun reportClick(clickEvent: ClickEvent): Boolean {
+    private fun reportClick(clickEvent: ClickEvent): SendResult {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportClick(clickEvent)
-            if (!response.isSuccessful()) {
-                Log.e(TAG, "Failed to report click: ${response.code} ${response.message}")
-            }
-            response.isSuccessful()
+            toSendResult(response.code, response.message, "click")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting click", e)
-            false
+            SendResult.TRANSIENT_FAILURE
         }
     }
 
-    private fun reportPurchase(purchaseEvent: PurchaseEvent): Boolean {
+    private fun reportPurchase(purchaseEvent: PurchaseEvent): SendResult {
         return try {
             val response = TopsortAnalyticsHttpService.service.reportPurchase(purchaseEvent)
-            if (!response.isSuccessful()) {
-                Log.e(TAG, "Failed to report purchase: ${response.code} ${response.message}")
-            }
-            response.isSuccessful()
+            toSendResult(response.code, response.message, "purchase")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting purchase", e)
-            false
+            SendResult.TRANSIENT_FAILURE
         }
+    }
+
+    @Suppress("detekt:MagicNumber")
+    private fun toSendResult(code: Int, message: String, eventType: String): SendResult {
+        return when {
+            code in 200..299 -> SendResult.SUCCESS
+            code in 400..499 -> {
+                Log.e(TAG, "Permanent failure reporting $eventType: $code $message")
+                SendResult.PERMANENT_FAILURE
+            }
+            else -> {
+                Log.e(TAG, "Transient failure reporting $eventType: $code $message")
+                SendResult.TRANSIENT_FAILURE
+            }
+        }
+    }
+
+    private enum class SendResult {
+        SUCCESS,
+        PERMANENT_FAILURE,
+        TRANSIENT_FAILURE,
     }
 
     companion object {
