@@ -44,12 +44,8 @@
 -keep class com.topsort.analytics.service.AuctionsHttpService { *; }
 -keep class com.topsort.analytics.service.TopsortAuctionsHttpService { *; }
 
-# Keep HttpResponse and HttpClient (public API)
--keep class com.topsort.analytics.core.HttpResponse { *; }
--keep class com.topsort.analytics.core.HttpClient { *; }
--keep class com.topsort.analytics.core.RequestFactory { *; }
--keep class com.topsort.analytics.core.RequestFactory$Companion { *; }
-
 # Keep WorkManager worker class names (WorkManager uses reflection)
 -keep class com.topsort.analytics.worker.EventEmitterWorker { *; }
--keep class com.topsort.analytics.EventPipeline$EventEmitterWorker { *; }
+
+# Keep AndroidX Security Crypto (used by EncryptedSharedPreferences)
+-keep class androidx.security.crypto.** { *; }

@@ -3,17 +3,23 @@ package com.topsort.analytics
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
+import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PurchaseEvent
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
+private const val ENCRYPTED_PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE_ENCRYPTED"
 
 private const val KEY_TOKEN = "KEY_TOKEN"
 private const val KEY_SESSION_ID = "KEY_SESSION_ID"
 private const val KEY_RECORD = "KEY_RECORD_%d"
 private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
+
+private const val TAG = "TopsortCache"
 
 internal object Cache {
 
@@ -42,10 +48,58 @@ internal object Cache {
 
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
-        preferences = applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        preferences = createEncryptedPreferences(applicationContext)
+
+        migrateFromPlaintextPreferences(applicationContext)
 
         token = preferences.getString(KEY_TOKEN, "")!!
         opaqueUserId = preferences.getString(KEY_SESSION_ID, "")!!
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun createEncryptedPreferences(context: Context): SharedPreferences {
+        return try {
+            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+            EncryptedSharedPreferences.create(
+                ENCRYPTED_PREFERENCES_NAME,
+                masterKeyAlias,
+                context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create encrypted preferences, falling back to plaintext", e)
+            context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun migrateFromPlaintextPreferences(context: Context) {
+        val plaintext = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+        // Skip migration if encryption failed and we fell back to the same plaintext prefs.
+        // Clearing would wipe all data since both references point to the same instance.
+        if (plaintext === preferences) return
+
+        val plaintextToken = plaintext.getString(KEY_TOKEN, "")
+        if (plaintextToken.isNullOrEmpty()) return
+
+        try {
+            val editor = preferences.edit()
+            for ((key, value) in plaintext.all) {
+                when (value) {
+                    is String -> editor.putString(key, value)
+                    is Long -> editor.putLong(key, value)
+                    is Int -> editor.putInt(key, value)
+                    is Boolean -> editor.putBoolean(key, value)
+                    is Float -> editor.putFloat(key, value)
+                }
+            }
+            editor.apply()
+            plaintext.edit().clear().apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to migrate plaintext preferences", e)
+        }
     }
 
     fun setup(

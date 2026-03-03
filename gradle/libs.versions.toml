@@ -7,6 +7,7 @@ core-ktx               = "1.13.1"
 annotation             = "1.7.1"
 work                   = "2.9.0"
 datastore              = "1.1.1"
+security-crypto        = "1.1.0-alpha06"
 lifecycle              = "2.8.4"
 material               = "1.13.0"
 jodatime               = "2.14.0"
@@ -27,6 +28,7 @@ androidx-core-ktx              = { module = "androidx.core:core-ktx",           
 androidx-annotation            = { module = "androidx.annotation:annotation",                   version.ref = "annotation" }
 androidx-work-runtime          = { module = "androidx.work:work-runtime-ktx",                   version.ref = "work" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences",         version.ref = "datastore" }
+androidx-security-crypto       = { module = "androidx.security:security-crypto",                version.ref = "security-crypto" }
 androidx-lifecycle-runtime     = { module = "androidx.lifecycle:lifecycle-runtime-ktx",         version.ref = "lifecycle" }
 material                       = { module = "com.google.android.material:material",              version.ref = "material" }
 jodatime                       = { module = "joda-time:joda-time",                              version.ref = "jodatime" }
