@@ -75,7 +75,7 @@ Package layout:
 
 ## Code Conventions
 
-- Kotlin, Java 17 source/target, JVM toolchain 17.
+- Kotlin, Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
 - Detekt enforces style (config: `detekt.yaml`). Run before pushing.
 - RFC3339 timestamps via Joda-Time (`eventNow()` helper in `EventTimestamp.kt`).
 - `JsonSerializable` interface for all models that go over the wire.

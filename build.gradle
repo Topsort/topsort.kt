@@ -15,11 +15,11 @@ plugins {
 
 subprojects {
     tasks.withType(Detekt).configureEach {
-        jvmTarget = '17'
+        jvmTarget = '11'
         autoCorrect = true
         buildUponDefaultConfig = true
     }
     tasks.withType(DetektCreateBaselineTask).configureEach {
-        jvmTarget = '17'
+        jvmTarget = '11'
     }
 }
