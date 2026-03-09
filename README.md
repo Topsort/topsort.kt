@@ -178,7 +178,6 @@ fun reportPurchase() {
         productId = "productId",
         quantity = 20,
         unitPrice = 1295, // price in cents ($12.95)
-        resolvedBidId = "<The bid id from the auction winner>"
     )
 
     Analytics.reportPurchase(
