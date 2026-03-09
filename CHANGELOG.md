@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.1](https://github.com/Topsort/topsort.kt/compare/v2.0.0...v2.0.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* add error logging in EventEmitterWorker ([#89](https://github.com/Topsort/topsort.kt/issues/89)) ([b67e84e](https://github.com/Topsort/topsort.kt/commit/b67e84ee4348174a68c0f0a432822e6d4bcdab2c))
+* close HTTP connections on success and fix READ_TIMEOUT typo ([#80](https://github.com/Topsort/topsort.kt/issues/80)) ([8674799](https://github.com/Topsort/topsort.kt/commit/86747995de8760ee0fa039116a81ed5609417a78))
+* distinguish 4xx from 5xx in EventEmitterWorker retry logic ([#95](https://github.com/Topsort/topsort.kt/issues/95)) ([8d1086e](https://github.com/Topsort/topsort.kt/commit/8d1086e98e058627ec02455f48552d81f36769f5))
+* lower jvmTarget to 11 for broader consumer compatibility ([#90](https://github.com/Topsort/topsort.kt/issues/90)) ([4bc9094](https://github.com/Topsort/topsort.kt/commit/4bc9094f2c10cb026232567372e92aedcd7c0b2b))
+* prevent duplicate impression reports and use proper logging in BannerView ([#79](https://github.com/Topsort/topsort.kt/issues/79)) ([ce6e31f](https://github.com/Topsort/topsort.kt/commit/ce6e31f7c30cfe404ec1b32584c4a4099323c590))
+* prevent NPE crashes in event reporting and banner auctions ([#77](https://github.com/Topsort/topsort.kt/issues/77)) ([7dbddc0](https://github.com/Topsort/topsort.kt/commit/7dbddc07ce6cb660e3d06c573a6b1829668e365c))
+* prevent race condition in Cache.nextRecordKey() ([#83](https://github.com/Topsort/topsort.kt/issues/83)) ([e1dee37](https://github.com/Topsort/topsort.kt/commit/e1dee37fb02acff80dabdcb6bc56b63fba3ce0d4))
+* send events on any network and retry on transient failures ([#78](https://github.com/Topsort/topsort.kt/issues/78)) ([56bb9e5](https://github.com/Topsort/topsort.kt/commit/56bb9e5b71abfa8f244154bba63a7c8a13908f12))
+* use **/ prefix in CODEOWNERS for recursive matching ([#87](https://github.com/Topsort/topsort.kt/issues/87)) ([0a6c3e5](https://github.com/Topsort/topsort.kt/commit/0a6c3e5863d2908b6bfa37e42e50ffe3e2b71234))
+* use EncryptedSharedPreferences for token storage ([#93](https://github.com/Topsort/topsort.kt/issues/93)) ([968b632](https://github.com/Topsort/topsort.kt/commit/968b6324782f70196ffe54ec38645d701ac202f3))
+
+## Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
