@@ -21,7 +21,7 @@ dependencies {
 
     // Check Maven Central for the latest version:
     // https://central.sonatype.com/artifact/com.topsort/topsort-kt
-    implementation 'com.topsort:topsort-kt:2.0.0'
+    implementation 'com.topsort:topsort-kt:2.0.1'
 }
 ```
 

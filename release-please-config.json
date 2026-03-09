@@ -10,6 +10,12 @@
           "path": "gradle.properties",
           "search-for": "VERSION_NAME=",
           "replace-with": "VERSION_NAME={{version}}"
+        },
+        {
+          "type": "generic",
+          "path": "README.md",
+          "search-for": "com.topsort:topsort-kt:",
+          "replace-with": "com.topsort:topsort-kt:{{version}}"
         }
       ],
       "changelog-path": "CHANGELOG.md",
