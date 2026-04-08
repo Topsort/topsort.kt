@@ -120,20 +120,22 @@ data class AuctionResponse private constructor(
             fun fromJsonObject(json: JSONObject): Asset {
                 try {
                     val url = json.getString("url")
-                    val contentObj = json.optJSONObject("content")
-                    val content: Map<String, String>? = contentObj?.let {
-                        val map = mutableMapOf<String, String>()
-                        it.keys().forEach { key ->
-                            if (!it.isNull(key)) {
-                                map[key] = it.getString(key)
-                            }
-                        }
-                        map.toMap()
-                    }
+                    val content = parseContentMap(json.optJSONObject("content"))
                     return Asset(url = url, content = content)
                 } catch (e: Exception) {
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
+            }
+
+            private fun parseContentMap(contentObj: JSONObject?): Map<String, String>? {
+                if (contentObj == null) return null
+                val map = mutableMapOf<String, String>()
+                contentObj.keys().forEach { key ->
+                    if (!contentObj.isNull(key)) {
+                        map[key] = contentObj.getString(key)
+                    }
+                }
+                return map.toMap()
             }
         }
     }
