@@ -401,4 +401,119 @@ internal class AuctionTest {
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("Number of slots must be positive")
     }
+
+    // placementId validation tests for Factory methods
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `factory buildSponsoredListingAuctionProductIds accepts valid placementId`() {
+        val auction = Auction.Factory.buildSponsoredListingAuctionProductIds(
+            slots = 1,
+            ids = listOf("p1"),
+            placementId = 5
+        )
+
+        assertThat(auction.placementId).isEqualTo(5)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `factory buildSponsoredListingAuctionProductIds accepts placementId at boundaries`() {
+        val auctionMin = Auction.Factory.buildSponsoredListingAuctionProductIds(
+            slots = 1,
+            ids = listOf("p1"),
+            placementId = 1
+        )
+        assertThat(auctionMin.placementId).isEqualTo(1)
+
+        val auctionMax = Auction.Factory.buildSponsoredListingAuctionProductIds(
+            slots = 1,
+            ids = listOf("p1"),
+            placementId = 8
+        )
+        assertThat(auctionMax.placementId).isEqualTo(8)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `factory buildSponsoredListingAuctionProductIds throws on invalid placementId`() {
+        assertThatThrownBy {
+            Auction.Factory.buildSponsoredListingAuctionProductIds(
+                slots = 1,
+                ids = listOf("p1"),
+                placementId = 0
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+
+        assertThatThrownBy {
+            Auction.Factory.buildSponsoredListingAuctionProductIds(
+                slots = 1,
+                ids = listOf("p1"),
+                placementId = 9
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+    }
+
+    @Test
+    fun `factory buildBannerAuctionLandingPage throws on invalid placementId`() {
+        assertThatThrownBy {
+            Auction.Factory.buildBannerAuctionLandingPage(
+                slots = 1,
+                slotId = "slot-1",
+                ids = listOf("p1"),
+                placementId = -1
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+
+        assertThatThrownBy {
+            Auction.Factory.buildBannerAuctionLandingPage(
+                slots = 1,
+                slotId = "slot-1",
+                ids = listOf("p1"),
+                placementId = 100
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+    }
+
+    @Test
+    fun `factory buildBannerAuctionCategorySingle throws on invalid placementId`() {
+        assertThatThrownBy {
+            Auction.Factory.buildBannerAuctionCategorySingle(
+                slots = 1,
+                slotId = "slot-1",
+                category = "electronics",
+                placementId = 0
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `factory buildSponsoredListingAuctionKeyword throws on invalid placementId`() {
+        assertThatThrownBy {
+            Auction.Factory.buildSponsoredListingAuctionKeyword(
+                slots = 1,
+                keyword = "test",
+                placementId = 10
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between 1 and 8")
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `factory methods accept null placementId`() {
+        // null placementId should be accepted (no validation needed)
+        val auction = Auction.Factory.buildSponsoredListingAuctionProductIds(
+            slots = 1,
+            ids = listOf("p1"),
+            placementId = null
+        )
+        assertThat(auction.placementId).isNull()
+    }
 }

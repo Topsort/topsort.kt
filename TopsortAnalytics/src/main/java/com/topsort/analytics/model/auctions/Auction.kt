@@ -132,6 +132,7 @@ data class Auction private constructor(
             qualityScores: List<Double>? = null,
         ): Auction {
             validateSlots(slots)
+            validatePlacementId(placementId)
             require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
 
             return Auction(
@@ -157,6 +158,7 @@ data class Auction private constructor(
             placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
+            validatePlacementId(placementId)
             require(!category.isBlank()) { "Category cannot be blank" }
 
             return Auction(
@@ -182,6 +184,7 @@ data class Auction private constructor(
             placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
+            validatePlacementId(placementId)
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
 
             return Auction(
@@ -207,6 +210,7 @@ data class Auction private constructor(
             placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
+            validatePlacementId(placementId)
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
 
             return Auction(
@@ -232,6 +236,7 @@ data class Auction private constructor(
             placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
+            validatePlacementId(placementId)
             require(!keyword.isBlank()) { "Keyword cannot be blank" }
 
             return Auction(
@@ -257,6 +262,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
+            validatePlacementId(placementId)
 
             val products = if (ids.isNotEmpty()) Products(ids, qualityScores) else null
 
@@ -284,6 +290,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
+            validatePlacementId(placementId)
             require(!category.isBlank()) { "Category cannot be blank" }
 
             return Auction(
@@ -310,6 +317,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
+            validatePlacementId(placementId)
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
 
             return Auction(
@@ -336,6 +344,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
+            validatePlacementId(placementId)
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
 
             return Auction(
@@ -362,6 +371,7 @@ data class Auction private constructor(
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
+            validatePlacementId(placementId)
             require(!keyword.isBlank()) { "Keyword cannot be blank" }
 
             return Auction(
@@ -382,6 +392,14 @@ data class Auction private constructor(
 
         private fun validateSlotId(slotId: String) {
             require(!slotId.isBlank()) { "Slot ID cannot be blank" }
+        }
+
+        private fun validatePlacementId(placementId: Int?) {
+            placementId?.let {
+                require(it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID) {
+                    "placementId must be between ${ApiConstants.MIN_PLACEMENT_ID} and ${ApiConstants.MAX_PLACEMENT_ID}"
+                }
+            }
         }
     }
 
