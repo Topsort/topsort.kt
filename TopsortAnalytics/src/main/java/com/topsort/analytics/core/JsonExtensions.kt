@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal fun JSONObject.getStringOrNull(name: String): String? {
-    return if (has(name)) {
+    return if (has(name) && !isNull(name)) {
         getString(name)
     } else null
 }

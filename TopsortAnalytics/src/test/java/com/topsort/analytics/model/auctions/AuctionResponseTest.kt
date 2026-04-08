@@ -322,4 +322,60 @@ internal class AuctionResponseTest {
         assertThat(winners[1].rank).isEqualTo(2)
         assertThat(winners[2].rank).isEqualTo(3)
     }
+
+    @Test
+    fun `fromJson handles explicit null campaignId correctly`() {
+        val json = """
+            {
+                "results": [
+                    {
+                        "resultType": "listings",
+                        "error": false,
+                        "winners": [
+                            {
+                                "rank": 1,
+                                "type": "product",
+                                "id": "p1",
+                                "resolvedBidId": "b1",
+                                "campaignId": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        """.trimIndent()
+
+        val response = AuctionResponse.fromJson(json)
+
+        val winner = response!!.results[0].winners[0]
+        assertThat(winner.campaignId).isNull()
+    }
+
+    @Test
+    fun `fromJson parses campaignId when present`() {
+        val json = """
+            {
+                "results": [
+                    {
+                        "resultType": "listings",
+                        "error": false,
+                        "winners": [
+                            {
+                                "rank": 1,
+                                "type": "product",
+                                "id": "p1",
+                                "resolvedBidId": "b1",
+                                "campaignId": "campaign-123"
+                            }
+                        ]
+                    }
+                ]
+            }
+        """.trimIndent()
+
+        val response = AuctionResponse.fromJson(json)
+
+        val winner = response!!.results[0].winners[0]
+        assertThat(winner.campaignId).isEqualTo("campaign-123")
+    }
 }
