@@ -113,10 +113,11 @@ data class Click private constructor (
                     it.put("resolvedBidId", resolvedBidId)
                 }
             }
-            .put("additionalAttribution", additionalAttribution)
             .apply {
-                additionalAttributionEntity?.let {
-                    put("additionalAttribution", it.toJsonObject())
+                if (additionalAttributionEntity != null) {
+                    put("additionalAttribution", additionalAttributionEntity.toJsonObject())
+                } else {
+                    additionalAttribution?.let { put("additionalAttribution", it) }
                 }
             }
             .put("placement", placement.toJsonObject())
