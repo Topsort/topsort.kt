@@ -19,6 +19,9 @@ import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.Page
+import com.topsort.analytics.model.PageView
+import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
@@ -185,6 +188,36 @@ object Analytics : TopsortAnalytics {
 
         val recordId = Cache.storePurchase(purchaseEvent)
         enqueueEventRequest(recordId, EventType.Purchase)
+    }
+
+    override fun reportPageView(
+        page: Page,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val pageViewEvent = PageViewEvent(
+            pageviews = listOf(
+                PageView.Factory.build(
+                    page = page,
+                    occurredAt = occurredAt ?: eventTime(),
+                    opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                    id = id ?: randomId(),
+                    deviceType = deviceType,
+                    channel = channel,
+                ),
+            ),
+        )
+
+        val recordId = Cache.storePageView(pageViewEvent)
+        enqueueEventRequest(recordId, EventType.PageView)
     }
 
     /**
