@@ -8,6 +8,7 @@ import com.topsort.analytics.Cache
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 
@@ -51,6 +52,10 @@ internal class EventEmitterWorker(
                 val event = Cache.readPurchase(recordId) ?: return Result.success()
                 reportPurchase(event)
             }
+            EventType.PageView -> {
+                val event = Cache.readPageView(recordId) ?: return Result.success()
+                reportPageView(event)
+            }
         }
 
         return when (sendResult) {
@@ -92,6 +97,16 @@ internal class EventEmitterWorker(
             toSendResult(response.code, response.message, "purchase")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting purchase", e)
+            SendResult.TRANSIENT_FAILURE
+        }
+    }
+
+    private fun reportPageView(pageViewEvent: PageViewEvent): SendResult {
+        return try {
+            val response = TopsortAnalyticsHttpService.service.reportPageView(pageViewEvent)
+            toSendResult(response.code, response.message, "pageview")
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting pageview", e)
             SendResult.TRANSIENT_FAILURE
         }
     }

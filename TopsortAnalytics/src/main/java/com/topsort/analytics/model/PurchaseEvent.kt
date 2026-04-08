@@ -53,6 +53,18 @@ data class Purchase(
      * Items purchased
      */
     val items: List<PurchasedItem>,
+
+    /**
+     * The device type where the purchase occurred.
+     * Typically "desktop" or "mobile".
+     */
+    val deviceType: String? = null,
+
+    /**
+     * The channel where the purchase occurred.
+     * Typically "onsite", "offsite", or "instore".
+     */
+    val channel: String? = null,
 )  : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -60,6 +72,10 @@ data class Purchase(
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
             .put("items", JSONArray(items.map { it.toJsonObject() }))
+            .apply {
+                deviceType?.let { put("deviceType", it) }
+                channel?.let { put("channel", it) }
+            }
     }
 
     companion object {
@@ -72,6 +88,8 @@ data class Purchase(
                 items = (0 until itemsArray.length()).map {
                     PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
                 },
+                deviceType = json.getStringOrNull("deviceType"),
+                channel = json.getStringOrNull("channel"),
             )
         }
 
@@ -102,7 +120,13 @@ data class PurchasedItem(
     /**
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
-    val resolvedBidId: String? = null
+    val resolvedBidId: String? = null,
+
+    /**
+     * The vendor ID for halo attribution.
+     * Used when the purchase should be attributed to a specific vendor.
+     */
+    val vendorId: String? = null,
 ) {
 
     fun toJsonObject(): JSONObject {
@@ -111,6 +135,9 @@ data class PurchasedItem(
             .put("quantity", quantity)
             .put("unitPrice", unitPrice)
             .put("resolvedBidId", resolvedBidId)
+            .apply {
+                vendorId?.let { put("vendorId", it) }
+            }
     }
 
     companion object {
@@ -120,6 +147,7 @@ data class PurchasedItem(
                 quantity = json.getInt("quantity"),
                 unitPrice = json.getIntOrNull("unitPrice"),
                 resolvedBidId = json.getStringOrNull("resolvedBidId"),
+                vendorId = json.getStringOrNull("vendorId"),
             )
         }
     }

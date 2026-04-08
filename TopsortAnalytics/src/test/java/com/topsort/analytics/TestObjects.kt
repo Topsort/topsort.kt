@@ -6,6 +6,8 @@ import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
+import com.topsort.analytics.model.Page
+import com.topsort.analytics.model.PageView
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchasedItem
@@ -76,7 +78,16 @@ fun getRandomPurchase() : Purchase {
     )
 }
 
-private fun getTestPlacement() : Placement {
+fun getRandomPageView(): PageView {
+    return PageView.Factory.build(
+        page = Page.Factory.build(type = Page.TYPE_HOME),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("pvId_"),
+    )
+}
+
+fun getTestPlacement() : Placement {
     return Placement(
         path = "test",
         position = 2,

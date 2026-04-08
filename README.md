@@ -1,8 +1,17 @@
-# Topsort kotlin library
+# Topsort Kotlin SDK
 
-An Android library for interacting with the Topsort APIs. We provide support for sending events and running banner auctions with comprehensive error handling and callback support.
+An Android library for interacting with the Topsort APIs. We provide support for sending events (impressions, clicks, purchases, page views) and running auctions with comprehensive error handling and callback support.
 
 Licensed under [MIT][1].
+
+## Features
+
+- **Event Tracking**: Report impressions, clicks, purchases, and page views
+- **Auction Support**: Run sponsored listings and banner auctions
+- **Offline Support**: Events are cached and sent when network is available
+- **Error Handling**: Comprehensive error types with sealed classes
+- **A/B Testing**: Built-in support for experiment placement IDs
+- **Quality Scores**: Pass product quality scores for auction optimization
 
 ## Requirements
 
@@ -10,18 +19,15 @@ Licensed under [MIT][1].
 - Android SDK: 24+
 - `INTERNET` permission (add to your `AndroidManifest.xml` if not already present)
 
-## Installation / Getting started
+## Installation
 
-We recommend installing the library via Gradle.
-Simply add the dependency to your build.gradle file:
+Add the dependency to your `build.gradle` file:
 
 ```gradle
 dependencies {
-    ...
-
     // Check Maven Central for the latest version:
     // https://central.sonatype.com/artifact/com.topsort/topsort-kt
-    implementation 'com.topsort:topsort-kt:2.0.1'
+    implementation 'com.topsort:topsort-kt:2.1.0'
 }
 ```
 
@@ -29,7 +35,6 @@ Ensure your project is configured to use at least Java 11:
 
 ```gradle
 android {
-    // Other configurations...
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -40,8 +45,7 @@ android {
 }
 ```
 
-The library is distributed through Maven central, which is usually included by default in your repositories.
-You can also add it directly, if needed:
+The library is distributed through Maven Central:
 
 ```gradle
 repositories {
@@ -49,196 +53,180 @@ repositories {
 }
 ```
 
-## Usage/Examples
+## Quick Start
 
-#### Setup
+### Setup
 
-The following sample code shows how to setup the analytics library before reporting any event:
-
-##### Kotlin
+Initialize the SDK in your Application class:
 
 ```kotlin
 import android.app.Application
 import com.topsort.analytics.Analytics
 
-class KotlinApplication : Application() {
-
+class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Either generate a unique session id here or hash an existing
-        // identifier. It should be consistent for
-        // each user (impression, click, purchase).
-
         Analytics.setup(
-            this,
-            "sessionId",
-            "bearerToken"
+            application = this,
+            opaqueUserId = "user-unique-id",  // Consistent per user
+            token = "your-bearer-token"
         )
     }
 }
 ```
 
-##### Java
-```java
-import android.app.Application;
-import com.topsort.analytics.Analytics;
+## Event Tracking
 
-public class JavaApplication extends Application {
+### Impressions and Clicks
 
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        Analytics
-                .INSTANCE
-                .setup(this, "sessionId", "bearerToken");
-    }
-}
-
-```
-
-#### Reporting Events
-
-The following samples show how to report different events after setting up.
-
-The `Placement` constructor requires a `path` parameter (the URL path or deeplink for the current view). Other fields like `location`, `page`, `position`, `pageSize`, `productId`, `categoryIds`, and `searchQuery` are optional:
+Track when products are viewed or clicked:
 
 ```kotlin
-val placement = Placement(
-    path = "/search/results",
-    location = "position_1",
-    page = 1,
-    pageSize = 20
+// Promoted events (with resolvedBidId from auction)
+Analytics.reportImpressionPromoted(
+    resolvedBidId = "auction-winner-bid-id",
+    placement = Placement(path = "/search/results"),
+    deviceType = "mobile",      // optional: "desktop" or "mobile"
+    channel = "onsite",         // optional: "onsite", "offsite", or "instore"
+    page = Page.Factory.build(type = Page.TYPE_SEARCH)  // optional
+)
+
+Analytics.reportClickPromoted(
+    resolvedBidId = "auction-winner-bid-id",
+    placement = Placement(path = "/search/results"),
+    clickType = Click.TYPE_PRODUCT  // optional: "product", "like", or "add-to-cart"
+)
+
+// Organic events (without auction)
+Analytics.reportImpressionOrganic(
+    entity = Entity(id = "product-123", type = EntityType.PRODUCT),
+    placement = Placement(path = "/category/electronics")
+)
+
+Analytics.reportClickOrganic(
+    entity = Entity(id = "product-123", type = EntityType.PRODUCT),
+    placement = Placement(path = "/category/electronics")
 )
 ```
 
-##### Promoted events (with resolvedBidId from auction)
+### Purchases
+
+Track completed purchases:
 
 ```kotlin
-fun reportPromotedImpression() {
-    val placement = Placement(
-        path = "/search/results",
-        location = "position_1"
+Analytics.reportPurchase(
+    id = "order-123",
+    items = listOf(
+        PurchasedItem(
+            productId = "product-123",
+            quantity = 2,
+            unitPrice = 1295,  // price in cents ($12.95)
+            resolvedBidId = "bid-id",  // optional: if from promoted click
+            vendorId = "vendor-456"    // optional: for halo attribution
+        )
     )
+)
+```
 
-    Analytics.reportImpressionPromoted(
-        resolvedBidId = "<The bid id from the auction winner>",
-        placement = placement
-    )
-}
+### Page Views
 
-fun reportPromotedClick() {
-    val placement = Placement(
-        path = "/search/results",
-        location = "position_1"
-    )
+Track page views for analytics:
 
-    Analytics.reportClickPromoted(
-        resolvedBidId = "<The bid id from the auction winner>",
-        placement = placement
-    )
+```kotlin
+Analytics.reportPageView(
+    page = Page.Factory.buildWithId(
+        type = Page.TYPE_PDP,
+        pageId = "product-123"
+    ),
+    deviceType = "mobile",
+    channel = "onsite"
+)
+
+// Page types: TYPE_HOME, TYPE_CATEGORY, TYPE_PDP, TYPE_SEARCH, TYPE_CART, TYPE_OTHER
+```
+
+## Auctions
+
+### Sponsored Listings
+
+Run auctions to get promoted products:
+
+```kotlin
+import com.topsort.analytics.model.auctions.Auction
+import com.topsort.analytics.model.auctions.AuctionConfig
+import com.topsort.analytics.model.auctions.AuctionRequest
+import com.topsort.analytics.service.TopsortAuctionsHttpService
+
+// Create auction config
+val config = AuctionConfig.ProductIds(
+    numSlots = 3,
+    ids = listOf("product-1", "product-2", "product-3"),
+    qualityScores = listOf(0.9, 0.8, 0.7),  // optional
+    userOpaqueId = "user-123",              // optional: for targeting
+    experimentPlacementId = 5               // optional: for A/B testing (1-8)
+)
+
+// Build and run auction
+val auction = Auction.fromConfig(config)
+val request = AuctionRequest(auctions = listOf(auction))
+
+// Synchronous
+val response = TopsortAuctionsHttpService.runAuctionsSync(request)
+
+// Or with coroutines
+lifecycleScope.launch {
+    val response = TopsortAuctionsHttpService.runAuctions(request)
+    response.results.forEach { result ->
+        result.winners.forEach { winner ->
+            println("Winner: ${winner.id}, Bid: ${winner.resolvedBidId}")
+            println("Campaign: ${winner.campaignId}")  // optional campaign info
+        }
+    }
 }
 ```
 
-##### Organic events (with entity instead of resolvedBidId)
+### Banner Auctions
 
-```kotlin
-fun reportOrganicImpression() {
-    val placement = Placement(
-        path = "/search/results",
-        location = "position_1"
-    )
-
-    Analytics.reportImpressionOrganic(
-        entity = Entity(id = "productId", type = EntityType.PRODUCT),
-        placement = placement
-    )
-}
-
-fun reportOrganicClick() {
-    val placement = Placement(
-        path = "/search/results",
-        location = "position_1"
-    )
-
-    Analytics.reportClickOrganic(
-        entity = Entity(id = "productId", type = EntityType.PRODUCT),
-        placement = placement
-    )
-}
-```
-
-##### Purchase events
-
-```kotlin
-fun reportPurchase() {
-    val item = PurchasedItem(
-        productId = "productId",
-        quantity = 20,
-        unitPrice = 1295, // price in cents ($12.95)
-    )
-
-    Analytics.reportPurchase(
-        id = "orderId",
-        items = listOf(item)
-    )
-}
-```
-
-## Banner Auctions with Error Handling and Callbacks
-
-The library provides comprehensive support for banner auctions with robust error handling and callbacks:
-
-### Kotlin
+Display banner ads with the BannerView component:
 
 ```kotlin
 import com.topsort.analytics.banners.BannerConfig
 import com.topsort.analytics.banners.BannerView
-import com.topsort.analytics.model.auctions.AuctionError
-import com.topsort.analytics.model.auctions.EntityType
 
-// In your Activity or Fragment
 val bannerView = findViewById<BannerView>(R.id.banner_view)
 
-// Configure error handling and callbacks
-bannerView.onError { throwable: Throwable ->
-    Log.e("BannerDemo", "Error loading banner", throwable)
-    // Handle general errors
+// Configure callbacks
+bannerView.onError { throwable ->
+    Log.e("Banner", "Error loading banner", throwable)
 }
 
-bannerView.onAuctionError { error: AuctionError ->
+bannerView.onAuctionError { error ->
     when (error) {
-        is AuctionError.HttpError -> Log.e("BannerDemo", "Network error", error)
-        is AuctionError.DeserializationError -> Log.e("BannerDemo", "Failed to parse response", error)
-        is AuctionError.EmptyResponse -> Log.e("BannerDemo", "Empty response from server")
-        else -> Log.e("BannerDemo", "Other auction error", error)
+        is AuctionError.HttpError -> Log.e("Banner", "Network error")
+        is AuctionError.EmptyResponse -> Log.e("Banner", "No response")
+        else -> Log.e("Banner", "Auction error: $error")
     }
-    // Handle auction-specific errors
 }
 
 bannerView.onNoWinners {
-    Log.d("BannerDemo", "No winners for this auction")
-    // Handle case when auction returns no winners
+    Log.d("Banner", "No winners for this auction")
 }
 
 bannerView.onImageLoad {
-    Log.d("BannerDemo", "Banner image loaded successfully")
-    // Execute code after successful image load
+    Log.d("Banner", "Banner loaded successfully")
 }
 
 // Run the auction
 lifecycleScope.launch {
-    // Configure and run the auction
     val config = BannerConfig.LandingPage(
-        slotId = "your-slot-id", 
+        slotId = "slot-123",
         ids = listOf("product-1", "product-2")
     )
-    
+
     bannerView.setup(
         config = config,
-        path = "product-page",
+        path = "home-page",
         location = "top-banner"
     ) { id, type ->
         // Handle banner click
@@ -253,31 +241,51 @@ lifecycleScope.launch {
 
 ## Error Handling
 
-The library now provides detailed error handling through the AuctionError sealed class:
+The library uses sealed classes for comprehensive error handling:
 
 ```kotlin
 when (error) {
-    is AuctionError.HttpError -> // Handle HTTP errors
-    is AuctionError.DeserializationError -> // Handle deserialization errors
-    is AuctionError.SerializationError -> // Handle serialization errors
-    is AuctionError.EmptyResponse -> // Handle empty responses
-    is AuctionError.InvalidNumberAuctions -> // Handle invalid auction count
+    is AuctionError.HttpError -> {
+        // Network or server error
+        Log.e("Auction", "HTTP ${error.code}: ${error.message}")
+    }
+    is AuctionError.DeserializationError -> {
+        // Failed to parse response
+        Log.e("Auction", "Parse error", error.cause)
+    }
+    is AuctionError.SerializationError -> {
+        // Failed to serialize request
+    }
+    is AuctionError.EmptyResponse -> {
+        // Server returned empty response
+    }
+    is AuctionError.InvalidNumberAuctions -> {
+        // Invalid number of auctions (must be 1-5)
+    }
 }
 ```
 
-## Testing Support
+## Testing
 
-For testing, the library includes helper classes to mock auction services:
+Mock the auction service for testing:
 
 ```kotlin
-// In your test
+// Setup mock
 val mockService = MockAuctionsHttpService()
 TopsortAuctionsHttpService.setMockService(mockService)
 
-// After test
+// Run tests...
+
+// Cleanup
 TopsortAuctionsHttpService.resetToDefaultService()
 ```
 
-For more details, refer to the code samples and API documentation.
+## API Reference
+
+For detailed API documentation, visit our [API docs](https://docs.topsort.com).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE][1] file for details.
 
 [1]: https://github.com/Topsort/topsort.kt/blob/main/LICENSE

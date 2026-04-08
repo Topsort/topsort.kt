@@ -1,6 +1,7 @@
 package com.topsort.analytics
 
 import com.topsort.analytics.model.Entity
+import com.topsort.analytics.model.Page
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
 
@@ -86,5 +87,24 @@ interface TopsortAnalytics {
         id: String,
         opaqueUserId: String? = null,
         occurredAt: String? = null,
+    )
+
+    /**
+     * Reports a page view event.
+     *
+     * @param page The page being viewed
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for this page view event
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     * @param deviceType Optional device type ("desktop" or "mobile")
+     * @param channel Optional channel ("onsite", "offsite", or "instore")
+     */
+    fun reportPageView(
+        page: Page,
+        opaqueUserId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+        deviceType: String? = null,
+        channel: String? = null,
     )
 }

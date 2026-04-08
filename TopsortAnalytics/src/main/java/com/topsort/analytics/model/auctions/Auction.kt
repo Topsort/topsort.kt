@@ -11,6 +11,14 @@ data class Auction private constructor(
     val geoTargeting: GeoTargeting? = null,
     val slotId: String? = null,
     val device: Device? = null,
+    /**
+     * The opaque user ID for targeting context.
+     */
+    val opaqueUserId: String? = null,
+    /**
+     * Experiment bucket (1-8) for A/B testing.
+     */
+    val placementId: Int? = null,
 ) {
 
     fun toJsonObject(): JSONObject {
@@ -21,7 +29,7 @@ data class Auction private constructor(
                 put("type", type)
                 put("slots", slots)
                 if (products != null) {
-                    put("products", JSONObject.wrap(products))
+                    put("products", products.toJsonObject())
                 }
                 if (category != null) {
                     put("category", category.toJsonObject())
@@ -37,6 +45,12 @@ data class Auction private constructor(
                 }
                 if (device != null) {
                     put("device", device.name.lowercase())
+                }
+                if (opaqueUserId != null) {
+                    put("opaqueUserId", opaqueUserId)
+                }
+                if (placementId != null) {
+                    put("placementId", placementId)
                 }
             }
 
@@ -61,32 +75,42 @@ data class Auction private constructor(
                 is AuctionConfig.ProductIds -> Auction(
                     type = "listings",
                     slots = config.slots,
-                    products = Products(config.ids),
+                    products = Products(config.ids, config.qualityScores),
                     geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                    opaqueUserId = config.opaqueUserId,
+                    placementId = config.placementId,
                 )
                 is AuctionConfig.CategorySingle -> Auction(
                     type = "listings",
                     slots = config.slots,
                     category = Category(id = config.category),
                     geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                    opaqueUserId = config.opaqueUserId,
+                    placementId = config.placementId,
                 )
                 is AuctionConfig.CategoryMultiple -> Auction(
                     type = "listings",
                     slots = config.slots,
                     category = Category(ids = config.categories),
                     geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                    opaqueUserId = config.opaqueUserId,
+                    placementId = config.placementId,
                 )
                 is AuctionConfig.CategoryDisjunctions -> Auction(
                     type = "listings",
                     slots = config.slots,
                     category = Category(disjunctions = config.disjunctions),
                     geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                    opaqueUserId = config.opaqueUserId,
+                    placementId = config.placementId,
                 )
                 is AuctionConfig.Keyword -> Auction(
                     type = "listings",
                     slots = config.slots,
                     searchQuery = config.keyword,
                     geoTargeting = config.geoTargeting?.let { GeoTargeting(it) },
+                    opaqueUserId = config.opaqueUserId,
+                    placementId = config.placementId,
                 )
             }
         }
@@ -103,15 +127,20 @@ data class Auction private constructor(
             slots: Int,
             ids: List<String>,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
+            qualityScores: List<Double>? = null,
         ): Auction {
             validateSlots(slots)
             require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
-            
+
             return Auction(
                 type = "listings",
                 slots = slots,
-                products = Products(ids),
+                products = Products(ids, qualityScores),
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -124,15 +153,19 @@ data class Auction private constructor(
             slots: Int,
             category: String,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             require(!category.isBlank()) { "Category cannot be blank" }
-            
+
             return Auction(
                 type = "listings",
                 slots = slots,
                 category = Category(id = category),
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -145,15 +178,19 @@ data class Auction private constructor(
             slots: Int,
             categories: List<String>,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
-            
+
             return Auction(
                 type = "listings",
                 slots = slots,
                 category = Category(ids = categories),
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -166,15 +203,19 @@ data class Auction private constructor(
             slots: Int,
             disjunctions: List<List<String>>,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
-            
+
             return Auction(
                 type = "listings",
                 slots = slots,
                 category = Category(disjunctions = disjunctions),
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -187,15 +228,19 @@ data class Auction private constructor(
             slots: Int,
             keyword: String,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             require(!keyword.isBlank()) { "Keyword cannot be blank" }
-            
+
             return Auction(
                 type = "listings",
                 slots = slots,
                 searchQuery = keyword,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -206,11 +251,14 @@ data class Auction private constructor(
             ids: List<String>,
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
+            qualityScores: List<Double>? = null,
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
 
-            val products = if (ids.isNotEmpty()) Products(ids) else null
+            val products = if (ids.isNotEmpty()) Products(ids, qualityScores) else null
 
             return Auction(
                 type = "banners",
@@ -219,6 +267,8 @@ data class Auction private constructor(
                 products = products,
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -229,11 +279,13 @@ data class Auction private constructor(
             category: String,
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
             require(!category.isBlank()) { "Category cannot be blank" }
-            
+
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -241,6 +293,8 @@ data class Auction private constructor(
                 category = Category(id = category),
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -251,11 +305,13 @@ data class Auction private constructor(
             categories: List<String>,
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
-            
+
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -263,6 +319,8 @@ data class Auction private constructor(
                 category = Category(ids = categories),
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -273,11 +331,13 @@ data class Auction private constructor(
             disjunctions: List<List<String>>,
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
-            
+
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -285,6 +345,8 @@ data class Auction private constructor(
                 category = Category(disjunctions = disjunctions),
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
 
@@ -295,11 +357,13 @@ data class Auction private constructor(
             keyword: String,
             device: Device = Device.MOBILE,
             geoTargeting: String? = null,
+            opaqueUserId: String? = null,
+            placementId: Int? = null,
         ): Auction {
             validateSlots(slots)
             validateSlotId(slotId)
             require(!keyword.isBlank()) { "Keyword cannot be blank" }
-            
+
             return Auction(
                 type = "banners",
                 slots = slots,
@@ -307,13 +371,15 @@ data class Auction private constructor(
                 searchQuery = keyword,
                 device = device,
                 geoTargeting = geoTargeting?.let { GeoTargeting(it) },
+                opaqueUserId = opaqueUserId,
+                placementId = placementId,
             )
         }
-        
+
         private fun validateSlots(slots: Int) {
             require(slots > 0) { "Number of slots must be positive" }
         }
-        
+
         private fun validateSlotId(slotId: String) {
             require(!slotId.isBlank()) { "Slot ID cannot be blank" }
         }
@@ -321,7 +387,26 @@ data class Auction private constructor(
 
     data class Products(
         val ids: List<String>,
-    )
+        /**
+         * Quality scores for the products. If present, must have the same size as [ids].
+         */
+        val qualityScores: List<Double>? = null,
+    ) {
+        init {
+            qualityScores?.let {
+                require(it.size == ids.size) {
+                    "qualityScores size (${it.size}) must match ids size (${ids.size})"
+                }
+            }
+        }
+
+        fun toJsonObject(): JSONObject {
+            return JSONObject().apply {
+                put("ids", org.json.JSONArray(ids))
+                qualityScores?.let { put("qualityScores", org.json.JSONArray(it)) }
+            }
+        }
+    }
 
     data class Category(
         val id: String? = null,

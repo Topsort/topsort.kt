@@ -7,6 +7,7 @@ import com.topsort.analytics.model.auctions.ApiConstants
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 
 internal object TopsortAnalyticsHttpService {
@@ -33,6 +34,10 @@ internal object TopsortAnalyticsHttpService {
                 return reportSerializedEvent(purchaseEvent.toJsonObject().toString())
             }
 
+            override fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse {
+                return reportSerializedEvent(pageViewEvent.toJsonObject().toString())
+            }
+
             override fun reportEvent(event: Event): HttpResponse {
                 return reportSerializedEvent(event.toJsonObject().toString())
             }
@@ -45,6 +50,8 @@ internal object TopsortAnalyticsHttpService {
         fun reportClick(clickEvent: ClickEvent): HttpResponse
 
         fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse
+
+        fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse
 
         fun reportEvent(event: Event): HttpResponse
     }

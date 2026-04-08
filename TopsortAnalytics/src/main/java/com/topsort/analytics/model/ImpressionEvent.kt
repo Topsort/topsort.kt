@@ -46,6 +46,12 @@ data class Impression private constructor(
      */
     val additionalAttribution: String? = null,
 
+    /**
+     * Additional attribution entity for halo attribution.
+     * Alternative to [additionalAttribution] string when entity information is needed.
+     */
+    val additionalAttributionEntity: Entity? = null,
+
     val placement: Placement,
 
     /**
@@ -62,6 +68,23 @@ data class Impression private constructor(
      * The marketplace assigned ID for the order
      */
     val id: String,
+
+    /**
+     * The device type where the impression occurred.
+     * Typically "desktop" or "mobile".
+     */
+    val deviceType: String? = null,
+
+    /**
+     * The channel where the impression occurred.
+     * Typically "onsite", "offsite", or "instore".
+     */
+    val channel: String? = null,
+
+    /**
+     * The page context where the impression occurred.
+     */
+    val page: Page? = null,
 ) : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -73,10 +96,20 @@ data class Impression private constructor(
                 }
             }
             .put("additionalAttribution", additionalAttribution)
+            .apply {
+                additionalAttributionEntity?.let {
+                    put("additionalAttribution", it.toJsonObject())
+                }
+            }
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+            .apply {
+                deviceType?.let { put("deviceType", it) }
+                channel?.let { put("channel", it) }
+                page?.let { put("page", it.toJsonObject()) }
+            }
     }
 
     object Factory {
@@ -89,6 +122,10 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            additionalAttributionEntity: Entity? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 resolvedBidId = resolvedBidId,
@@ -97,6 +134,10 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                additionalAttributionEntity = additionalAttributionEntity,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
@@ -108,6 +149,10 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            additionalAttributionEntity: Entity? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 entity = entity,
@@ -116,21 +161,49 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                additionalAttributionEntity = additionalAttributionEntity,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
         fun fromJsonObject(json: JSONObject): Impression {
             val resolvedBidId = json.getStringOrNull("resolvedBidId")
+
+            // Handle additionalAttribution which can be string or entity object
+            val additionalAttrObj = json.opt("additionalAttribution")
+            val additionalAttribution: String?
+            val additionalAttributionEntity: Entity?
+            when (additionalAttrObj) {
+                is String -> {
+                    additionalAttribution = additionalAttrObj
+                    additionalAttributionEntity = null
+                }
+                is JSONObject -> {
+                    additionalAttribution = null
+                    additionalAttributionEntity = Entity.fromJsonObject(additionalAttrObj)
+                }
+                else -> {
+                    additionalAttribution = null
+                    additionalAttributionEntity = null
+                }
+            }
+
             return Impression(
                 resolvedBidId = resolvedBidId,
                 entity = if (resolvedBidId == null) {
                     Entity.fromJsonObject(json.getJSONObject("entity"))
                 } else null,
-                additionalAttribution = json.getStringOrNull("additionalAttribution"),
+                additionalAttribution = additionalAttribution,
+                additionalAttributionEntity = additionalAttributionEntity,
                 placement = Placement.fromJsonObject(json.getJSONObject("placement")),
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
+                deviceType = json.getStringOrNull("deviceType"),
+                channel = json.getStringOrNull("channel"),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 

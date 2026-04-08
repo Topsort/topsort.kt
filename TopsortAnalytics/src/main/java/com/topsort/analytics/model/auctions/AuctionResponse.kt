@@ -75,6 +75,10 @@ data class AuctionResponse private constructor(
         val id: String,
         val resolvedBidId: String,
         val asset: List<Asset>? = null,
+        /**
+         * The campaign ID associated with this winner.
+         */
+        val campaignId: String? = null,
     ) {
         companion object {
             fun fromJsonObject(json: JSONObject): AuctionWinnerItem {
@@ -92,6 +96,7 @@ data class AuctionResponse private constructor(
                         id = json.getString("id"),
                         resolvedBidId = json.getString("resolvedBidId"),
                         asset = assets,
+                        campaignId = json.optString("campaignId", null),
                     )
                 } catch (e: AuctionError) {
                     throw e
@@ -102,12 +107,27 @@ data class AuctionResponse private constructor(
         }
     }
 
-    data class Asset(val url: String) {
+    data class Asset(
+        val url: String,
+        /**
+         * Content map for banner templates.
+         * Contains key-value pairs for template customization.
+         */
+        val content: Map<String, String>? = null,
+    ) {
         companion object {
             fun fromJsonObject(json: JSONObject): Asset {
                 try {
                     val url = json.getString("url")
-                    return Asset(url = url)
+                    val contentObj = json.optJSONObject("content")
+                    val content: Map<String, String>? = contentObj?.let {
+                        val map = mutableMapOf<String, String>()
+                        it.keys().forEach { key ->
+                            map[key] = it.getString(key)
+                        }
+                        map.toMap()
+                    }
+                    return Asset(url = url, content = content)
                 } catch (e: Exception) {
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
