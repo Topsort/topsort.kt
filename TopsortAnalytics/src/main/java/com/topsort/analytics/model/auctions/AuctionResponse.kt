@@ -124,7 +124,9 @@ data class AuctionResponse private constructor(
                     val content: Map<String, String>? = contentObj?.let {
                         val map = mutableMapOf<String, String>()
                         it.keys().forEach { key ->
-                            map[key] = it.getString(key)
+                            if (!it.isNull(key)) {
+                                map[key] = it.getString(key)
+                            }
                         }
                         map.toMap()
                     }

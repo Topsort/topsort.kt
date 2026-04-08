@@ -278,6 +278,38 @@ internal class AuctionResponseTest {
     }
 
     @Test
+    fun `asset fromJsonObject parses content map`() {
+        val json = JSONObject("""
+            {
+                "url": "https://example.com/banner.png",
+                "content": {"title": "Hello", "subtitle": "World"}
+            }
+        """.trimIndent())
+
+        val asset = AuctionResponse.Asset.fromJsonObject(json)
+
+        assertThat(asset.content).isNotNull
+        assertThat(asset.content!!["title"]).isEqualTo("Hello")
+        assertThat(asset.content!!["subtitle"]).isEqualTo("World")
+    }
+
+    @Test
+    fun `asset fromJsonObject skips null values in content map`() {
+        val json = JSONObject("""
+            {
+                "url": "https://example.com/banner.png",
+                "content": {"title": "Hello", "subtitle": null}
+            }
+        """.trimIndent())
+
+        val asset = AuctionResponse.Asset.fromJsonObject(json)
+
+        assertThat(asset.content).isNotNull
+        assertThat(asset.content!!["title"]).isEqualTo("Hello")
+        assertThat(asset.content).doesNotContainKey("subtitle")
+    }
+
+    @Test
     fun `fromJson parses response with error flag true`() {
         val json = """
             {
