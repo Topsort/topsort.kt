@@ -20,7 +20,9 @@ sealed class AuctionConfig(
     init {
         require(slots > 0) { "Number of slots must be positive" }
         placementId?.let {
-            require(it in 1..8) { "placementId must be between 1 and 8" }
+            require(it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID) {
+                "placementId must be between ${ApiConstants.MIN_PLACEMENT_ID} and ${ApiConstants.MAX_PLACEMENT_ID}"
+            }
         }
     }
 

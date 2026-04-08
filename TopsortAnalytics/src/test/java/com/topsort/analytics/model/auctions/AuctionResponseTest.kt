@@ -160,7 +160,7 @@ internal class AuctionResponseTest {
         assertThatThrownBy {
             AuctionResponse.fromJson(json)
         }.isInstanceOf(AuctionError.DeserializationError::class.java)
-            .hasMessageContaining("Missing 'results' field")
+            .hasRootCauseMessage("Missing 'results' field")
     }
 
     @Test
@@ -184,7 +184,7 @@ internal class AuctionResponseTest {
         assertThatThrownBy {
             AuctionResponse.AuctionResponseItem.fromJsonObject(json)
         }.isInstanceOf(AuctionError.DeserializationError::class.java)
-            .hasMessageContaining("Missing 'winners' field")
+            .hasRootCauseMessage("Missing 'winners' field")
     }
 
     @Test

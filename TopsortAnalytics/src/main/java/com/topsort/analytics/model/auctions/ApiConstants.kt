@@ -13,6 +13,10 @@ object ApiConstants {
     // Auction limits
     const val MIN_AUCTIONS = 1
     const val MAX_AUCTIONS = 5
+
+    // Experiment placement ID limits (for A/B testing)
+    const val MIN_PLACEMENT_ID = 1
+    const val MAX_PLACEMENT_ID = 8
     
     // For backward compatibility with existing code using ServiceSettings
     @Deprecated("Use BASE_API_URL instead", ReplaceWith("ApiConstants.BASE_API_URL"))

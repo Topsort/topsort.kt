@@ -27,6 +27,7 @@ internal class EventEmitterWorker(
         Cache.initialize(context)
     }
 
+    @Suppress("detekt:CyclomaticComplexMethod")
     override fun doWork(): Result {
         with (inputData) {
             val eventTypeOrdinal = getInt(EXTRA_EVENT_TYPE, -1)
