@@ -167,8 +167,8 @@ val config = AuctionConfig.ProductIds(
     numSlots = 3,
     ids = listOf("product-1", "product-2", "product-3"),
     qualityScores = listOf(0.9, 0.8, 0.7),  // optional
-    userOpaqueId = "user-123",              // optional: for targeting
-    experimentPlacementId = 5               // optional: for A/B testing (1-8)
+    opaqueUserId = "user-123",              // optional: for targeting
+    placementId = 5                         // optional: for A/B testing (1-8)
 )
 
 // Build and run auction

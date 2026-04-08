@@ -43,14 +43,9 @@ data class Impression private constructor(
     /**
      * Extra attribution if desired by the marketplace.
      * When using this field, the resolvedBidId must also exist in the event body.
+     * Mutually exclusive with [additionalAttributionEntity].
      */
     val additionalAttribution: String? = null,
-
-    /**
-     * Additional attribution entity for halo attribution.
-     * Alternative to [additionalAttribution] string when entity information is needed.
-     */
-    val additionalAttributionEntity: Entity? = null,
 
     val placement: Placement,
 
@@ -69,15 +64,24 @@ data class Impression private constructor(
      */
     val id: String,
 
+    // --- New fields below (added for binary compatibility) ---
+
+    /**
+     * Additional attribution entity for halo attribution.
+     * Alternative to [additionalAttribution] string when entity information is needed.
+     * Mutually exclusive with [additionalAttribution].
+     */
+    val additionalAttributionEntity: Entity? = null,
+
     /**
      * The device type where the impression occurred.
-     * Typically "desktop" or "mobile".
+     * Use [DEVICE_DESKTOP] or [DEVICE_MOBILE].
      */
     val deviceType: String? = null,
 
     /**
      * The channel where the impression occurred.
-     * Typically "onsite", "offsite", or "instore".
+     * Use [CHANNEL_ONSITE], [CHANNEL_OFFSITE], or [CHANNEL_INSTORE].
      */
     val channel: String? = null,
 
@@ -86,6 +90,12 @@ data class Impression private constructor(
      */
     val page: Page? = null,
 ) : JsonSerializable {
+
+    init {
+        require(!(additionalAttribution != null && additionalAttributionEntity != null)) {
+            "additionalAttribution and additionalAttributionEntity are mutually exclusive"
+        }
+    }
     override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
@@ -213,6 +223,17 @@ data class Impression private constructor(
             ) {
                 fromJsonObject(it)
             }
+    }
+
+    companion object {
+        /** Device type constants */
+        const val DEVICE_DESKTOP = "desktop"
+        const val DEVICE_MOBILE = "mobile"
+
+        /** Channel constants */
+        const val CHANNEL_ONSITE = "onsite"
+        const val CHANNEL_OFFSITE = "offsite"
+        const val CHANNEL_INSTORE = "instore"
     }
 }
 

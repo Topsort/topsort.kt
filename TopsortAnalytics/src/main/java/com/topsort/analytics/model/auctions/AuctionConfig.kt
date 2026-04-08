@@ -14,11 +14,18 @@ package com.topsort.analytics.model.auctions
 sealed class AuctionConfig(
     val slots: Int,
     val geoTargeting: String? = null,
-    val opaqueUserId: String? = null,
-    val placementId: Int? = null,
 ) {
+    /** Optional opaque user ID for targeting context. */
+    abstract val opaqueUserId: String?
+
+    /** Optional experiment bucket (1-8) for A/B testing. */
+    abstract val placementId: Int?
+
     init {
         require(slots > 0) { "Number of slots must be positive" }
+    }
+
+    protected fun validatePlacementId() {
         placementId?.let {
             require(it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID) {
                 "placementId must be between ${ApiConstants.MIN_PLACEMENT_ID} and ${ApiConstants.MAX_PLACEMENT_ID}"
@@ -36,11 +43,12 @@ sealed class AuctionConfig(
         val numSlots: Int,
         val ids: List<String>,
         val geo: String? = null,
-        val userOpaqueId: String? = null,
-        val experimentPlacementId: Int? = null,
+        override val opaqueUserId: String? = null,
+        override val placementId: Int? = null,
         val qualityScores: List<Double>? = null,
-    ) : AuctionConfig(numSlots, geo, userOpaqueId, experimentPlacementId) {
+    ) : AuctionConfig(numSlots, geo) {
         init {
+            validatePlacementId()
             require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
             qualityScores?.let {
                 require(it.size == ids.size) {
@@ -59,10 +67,11 @@ sealed class AuctionConfig(
         val numSlots: Int,
         val category: String,
         val geo: String? = null,
-        val userOpaqueId: String? = null,
-        val experimentPlacementId: Int? = null,
-    ) : AuctionConfig(numSlots, geo, userOpaqueId, experimentPlacementId) {
+        override val opaqueUserId: String? = null,
+        override val placementId: Int? = null,
+    ) : AuctionConfig(numSlots, geo) {
         init {
+            validatePlacementId()
             require(category.isNotBlank()) { "Category cannot be blank" }
         }
     }
@@ -76,10 +85,11 @@ sealed class AuctionConfig(
         val numSlots: Int,
         val categories: List<String>,
         val geo: String? = null,
-        val userOpaqueId: String? = null,
-        val experimentPlacementId: Int? = null,
-    ) : AuctionConfig(numSlots, geo, userOpaqueId, experimentPlacementId) {
+        override val opaqueUserId: String? = null,
+        override val placementId: Int? = null,
+    ) : AuctionConfig(numSlots, geo) {
         init {
+            validatePlacementId()
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
         }
     }
@@ -93,10 +103,11 @@ sealed class AuctionConfig(
         val numSlots: Int,
         val disjunctions: List<List<String>>,
         val geo: String? = null,
-        val userOpaqueId: String? = null,
-        val experimentPlacementId: Int? = null,
-    ) : AuctionConfig(numSlots, geo, userOpaqueId, experimentPlacementId) {
+        override val opaqueUserId: String? = null,
+        override val placementId: Int? = null,
+    ) : AuctionConfig(numSlots, geo) {
         init {
+            validatePlacementId()
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
         }
     }
@@ -110,10 +121,11 @@ sealed class AuctionConfig(
         val numSlots: Int,
         val keyword: String,
         val geo: String? = null,
-        val userOpaqueId: String? = null,
-        val experimentPlacementId: Int? = null,
-    ) : AuctionConfig(numSlots, geo, userOpaqueId, experimentPlacementId) {
+        override val opaqueUserId: String? = null,
+        override val placementId: Int? = null,
+    ) : AuctionConfig(numSlots, geo) {
         init {
+            validatePlacementId()
             require(keyword.isNotBlank()) { "Keyword cannot be blank" }
         }
     }

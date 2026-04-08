@@ -14,8 +14,8 @@ internal class AuctionFieldsTest {
         val config = AuctionConfig.ProductIds(
             numSlots = 2,
             ids = listOf("p1", "p2"),
-            userOpaqueId = "user-123",
-            experimentPlacementId = 5
+            opaqueUserId = "user-123",
+            placementId = 5
         )
 
         val auction = Auction.fromConfig(config)
@@ -29,8 +29,8 @@ internal class AuctionFieldsTest {
         val config = AuctionConfig.CategorySingle(
             numSlots = 1,
             category = "electronics",
-            userOpaqueId = "user-456",
-            experimentPlacementId = 3
+            opaqueUserId = "user-456",
+            placementId = 3
         )
 
         val auction = Auction.fromConfig(config)
@@ -44,8 +44,8 @@ internal class AuctionFieldsTest {
         val config = AuctionConfig.ProductIds(
             numSlots = 1,
             ids = listOf("p1"),
-            userOpaqueId = "user-789",
-            experimentPlacementId = 7
+            opaqueUserId = "user-789",
+            placementId = 7
         )
 
         val auction = Auction.fromConfig(config)
@@ -75,7 +75,7 @@ internal class AuctionFieldsTest {
             AuctionConfig.ProductIds(
                 numSlots = 1,
                 ids = listOf("p1"),
-                experimentPlacementId = 0
+                placementId = 0
             )
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("placementId must be between 1 and 8")
@@ -84,7 +84,7 @@ internal class AuctionFieldsTest {
             AuctionConfig.ProductIds(
                 numSlots = 1,
                 ids = listOf("p1"),
-                experimentPlacementId = 9
+                placementId = 9
             )
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("placementId must be between 1 and 8")
@@ -96,7 +96,7 @@ internal class AuctionFieldsTest {
             val config = AuctionConfig.ProductIds(
                 numSlots = 1,
                 ids = listOf("p1"),
-                experimentPlacementId = i
+                placementId = i
             )
             assertThat(config.placementId).isEqualTo(i)
         }
@@ -295,8 +295,8 @@ internal class AuctionFieldsTest {
             numSlots = 3,
             categories = listOf("cat1", "cat2"),
             geo = "US",
-            userOpaqueId = "user-123",
-            experimentPlacementId = 6
+            opaqueUserId = "user-123",
+            placementId = 6
         )
 
         val auction = Auction.fromConfig(config)
@@ -311,8 +311,8 @@ internal class AuctionFieldsTest {
         val config = AuctionConfig.Keyword(
             numSlots = 2,
             keyword = "shoes",
-            userOpaqueId = "user-abc",
-            experimentPlacementId = 1
+            opaqueUserId = "user-abc",
+            placementId = 1
         )
 
         val auction = Auction.fromConfig(config)
