@@ -37,6 +37,12 @@ data class Page private constructor(
     val values: List<String>? = null,
 ) : JsonSerializable {
 
+    init {
+        require(!(value != null && values != null)) {
+            "Page cannot have both 'value' and 'values' set. They are mutually exclusive."
+        }
+    }
+
     override fun toJsonObject(): JSONObject {
         return JSONObject().apply {
             put("type", type)

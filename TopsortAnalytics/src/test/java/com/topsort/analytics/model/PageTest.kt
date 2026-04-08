@@ -1,6 +1,7 @@
 package com.topsort.analytics.model
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.json.JSONObject
 import org.junit.Test
 
@@ -111,5 +112,33 @@ internal class PageTest {
         val deserialized = Page.Factory.fromJsonObject(JSONObject(serialized))
 
         assertThat(deserialized).isEqualTo(page)
+    }
+
+    @Test
+    fun `page copy with both value and values throws exception`() {
+        val page = Page.Factory.buildWithId(
+            type = Page.TYPE_SEARCH,
+            pageId = "search-1",
+            value = "query"
+        )
+
+        assertThatThrownBy {
+            page.copy(values = listOf("a", "b"))
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("mutually exclusive")
+    }
+
+    @Test
+    fun `page copy replacing value with values is valid`() {
+        val page = Page.Factory.buildWithId(
+            type = Page.TYPE_SEARCH,
+            pageId = "search-1",
+            value = "query"
+        )
+
+        val updated = page.copy(value = null, values = listOf("a", "b"))
+
+        assertThat(updated.value).isNull()
+        assertThat(updated.values).containsExactly("a", "b")
     }
 }
