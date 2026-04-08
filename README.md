@@ -1,8 +1,12 @@
 # Topsort Kotlin SDK
 
-An Android library for interacting with the Topsort APIs. We provide support for sending events (impressions, clicks, purchases, page views) and running auctions with comprehensive error handling and callback support.
+[![Maven Central](https://img.shields.io/maven-central/v/com.topsort/topsort-kt.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/com.topsort/topsort-kt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg)](https://android-arsenal.com/api?level=24)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0+-blue.svg)](https://kotlinlang.org)
+[![CI](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml/badge.svg)](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml)
 
-Licensed under [MIT][1].
+An Android library for interacting with the Topsort APIs. We provide support for sending events (impressions, clicks, purchases, page views) and running auctions with comprehensive error handling and callback support.
 
 ## Features
 
