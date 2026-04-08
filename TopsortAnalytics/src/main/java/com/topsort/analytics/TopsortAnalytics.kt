@@ -106,5 +106,8 @@ interface TopsortAnalytics {
         occurredAt: String? = null,
         deviceType: String? = null,
         channel: String? = null,
-    )
+    ) {
+        // Default empty implementation to maintain backward compatibility
+        // for existing TopsortAnalytics interface implementors.
+    }
 }

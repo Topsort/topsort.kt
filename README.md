@@ -187,6 +187,53 @@ fun reportPurchase() {
 }
 ```
 
+##### Page View events
+
+Track page views to understand user navigation patterns:
+
+```kotlin
+import com.topsort.analytics.model.Page
+
+// Simple home page view
+Analytics.reportPageView(
+    page = Page.Factory.build(type = Page.TYPE_HOME)
+)
+
+// Product detail page with ID
+Analytics.reportPageView(
+    page = Page.Factory.buildWithId(
+        type = Page.TYPE_PDP,
+        pageId = "product-123"
+    ),
+    deviceType = "mobile",
+    channel = "onsite"
+)
+
+// Search results page with query
+Analytics.reportPageView(
+    page = Page.Factory.buildWithId(
+        type = Page.TYPE_SEARCH,
+        pageId = "search-results",
+        value = "running shoes"
+    )
+)
+
+// Category page with hierarchy
+Analytics.reportPageView(
+    page = Page.Factory.buildWithValues(
+        type = Page.TYPE_CATEGORY,
+        values = listOf("Electronics", "Phones", "Smartphones"),
+        pageId = "cat-smartphones"
+    )
+)
+```
+
+**Available page types:** `Page.TYPE_HOME`, `Page.TYPE_CATEGORY`, `Page.TYPE_PDP`, `Page.TYPE_SEARCH`, `Page.TYPE_CART`, `Page.TYPE_OTHER`
+
+**Optional parameters:**
+- `deviceType`: `"desktop"` or `"mobile"`
+- `channel`: `"onsite"`, `"offsite"`, or `"instore"`
+
 ## Banner Auctions with Error Handling and Callbacks
 
 The library provides comprehensive support for banner auctions with robust error handling and callbacks:
