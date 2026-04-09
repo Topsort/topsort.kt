@@ -121,7 +121,7 @@ internal class PageViewEventTest {
     }
 
     @Test
-    fun `PageView roundtrip serialization`() {
+    fun `PageView roundtrip serialization with all fields`() {
         val page = Page.Factory.buildWithId(type = "category", pageId = "cat-1")
         val original = PageView.Factory.build(
             page = page,
@@ -136,6 +136,24 @@ internal class PageViewEventTest {
         val deserialized = PageView.Factory.fromJsonObject(JSONObject(serialized))
 
         assertThat(deserialized).isEqualTo(original)
+    }
+
+    @Test
+    fun `PageView roundtrip serialization with required fields only`() {
+        val page = Page.Factory.build(type = "home")
+        val original = PageView.Factory.build(
+            page = page,
+            occurredAt = "2024-03-01T12:00:00Z",
+            opaqueUserId = "user-minimal",
+            id = "pv-minimal"
+        )
+
+        val serialized = original.toJsonObject().toString()
+        val deserialized = PageView.Factory.fromJsonObject(JSONObject(serialized))
+
+        assertThat(deserialized).isEqualTo(original)
+        assertThat(deserialized.deviceType).isNull()
+        assertThat(deserialized.channel).isNull()
     }
 
     @Test

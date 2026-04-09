@@ -3,6 +3,7 @@ package com.topsort.analytics.model
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.junit.Test
 
@@ -222,6 +223,40 @@ internal class PageTest {
             put("value", JSONArray())
         }
         val page = Page.Factory.fromJsonObject(json)
+
+        assertThat(page.type).isEqualTo("category")
+        assertThat(page.values).isEmpty()
+    }
+
+    @Test
+    fun `copy with both value and values throws IllegalArgumentException`() {
+        val page = Page.Factory.buildWithId(
+            type = "search",
+            pageId = "search-1",
+            value = "shoes"
+        )
+
+        assertThatThrownBy {
+            page.copy(values = listOf("A", "B"))
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("mutually exclusive")
+    }
+
+    @Test
+    fun `fromJsonObject with missing type throws JSONException`() {
+        val json = JSONObject("""{"pageId": "p-123", "value": "test"}""")
+
+        assertThatThrownBy {
+            Page.Factory.fromJsonObject(json)
+        }.isInstanceOf(JSONException::class.java)
+    }
+
+    @Test
+    fun `buildWithValues allows empty values list`() {
+        val page = Page.Factory.buildWithValues(
+            type = "category",
+            values = emptyList()
+        )
 
         assertThat(page.type).isEqualTo("category")
         assertThat(page.values).isEmpty()
