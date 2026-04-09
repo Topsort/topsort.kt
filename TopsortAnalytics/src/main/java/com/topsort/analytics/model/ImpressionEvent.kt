@@ -59,7 +59,7 @@ data class Impression private constructor(
     val opaqueUserId: String,
 
     /**
-     * The marketplace assigned ID for the order
+     * The marketplace's unique ID for the impression.
      */
     val id: String,
 

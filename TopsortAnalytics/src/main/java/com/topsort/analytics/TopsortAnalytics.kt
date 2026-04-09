@@ -20,6 +20,7 @@ interface TopsortAnalytics {
      * @param channel Optional channel. Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE]
      * @param page Optional page context where the impression occurred
      */
+    @JvmOverloads
     fun reportImpressionPromoted(
         resolvedBidId: String,
         placement: Placement,
@@ -43,6 +44,7 @@ interface TopsortAnalytics {
      * @param channel Optional channel. Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE]
      * @param page Optional page context where the impression occurred
      */
+    @JvmOverloads
     fun reportImpressionOrganic(
         entity: Entity,
         placement: Placement,
@@ -67,6 +69,7 @@ interface TopsortAnalytics {
      * @param page Optional page context where the click occurred
      * @param clickType Optional click type. Use [Click.CLICK_TYPE_PRODUCT], [Click.CLICK_TYPE_LIKE], or [Click.CLICK_TYPE_ADD_TO_CART]
      */
+    @JvmOverloads
     fun reportClickPromoted(
         resolvedBidId: String,
         placement: Placement,
@@ -92,6 +95,7 @@ interface TopsortAnalytics {
      * @param page Optional page context where the click occurred
      * @param clickType Optional click type. Use [Click.CLICK_TYPE_PRODUCT], [Click.CLICK_TYPE_LIKE], or [Click.CLICK_TYPE_ADD_TO_CART]
      */
+    @JvmOverloads
     fun reportClickOrganic(
         entity: Entity,
         placement: Placement,
@@ -114,6 +118,7 @@ interface TopsortAnalytics {
      * @param deviceType Optional device type. Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE]
      * @param channel Optional channel. Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE]
      */
+    @JvmOverloads
     fun reportPurchase(
         items: List<PurchasedItem>,
         id: String,
