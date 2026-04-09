@@ -70,6 +70,9 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -81,8 +84,11 @@ object Analytics : TopsortAnalytics {
                 resolvedBidId = resolvedBidId,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
+                id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         )
 
@@ -95,6 +101,9 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -106,8 +115,11 @@ object Analytics : TopsortAnalytics {
                 entity = entity,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
+                id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         )
 
@@ -120,6 +132,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
+        page: Page?,
+        clickType: String?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -131,8 +147,12 @@ object Analytics : TopsortAnalytics {
                 resolvedBidId = resolvedBidId,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
-                occurredAt = occurredAt ?: eventTime()
+                id = id ?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         )
 
@@ -145,6 +165,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
+        page: Page?,
+        clickType: String?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -156,8 +180,12 @@ object Analytics : TopsortAnalytics {
                 entity = entity,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
-                occurredAt = occurredAt ?: eventTime()
+                id = id ?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         )
 
@@ -169,6 +197,8 @@ object Analytics : TopsortAnalytics {
         id: String,
         opaqueUserId: String?,
         occurredAt: String?,
+        deviceType: String?,
+        channel: String?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -182,6 +212,8 @@ object Analytics : TopsortAnalytics {
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
                     opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                    deviceType = deviceType,
+                    channel = channel,
                 ),
             ),
         )

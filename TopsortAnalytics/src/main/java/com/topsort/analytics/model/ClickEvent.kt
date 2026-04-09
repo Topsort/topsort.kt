@@ -64,7 +64,39 @@ data class Click private constructor (
      * The marketplace's ID for the click
      */
     val id: String,
+
+    /**
+     * The device type where the click occurred.
+     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
+     */
+    val deviceType: String? = null,
+
+    /**
+     * The channel where the click occurred.
+     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
+     */
+    val channel: String? = null,
+
+    /**
+     * The page context where the click occurred.
+     */
+    val page: Page? = null,
+
+    /**
+     * The type of click action.
+     * Use [CLICK_TYPE_PRODUCT], [CLICK_TYPE_LIKE], or [CLICK_TYPE_ADD_TO_CART].
+     */
+    val clickType: String? = null,
 ) : JsonSerializable {
+
+    companion object {
+        /** Click type for product clicks */
+        const val CLICK_TYPE_PRODUCT = "product"
+        /** Click type for like/favorite actions */
+        const val CLICK_TYPE_LIKE = "like"
+        /** Click type for add-to-cart actions */
+        const val CLICK_TYPE_ADD_TO_CART = "add-to-cart"
+    }
     override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
@@ -79,6 +111,12 @@ data class Click private constructor (
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+            .apply {
+                deviceType?.let { put("deviceType", it) }
+                channel?.let { put("channel", it) }
+                page?.let { put("page", it.toJsonObject()) }
+                clickType?.let { put("clickType", it) }
+            }
     }
 
     object Factory {
@@ -90,6 +128,10 @@ data class Click private constructor (
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
+            clickType: String? = null,
         ): Click {
             return Click(
                 resolvedBidId = resolvedBidId,
@@ -98,6 +140,10 @@ data class Click private constructor (
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         }
 
@@ -109,6 +155,10 @@ data class Click private constructor (
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
+            clickType: String? = null,
         ): Click {
             return Click(
                 entity = entity,
@@ -117,6 +167,10 @@ data class Click private constructor (
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         }
 
@@ -132,6 +186,10 @@ data class Click private constructor (
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
+                deviceType = json.getStringOrNull("deviceType"),
+                channel = json.getStringOrNull("channel"),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
+                clickType = json.getStringOrNull("clickType"),
             )
         }
 

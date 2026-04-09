@@ -62,6 +62,23 @@ data class Impression private constructor(
      * The marketplace assigned ID for the order
      */
     val id: String,
+
+    /**
+     * The device type where the impression occurred.
+     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
+     */
+    val deviceType: String? = null,
+
+    /**
+     * The channel where the impression occurred.
+     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
+     */
+    val channel: String? = null,
+
+    /**
+     * The page context where the impression occurred.
+     */
+    val page: Page? = null,
 ) : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -77,6 +94,11 @@ data class Impression private constructor(
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+            .apply {
+                deviceType?.let { put("deviceType", it) }
+                channel?.let { put("channel", it) }
+                page?.let { put("page", it.toJsonObject()) }
+            }
     }
 
     object Factory {
@@ -89,6 +111,9 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 resolvedBidId = resolvedBidId,
@@ -97,6 +122,9 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
@@ -108,6 +136,9 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: String? = null,
+            channel: String? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 entity = entity,
@@ -116,6 +147,9 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
@@ -131,6 +165,9 @@ data class Impression private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
+                deviceType = json.getStringOrNull("deviceType"),
+                channel = json.getStringOrNull("channel"),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 
