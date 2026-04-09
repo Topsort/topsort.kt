@@ -142,9 +142,14 @@ data class Page private constructor(
     }
 
     companion object {
-        /** Page type constants for convenience */
+        /**
+         * Page type constants matching the Topsort API contract.
+         * Note: TYPE_PDP is uppercase ("PDP") per the API specification,
+         * while other types are lowercase.
+         */
         const val TYPE_HOME = "home"
         const val TYPE_CATEGORY = "category"
+        /** Product Detail Page - uppercase per API contract */
         const val TYPE_PDP = "PDP"
         const val TYPE_SEARCH = "search"
         const val TYPE_CART = "cart"
