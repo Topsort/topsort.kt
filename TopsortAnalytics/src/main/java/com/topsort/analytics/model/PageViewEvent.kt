@@ -128,7 +128,3 @@ data class PageView private constructor(
             }
     }
 }
-
-internal data class PageViewEventResponse(
-    val pageviews: List<PageView>
-)

@@ -204,4 +204,26 @@ internal class PageTest {
         assertThat(Page.TYPE_CART).isEqualTo("cart")
         assertThat(Page.TYPE_OTHER).isEqualTo("other")
     }
+
+    @Test
+    fun `fromJsonObject handles null value field`() {
+        val json = JSONObject("""{"type": "home", "value": null}""")
+        val page = Page.Factory.fromJsonObject(json)
+
+        assertThat(page.type).isEqualTo("home")
+        assertThat(page.value).isNull()
+        assertThat(page.values).isNull()
+    }
+
+    @Test
+    fun `fromJsonObject handles empty values array`() {
+        val json = JSONObject().apply {
+            put("type", "category")
+            put("value", JSONArray())
+        }
+        val page = Page.Factory.fromJsonObject(json)
+
+        assertThat(page.type).isEqualTo("category")
+        assertThat(page.values).isEmpty()
+    }
 }
