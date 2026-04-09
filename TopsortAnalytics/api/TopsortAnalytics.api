@@ -5,6 +5,7 @@ public final class com/topsort/analytics/Analytics : com/topsort/analytics/Topso
 	public fun reportImpressionOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun reportImpressionPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun reportImpressions (Ljava/util/List;)V
+	public fun reportPageView (Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun setup (Landroid/app/Application;Ljava/lang/String;Ljava/lang/String;)V
 }
@@ -18,6 +19,8 @@ public abstract interface class com/topsort/analytics/TopsortAnalytics {
 	public static synthetic fun reportImpressionOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportImpressionPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun reportImpressionPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public fun reportPageView (Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportPageView$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun reportPurchase$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 }
@@ -27,6 +30,8 @@ public final class com/topsort/analytics/TopsortAnalytics$DefaultImpls {
 	public static synthetic fun reportClickPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun reportImpressionOrganic$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun reportImpressionPromoted$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static fun reportPageView (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun reportPageView$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun reportPurchase$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 }
 
@@ -266,6 +271,7 @@ public final class com/topsort/analytics/model/Event$Companion {
 public final class com/topsort/analytics/model/EventType : java/lang/Enum {
 	public static final field Click Lcom/topsort/analytics/model/EventType;
 	public static final field Impression Lcom/topsort/analytics/model/EventType;
+	public static final field PageView Lcom/topsort/analytics/model/EventType;
 	public static final field Purchase Lcom/topsort/analytics/model/EventType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/model/EventType;
@@ -327,6 +333,51 @@ public final class com/topsort/analytics/model/ImpressionEvent$Companion {
 
 public abstract interface class com/topsort/analytics/model/JsonSerializable {
 	public abstract fun toJsonObject ()Lorg/json/JSONObject;
+}
+
+public final class com/topsort/analytics/model/Page : com/topsort/analytics/model/JsonSerializable {
+	public static final field CHANNEL_INSTORE Ljava/lang/String;
+	public static final field CHANNEL_OFFSITE Ljava/lang/String;
+	public static final field CHANNEL_ONSITE Ljava/lang/String;
+	public static final field Companion Lcom/topsort/analytics/model/Page$Companion;
+	public static final field DEVICE_TYPE_DESKTOP Ljava/lang/String;
+	public static final field DEVICE_TYPE_MOBILE Ljava/lang/String;
+	public static final field TYPE_CART Ljava/lang/String;
+	public static final field TYPE_CATEGORY Ljava/lang/String;
+	public static final field TYPE_HOME Ljava/lang/String;
+	public static final field TYPE_OTHER Ljava/lang/String;
+	public static final field TYPE_PDP Ljava/lang/String;
+	public static final field TYPE_SEARCH Ljava/lang/String;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/Page;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/Page;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPageId ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toJsonObject ()Lorg/json/JSONObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/model/Page$Companion {
+}
+
+public final class com/topsort/analytics/model/Page$Factory {
+	public static final field INSTANCE Lcom/topsort/analytics/model/Page$Factory;
+	public final fun build (Ljava/lang/String;)Lcom/topsort/analytics/model/Page;
+	public final fun buildWithId (Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Page;
+	public final fun buildWithId (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/Page;
+	public static synthetic fun buildWithId$default (Lcom/topsort/analytics/model/Page$Factory;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Page;
+	public final fun buildWithValues (Ljava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/Page;
+	public final fun buildWithValues (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/Page;
+	public static synthetic fun buildWithValues$default (Lcom/topsort/analytics/model/Page$Factory;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/model/Page;
+	public final fun fromJsonObject (Lorg/json/JSONObject;)Lcom/topsort/analytics/model/Page;
 }
 
 public final class com/topsort/analytics/model/Placement {

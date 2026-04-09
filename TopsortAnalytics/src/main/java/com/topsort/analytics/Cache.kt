@@ -8,6 +8,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import java.util.Locale
 
@@ -160,6 +161,22 @@ internal object Cache {
 
     fun readPurchase(recordId: Long): PurchaseEvent? {
         return PurchaseEvent.fromJson(readEvent(recordId))
+    }
+
+    fun storePageView(
+        pageViewEvent: PageViewEvent
+    ): Long {
+        val json = pageViewEvent.toJsonObject().toString()
+        preferences
+            .edit()
+            .putString(nextRecordKey(), json)
+            .apply()
+
+        return recentRecordId
+    }
+
+    fun readPageView(recordId: Long): PageViewEvent? {
+        return PageViewEvent.fromJson(readEvent(recordId))
     }
 
     fun deleteEvent(recordId: Long) {

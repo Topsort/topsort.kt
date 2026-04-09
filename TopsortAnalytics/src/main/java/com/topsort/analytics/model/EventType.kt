@@ -4,5 +4,6 @@ enum class EventType {
 
     Impression,
     Click,
-    Purchase
+    Purchase,
+    PageView,
 }
