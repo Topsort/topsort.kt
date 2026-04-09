@@ -57,30 +57,16 @@ internal data class PageView private constructor(
 
     /**
      * The device type where the page view occurred.
-     * Use [DEVICE_TYPE_DESKTOP] or [DEVICE_TYPE_MOBILE].
+     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
      */
     val deviceType: String? = null,
 
     /**
      * The channel where the page view occurred.
-     * Use [CHANNEL_ONSITE], [CHANNEL_OFFSITE], or [CHANNEL_INSTORE].
+     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
      */
     val channel: String? = null,
 ) : JsonSerializable {
-
-    companion object {
-        /** Device type constant for desktop devices */
-        const val DEVICE_TYPE_DESKTOP = "desktop"
-        /** Device type constant for mobile devices */
-        const val DEVICE_TYPE_MOBILE = "mobile"
-
-        /** Channel constant for onsite events */
-        const val CHANNEL_ONSITE = "onsite"
-        /** Channel constant for offsite events */
-        const val CHANNEL_OFFSITE = "offsite"
-        /** Channel constant for in-store events */
-        const val CHANNEL_INSTORE = "instore"
-    }
 
     override fun toJsonObject(): JSONObject {
         return JSONObject()

@@ -154,5 +154,17 @@ data class Page private constructor(
         const val TYPE_SEARCH = "search"
         const val TYPE_CART = "cart"
         const val TYPE_OTHER = "other"
+
+        /** Device type constant for desktop devices */
+        const val DEVICE_TYPE_DESKTOP = "desktop"
+        /** Device type constant for mobile devices */
+        const val DEVICE_TYPE_MOBILE = "mobile"
+
+        /** Channel constant for onsite events */
+        const val CHANNEL_ONSITE = "onsite"
+        /** Channel constant for offsite events */
+        const val CHANNEL_OFFSITE = "offsite"
+        /** Channel constant for in-store events */
+        const val CHANNEL_INSTORE = "instore"
     }
 }

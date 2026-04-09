@@ -207,6 +207,15 @@ internal class PageTest {
     }
 
     @Test
+    fun `deviceType and channel constants are correct`() {
+        assertThat(Page.DEVICE_TYPE_DESKTOP).isEqualTo("desktop")
+        assertThat(Page.DEVICE_TYPE_MOBILE).isEqualTo("mobile")
+        assertThat(Page.CHANNEL_ONSITE).isEqualTo("onsite")
+        assertThat(Page.CHANNEL_OFFSITE).isEqualTo("offsite")
+        assertThat(Page.CHANNEL_INSTORE).isEqualTo("instore")
+    }
+
+    @Test
     fun `fromJsonObject handles null value field`() {
         val json = JSONObject("""{"type": "home", "value": null}""")
         val page = Page.Factory.fromJsonObject(json)

@@ -336,7 +336,12 @@ public abstract interface class com/topsort/analytics/model/JsonSerializable {
 }
 
 public final class com/topsort/analytics/model/Page : com/topsort/analytics/model/JsonSerializable {
+	public static final field CHANNEL_INSTORE Ljava/lang/String;
+	public static final field CHANNEL_OFFSITE Ljava/lang/String;
+	public static final field CHANNEL_ONSITE Ljava/lang/String;
 	public static final field Companion Lcom/topsort/analytics/model/Page$Companion;
+	public static final field DEVICE_TYPE_DESKTOP Ljava/lang/String;
+	public static final field DEVICE_TYPE_MOBILE Ljava/lang/String;
 	public static final field TYPE_CART Ljava/lang/String;
 	public static final field TYPE_CATEGORY Ljava/lang/String;
 	public static final field TYPE_HOME Ljava/lang/String;
