@@ -11,6 +11,12 @@ import org.json.JSONObject
  * - [Factory.build] for simple page types
  * - [Factory.buildWithId] for pages with an identifier
  * - [Factory.buildWithValues] for pages with multiple values (e.g., category paths)
+ *
+ * **JSON Serialization Note:** Both [value] (single string) and [values] (list) serialize
+ * to the same JSON key `"value"`. The API distinguishes between them by JSON type:
+ * - Single value: `"value": "search query"`
+ * - Multiple values: `"value": ["Electronics", "Phones"]`
+ * This is intentional per the Topsort API contract.
  */
 data class Page private constructor(
     /**

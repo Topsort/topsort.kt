@@ -8,7 +8,7 @@ import org.json.JSONObject
 /**
  * Event representing a page view.
  */
-data class PageViewEvent(
+internal data class PageViewEvent(
     val pageviews: List<PageView>,
 ) {
     fun toJsonObject(): JSONObject {
@@ -33,7 +33,7 @@ data class PageViewEvent(
 /**
  * Represents a single page view event.
  */
-data class PageView private constructor(
+internal data class PageView private constructor(
 
     /**
      * The page being viewed.
@@ -57,16 +57,30 @@ data class PageView private constructor(
 
     /**
      * The device type where the page view occurred.
-     * Typically "desktop" or "mobile".
+     * Use [DEVICE_TYPE_DESKTOP] or [DEVICE_TYPE_MOBILE].
      */
     val deviceType: String? = null,
 
     /**
      * The channel where the page view occurred.
-     * Typically "onsite", "offsite", or "instore".
+     * Use [CHANNEL_ONSITE], [CHANNEL_OFFSITE], or [CHANNEL_INSTORE].
      */
     val channel: String? = null,
 ) : JsonSerializable {
+
+    companion object {
+        /** Device type constant for desktop devices */
+        const val DEVICE_TYPE_DESKTOP = "desktop"
+        /** Device type constant for mobile devices */
+        const val DEVICE_TYPE_MOBILE = "mobile"
+
+        /** Channel constant for onsite events */
+        const val CHANNEL_ONSITE = "onsite"
+        /** Channel constant for offsite events */
+        const val CHANNEL_OFFSITE = "offsite"
+        /** Channel constant for in-store events */
+        const val CHANNEL_INSTORE = "instore"
+    }
 
     override fun toJsonObject(): JSONObject {
         return JSONObject()
