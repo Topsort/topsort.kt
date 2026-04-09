@@ -129,4 +129,65 @@ internal class JsonTest {
         assertThat(json.getString("path")).isEqualTo("factory/path")
         assertThat(json.isNull("categoryIds")).isTrue()
     }
+
+    // Tests for enhanced event context fields
+
+    @Test
+    fun `json click serialization with enhanced context fields`() {
+        val clicks = listOf(
+            getClickPromotedWithContext(),
+            getClickOrganicWithContext()
+        )
+
+        for (click in clicks) {
+            val serialized = click.toJsonObject().toString()
+            val deserialized = Click.Factory.fromJsonObject(JSONObject(serialized))
+
+            assertThat(click).isNotSameAs(deserialized)
+            assertThat(click).isEqualTo(deserialized)
+            assertThat(deserialized.deviceType).isNotNull()
+            assertThat(deserialized.channel).isNotNull()
+            assertThat(deserialized.page).isNotNull()
+            assertThat(deserialized.clickType).isNotNull()
+        }
+    }
+
+    @Test
+    fun `json impression serialization with enhanced context fields`() {
+        val impressions = listOf(
+            getImpressionPromotedWithContext(),
+            getImpressionOrganicWithContext()
+        )
+
+        for (impression in impressions) {
+            val serialized = impression.toJsonObject().toString()
+            val deserialized = Impression.Factory.fromJsonObject(JSONObject(serialized))
+
+            assertThat(impression).isNotSameAs(deserialized)
+            assertThat(impression).isEqualTo(deserialized)
+            assertThat(deserialized.deviceType).isNotNull()
+            assertThat(deserialized.channel).isNotNull()
+            assertThat(deserialized.page).isNotNull()
+        }
+    }
+
+    @Test
+    fun `json purchase serialization with enhanced context fields`() {
+        val purchase = getRandomPurchaseWithContext()
+        val serialized = purchase.toJsonObject().toString()
+        val deserialized = Purchase.fromJsonObject(JSONObject(serialized))
+
+        assertThat(purchase).isNotSameAs(deserialized)
+        assertThat(purchase).isEqualTo(deserialized)
+        assertThat(deserialized.deviceType).isNotNull()
+        assertThat(deserialized.channel).isNotNull()
+        assertThat(deserialized.items.first().vendorId).isNotNull()
+    }
+
+    @Test
+    fun `click constants are correctly defined`() {
+        assertThat(Click.CLICK_TYPE_PRODUCT).isEqualTo("product")
+        assertThat(Click.CLICK_TYPE_LIKE).isEqualTo("like")
+        assertThat(Click.CLICK_TYPE_ADD_TO_CART).isEqualTo("add-to-cart")
+    }
 }

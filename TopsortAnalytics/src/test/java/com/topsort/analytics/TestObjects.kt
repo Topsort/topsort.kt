@@ -8,6 +8,7 @@ import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.Page
 import com.topsort.analytics.model.PurchasedItem
 
 fun getClickPromoted() : Click {
@@ -86,5 +87,90 @@ private fun getTestPlacement() : Placement {
         categoryIds = listOf("cat1", "cat2"),
         searchQuery = "search query",
         location = "gibraltar",
+    )
+}
+
+// Test objects with new enhanced event context fields
+
+fun getClickPromotedWithContext() : Click {
+    return Click.Factory.buildPromoted(
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        resolvedBidId = randomId("resolvedBid_"),
+        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        deviceType = Page.DEVICE_TYPE_MOBILE,
+        channel = Page.CHANNEL_ONSITE,
+        page = Page.Factory.build(type = Page.TYPE_SEARCH),
+        clickType = Click.CLICK_TYPE_ADD_TO_CART,
+    )
+}
+
+fun getClickOrganicWithContext() : Click {
+    return Click.Factory.buildOrganic(
+        placement = getTestPlacement(),
+        entity = Entity(
+            type = EntityType.PRODUCT,
+            id = randomId("product_"),
+        ),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        deviceType = Page.DEVICE_TYPE_DESKTOP,
+        channel = Page.CHANNEL_OFFSITE,
+        page = Page.Factory.buildWithId(type = Page.TYPE_PDP, pageId = "product-123"),
+        clickType = Click.CLICK_TYPE_PRODUCT,
+    )
+}
+
+fun getImpressionPromotedWithContext() : Impression {
+    return Impression.Factory.buildPromoted(
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        resolvedBidId = randomId("resolvedBid_"),
+        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        deviceType = Page.DEVICE_TYPE_MOBILE,
+        channel = Page.CHANNEL_INSTORE,
+        page = Page.Factory.build(type = Page.TYPE_CATEGORY),
+    )
+}
+
+fun getImpressionOrganicWithContext() : Impression {
+    return Impression.Factory.buildOrganic(
+        placement = getTestPlacement(),
+        entity = Entity(
+            type = EntityType.PRODUCT,
+            id = randomId("product_"),
+        ),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        deviceType = Page.DEVICE_TYPE_DESKTOP,
+        channel = Page.CHANNEL_ONSITE,
+        page = Page.Factory.buildWithValues(type = Page.TYPE_HOME, values = listOf("home-1", "home-2")),
+    )
+}
+
+fun getRandomPurchaseWithContext() : Purchase {
+    return Purchase(
+        opaqueUserId = randomId("oId_"),
+        occurredAt = eventNow(),
+        items = listOf(
+            PurchasedItem(
+                productId = randomId("p_"),
+                quantity = 1,
+                unitPrice = 100,
+                resolvedBidId = randomId("resolvedBid_"),
+                vendorId = randomId("vendor_"),
+            )
+        ),
+        id = randomId("orderId_"),
+        deviceType = Page.DEVICE_TYPE_MOBILE,
+        channel = Page.CHANNEL_OFFSITE,
     )
 }
