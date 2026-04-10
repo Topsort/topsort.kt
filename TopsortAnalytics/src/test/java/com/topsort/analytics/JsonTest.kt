@@ -3,7 +3,7 @@ package com.topsort.analytics
 import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickType
-import com.topsort.analytics.model.DeviceType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.PageType
 import com.topsort.analytics.model.Placement
@@ -192,8 +192,8 @@ internal class JsonTest {
 
     @Test
     fun `enum values serialize to correct strings`() {
-        assertThat(DeviceType.DESKTOP.value).isEqualTo("desktop")
-        assertThat(DeviceType.MOBILE.value).isEqualTo("mobile")
+        assertThat(Device.DESKTOP.value).isEqualTo("desktop")
+        assertThat(Device.MOBILE.value).isEqualTo("mobile")
         assertThat(Channel.ONSITE.value).isEqualTo("onsite")
         assertThat(Channel.OFFSITE.value).isEqualTo("offsite")
         assertThat(Channel.INSTORE.value).isEqualTo("instore")
@@ -206,10 +206,10 @@ internal class JsonTest {
 
     @Test
     fun `enum fromValue parses correctly`() {
-        assertThat(DeviceType.fromValue("desktop")).isEqualTo(DeviceType.DESKTOP)
-        assertThat(DeviceType.fromValue("mobile")).isEqualTo(DeviceType.MOBILE)
-        assertThat(DeviceType.fromValue("invalid")).isNull()
-        assertThat(DeviceType.fromValue(null)).isNull()
+        assertThat(Device.fromValue("desktop")).isEqualTo(Device.DESKTOP)
+        assertThat(Device.fromValue("mobile")).isEqualTo(Device.MOBILE)
+        assertThat(Device.fromValue("invalid")).isNull()
+        assertThat(Device.fromValue(null)).isNull()
 
         assertThat(Channel.fromValue("onsite")).isEqualTo(Channel.ONSITE)
         assertThat(Channel.fromValue("offsite")).isEqualTo(Channel.OFFSITE)

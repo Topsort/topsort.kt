@@ -1,29 +1,6 @@
 package com.topsort.analytics.model
 
 /**
- * Device type where an event occurred.
- *
- * Note: This enum mirrors [com.topsort.analytics.model.auctions.Device] but is
- * specific to event tracking. The auctions Device is used for auction requests,
- * while this is used for analytics events (impressions, clicks, purchases).
- */
-enum class DeviceType(val value: String) {
-    DESKTOP("desktop"),
-    MOBILE("mobile");
-
-    companion object {
-        /**
-         * Parse a device type from its string value.
-         * Returns null for unrecognized values (graceful degradation).
-         */
-        fun fromValue(value: String?): DeviceType? {
-            if (value == null) return null
-            return entries.find { it.value == value }
-        }
-    }
-}
-
-/**
  * Channel where an event occurred.
  */
 enum class Channel(val value: String) {

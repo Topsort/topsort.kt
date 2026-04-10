@@ -2,6 +2,7 @@ package com.topsort.analytics.model
 
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -58,7 +59,7 @@ internal data class PageView private constructor(
     /**
      * The device type where the page view occurred.
      */
-    val deviceType: DeviceType? = null,
+    val deviceType: Device? = null,
 
     /**
      * The channel where the page view occurred.
@@ -96,7 +97,7 @@ internal data class PageView private constructor(
             occurredAt: String,
             opaqueUserId: String,
             id: String,
-            deviceType: DeviceType? = null,
+            deviceType: Device? = null,
             channel: Channel? = null,
         ): PageView {
             return PageView(
@@ -115,7 +116,7 @@ internal data class PageView private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
-                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
                 channel = Channel.fromValue(json.getStringOrNull("channel")),
             )
         }

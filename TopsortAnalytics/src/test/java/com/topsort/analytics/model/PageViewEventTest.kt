@@ -1,5 +1,6 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.model.auctions.Device
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,11 +34,11 @@ internal class PageViewEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-123",
             id = "pv-789",
-            deviceType = DeviceType.MOBILE,
+            deviceType = Device.MOBILE,
             channel = Channel.ONSITE
         )
 
-        assertThat(pageView.deviceType).isEqualTo(DeviceType.MOBILE)
+        assertThat(pageView.deviceType).isEqualTo(Device.MOBILE)
         assertThat(pageView.channel).isEqualTo(Channel.ONSITE)
     }
 
@@ -69,7 +70,7 @@ internal class PageViewEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-123",
             id = "pv-123",
-            deviceType = DeviceType.DESKTOP,
+            deviceType = Device.DESKTOP,
             channel = Channel.OFFSITE
         )
 
@@ -116,7 +117,7 @@ internal class PageViewEventTest {
         val pageView = PageView.Factory.fromJsonObject(json)
 
         assertThat(pageView.page.pageId).isEqualTo("prod-99")
-        assertThat(pageView.deviceType).isEqualTo(DeviceType.MOBILE)
+        assertThat(pageView.deviceType).isEqualTo(Device.MOBILE)
         assertThat(pageView.channel).isEqualTo(Channel.INSTORE)
     }
 
@@ -128,7 +129,7 @@ internal class PageViewEventTest {
             occurredAt = "2024-03-01T12:00:00Z",
             opaqueUserId = "user-roundtrip",
             id = "pv-roundtrip",
-            deviceType = DeviceType.MOBILE,
+            deviceType = Device.MOBILE,
             channel = Channel.ONSITE
         )
 
@@ -248,7 +249,7 @@ internal class PageViewEventTest {
             occurredAt = "2024-06-15T14:30:00Z",
             opaqueUserId = "user-rt",
             id = "pv-rt",
-            deviceType = DeviceType.DESKTOP,
+            deviceType = Device.DESKTOP,
             channel = Channel.ONSITE
         )
 

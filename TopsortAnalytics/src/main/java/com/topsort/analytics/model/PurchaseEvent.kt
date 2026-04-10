@@ -4,6 +4,7 @@ import androidx.annotation.IntRange
 import com.topsort.analytics.core.getIntOrNull
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 
 import org.json.JSONObject
@@ -55,7 +56,7 @@ data class Purchase(
     /**
      * The device type where the purchase occurred.
      */
-    val deviceType: DeviceType? = null,
+    val deviceType: Device? = null,
 
     /**
      * The channel where the purchase occurred.
@@ -91,7 +92,7 @@ data class Purchase(
                 items = (0 until itemsArray.length()).map {
                     PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
                 },
-                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
                 channel = Channel.fromValue(json.getStringOrNull("channel")),
                 page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )

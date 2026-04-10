@@ -36,7 +36,7 @@ data class Auction private constructor(
                     put("slotId", slotId)
                 }
                 if (device != null) {
-                    put("device", device.name.lowercase())
+                    put("device", device.value)
                 }
             }
 

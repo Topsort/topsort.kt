@@ -2,6 +2,7 @@ package com.topsort.analytics.model
 
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -66,7 +67,7 @@ data class Impression private constructor(
     /**
      * The device type where the impression occurred.
      */
-    val deviceType: DeviceType? = null,
+    val deviceType: Device? = null,
 
     /**
      * The channel where the impression occurred.
@@ -112,7 +113,7 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: DeviceType? = null,
+            deviceType: Device? = null,
             channel: Channel? = null,
             page: Page? = null,
         ): Impression {
@@ -137,7 +138,7 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: DeviceType? = null,
+            deviceType: Device? = null,
             channel: Channel? = null,
             page: Page? = null,
         ): Impression {
@@ -166,7 +167,7 @@ data class Impression private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
-                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
                 channel = Channel.fromValue(json.getStringOrNull("channel")),
                 page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )

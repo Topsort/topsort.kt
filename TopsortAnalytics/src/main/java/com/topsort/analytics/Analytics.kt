@@ -17,7 +17,7 @@ import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ClickType
-import com.topsort.analytics.model.DeviceType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.Impression
@@ -73,7 +73,7 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
         page: Page?,
     ) {
@@ -104,7 +104,7 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
         page: Page?,
     ) {
@@ -135,7 +135,7 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
         page: Page?,
         clickType: ClickType?,
@@ -168,7 +168,7 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
         page: Page?,
         clickType: ClickType?,
@@ -200,7 +200,7 @@ object Analytics : TopsortAnalytics {
         id: String,
         opaqueUserId: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
         page: Page?,
     ) {
@@ -232,7 +232,7 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: DeviceType?,
+        deviceType: Device?,
         channel: Channel?,
     ) {
         if (!assertSetup()) {

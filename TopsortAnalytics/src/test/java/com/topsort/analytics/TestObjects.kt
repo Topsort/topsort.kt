@@ -5,7 +5,7 @@ import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickType
-import com.topsort.analytics.model.DeviceType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
@@ -104,7 +104,7 @@ fun getClickPromotedWithContext() : Click {
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
         additionalAttribution = "{\"additional\":\"attribution click\"}",
-        deviceType = DeviceType.MOBILE,
+        deviceType = Device.MOBILE,
         channel = Channel.ONSITE,
         page = Page.Factory.build(type = PageType.SEARCH),
         clickType = ClickType.ADD_TO_CART,
@@ -122,7 +122,7 @@ fun getClickOrganicWithContext() : Click {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         additionalAttribution = "{\"additional\":\"attribution click\"}",
-        deviceType = DeviceType.DESKTOP,
+        deviceType = Device.DESKTOP,
         channel = Channel.OFFSITE,
         page = Page.Factory.buildWithId(type = PageType.PDP, pageId = "product-123"),
         clickType = ClickType.PRODUCT,
@@ -137,7 +137,7 @@ fun getImpressionPromotedWithContext() : Impression {
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
         additionalAttribution = "{\"additional\":\"attribution impression\"}",
-        deviceType = DeviceType.MOBILE,
+        deviceType = Device.MOBILE,
         channel = Channel.INSTORE,
         page = Page.Factory.build(type = PageType.CATEGORY),
     )
@@ -154,7 +154,7 @@ fun getImpressionOrganicWithContext() : Impression {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         additionalAttribution = "{\"additional\":\"attribution impression\"}",
-        deviceType = DeviceType.DESKTOP,
+        deviceType = Device.DESKTOP,
         channel = Channel.ONSITE,
         page = Page.Factory.buildWithValues(type = PageType.HOME, values = listOf("home-1", "home-2")),
     )
@@ -174,7 +174,7 @@ fun getRandomPurchaseWithContext() : Purchase {
             )
         ),
         id = randomId("orderId_"),
-        deviceType = DeviceType.MOBILE,
+        deviceType = Device.MOBILE,
         channel = Channel.OFFSITE,
         page = Page.Factory.build(type = PageType.CART),
     )

@@ -2,7 +2,7 @@ package com.topsort.analytics
 
 import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.ClickType
-import com.topsort.analytics.model.DeviceType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.Page
 import com.topsort.analytics.model.Placement
@@ -28,7 +28,7 @@ interface TopsortAnalytics {
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
         page: Page? = null,
     )
@@ -51,7 +51,7 @@ interface TopsortAnalytics {
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
         page: Page? = null,
     )
@@ -75,7 +75,7 @@ interface TopsortAnalytics {
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
         page: Page? = null,
         clickType: ClickType? = null,
@@ -100,7 +100,7 @@ interface TopsortAnalytics {
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
         page: Page? = null,
         clickType: ClickType? = null,
@@ -122,7 +122,7 @@ interface TopsortAnalytics {
         id: String,
         opaqueUserId: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
         page: Page? = null,
     )
@@ -142,7 +142,7 @@ interface TopsortAnalytics {
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
-        deviceType: DeviceType? = null,
+        deviceType: Device? = null,
         channel: Channel? = null,
     ) {
         // Default empty implementation to maintain backward compatibility
