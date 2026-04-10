@@ -1,6 +1,7 @@
 package com.topsort.analytics.model
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
