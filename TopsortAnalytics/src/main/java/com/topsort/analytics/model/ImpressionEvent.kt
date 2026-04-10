@@ -65,15 +65,13 @@ data class Impression private constructor(
 
     /**
      * The device type where the impression occurred.
-     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
      */
-    val deviceType: String? = null,
+    val deviceType: DeviceType? = null,
 
     /**
      * The channel where the impression occurred.
-     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
      */
-    val channel: String? = null,
+    val channel: Channel? = null,
 
     /**
      * The page context where the impression occurred.
@@ -89,14 +87,17 @@ data class Impression private constructor(
                     it.put("resolvedBidId", resolvedBidId)
                 }
             }
-            .put("additionalAttribution", additionalAttribution)
+            .apply {
+                // Consistent null handling: omit keys when value is null
+                additionalAttribution?.let { put("additionalAttribution", it) }
+            }
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
             .apply {
-                deviceType?.let { put("deviceType", it) }
-                channel?.let { put("channel", it) }
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
                 page?.let { put("page", it.toJsonObject()) }
             }
     }
@@ -111,8 +112,8 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: String? = null,
-            channel: String? = null,
+            deviceType: DeviceType? = null,
+            channel: Channel? = null,
             page: Page? = null,
         ): Impression {
             return Impression(
@@ -136,8 +137,8 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: String? = null,
-            channel: String? = null,
+            deviceType: DeviceType? = null,
+            channel: Channel? = null,
             page: Page? = null,
         ): Impression {
             return Impression(
@@ -165,8 +166,8 @@ data class Impression private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
-                deviceType = json.getStringOrNull("deviceType"),
-                channel = json.getStringOrNull("channel"),
+                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
                 page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }

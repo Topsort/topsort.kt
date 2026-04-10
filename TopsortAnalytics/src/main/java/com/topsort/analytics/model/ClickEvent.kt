@@ -61,21 +61,19 @@ data class Click private constructor (
     val opaqueUserId: String,
 
     /**
-     * The marketplace's ID for the click
+     * The marketplace's unique ID for the click.
      */
     val id: String,
 
     /**
      * The device type where the click occurred.
-     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
      */
-    val deviceType: String? = null,
+    val deviceType: DeviceType? = null,
 
     /**
      * The channel where the click occurred.
-     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
      */
-    val channel: String? = null,
+    val channel: Channel? = null,
 
     /**
      * The page context where the click occurred.
@@ -84,19 +82,10 @@ data class Click private constructor (
 
     /**
      * The type of click action.
-     * Use [CLICK_TYPE_PRODUCT], [CLICK_TYPE_LIKE], or [CLICK_TYPE_ADD_TO_CART].
      */
-    val clickType: String? = null,
+    val clickType: ClickType? = null,
 ) : JsonSerializable {
 
-    companion object {
-        /** Click type for product clicks */
-        const val CLICK_TYPE_PRODUCT = "product"
-        /** Click type for like/favorite actions */
-        const val CLICK_TYPE_LIKE = "like"
-        /** Click type for add-to-cart actions */
-        const val CLICK_TYPE_ADD_TO_CART = "add-to-cart"
-    }
     override fun toJsonObject(): JSONObject {
         return JSONObject()
             .let {
@@ -106,16 +95,19 @@ data class Click private constructor (
                     it.put("resolvedBidId", resolvedBidId)
                 }
             }
-            .put("additionalAttribution", additionalAttribution)
+            .apply {
+                // Consistent null handling: omit keys when value is null
+                additionalAttribution?.let { put("additionalAttribution", it) }
+            }
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
             .apply {
-                deviceType?.let { put("deviceType", it) }
-                channel?.let { put("channel", it) }
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
                 page?.let { put("page", it.toJsonObject()) }
-                clickType?.let { put("clickType", it) }
+                clickType?.let { put("clickType", it.value) }
             }
     }
 
@@ -128,10 +120,10 @@ data class Click private constructor (
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: String? = null,
-            channel: String? = null,
+            deviceType: DeviceType? = null,
+            channel: Channel? = null,
             page: Page? = null,
-            clickType: String? = null,
+            clickType: ClickType? = null,
         ): Click {
             return Click(
                 resolvedBidId = resolvedBidId,
@@ -155,10 +147,10 @@ data class Click private constructor (
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
-            deviceType: String? = null,
-            channel: String? = null,
+            deviceType: DeviceType? = null,
+            channel: Channel? = null,
             page: Page? = null,
-            clickType: String? = null,
+            clickType: ClickType? = null,
         ): Click {
             return Click(
                 entity = entity,
@@ -186,10 +178,10 @@ data class Click private constructor (
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
-                deviceType = json.getStringOrNull("deviceType"),
-                channel = json.getStringOrNull("channel"),
+                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
                 page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
-                clickType = json.getStringOrNull("clickType"),
+                clickType = ClickType.fromValue(json.getStringOrNull("clickType")),
             )
         }
 

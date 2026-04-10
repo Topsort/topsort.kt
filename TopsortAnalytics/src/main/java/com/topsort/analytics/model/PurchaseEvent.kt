@@ -23,9 +23,7 @@ data class PurchaseEvent(
         fun fromJson(json : String?) : PurchaseEvent? {
             if(json == null) return null
             val array = JSONObject(json).getJSONArray("purchases")
-            val purchases = (0 until array.length()).map {
-                Purchase.fromJsonObject(array.getJSONObject(it))
-            }
+            val purchases = Purchase.fromJsonArray(array)
 
             return PurchaseEvent(purchases = purchases)
         }
@@ -56,15 +54,19 @@ data class Purchase(
 
     /**
      * The device type where the purchase occurred.
-     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
      */
-    val deviceType: String? = null,
+    val deviceType: DeviceType? = null,
 
     /**
      * The channel where the purchase occurred.
-     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
      */
-    val channel: String? = null,
+    val channel: Channel? = null,
+
+    /**
+     * The page context where the purchase occurred.
+     * Typically used for checkout or cart pages.
+     */
+    val page: Page? = null,
 )  : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -73,8 +75,9 @@ data class Purchase(
             .put("id", id)
             .put("items", JSONArray(items.map { it.toJsonObject() }))
             .apply {
-                deviceType?.let { put("deviceType", it) }
-                channel?.let { put("channel", it) }
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
+                page?.let { put("page", it.toJsonObject()) }
             }
     }
 
@@ -88,8 +91,9 @@ data class Purchase(
                 items = (0 until itemsArray.length()).map {
                     PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
                 },
-                deviceType = json.getStringOrNull("deviceType"),
-                channel = json.getStringOrNull("channel"),
+                deviceType = DeviceType.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 
@@ -133,9 +137,10 @@ data class PurchasedItem(
         return JSONObject()
             .put("productId", productId)
             .put("quantity", quantity)
-            .put("unitPrice", unitPrice)
-            .put("resolvedBidId", resolvedBidId)
             .apply {
+                // Consistent null handling: omit keys when value is null
+                unitPrice?.let { put("unitPrice", it) }
+                resolvedBidId?.let { put("resolvedBidId", it) }
                 vendorId?.let { put("vendorId", it) }
             }
     }

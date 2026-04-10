@@ -1,9 +1,14 @@
 package com.topsort.analytics
 
+import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
+import com.topsort.analytics.model.ClickType
+import com.topsort.analytics.model.DeviceType
 import com.topsort.analytics.model.Impression
+import com.topsort.analytics.model.PageType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.PurchasedItem
 import org.json.JSONObject
 import org.junit.Test
 import org.assertj.core.api.Assertions.assertThat
@@ -130,7 +135,7 @@ internal class JsonTest {
         assertThat(json.isNull("categoryIds")).isTrue()
     }
 
-    // Tests for enhanced event context fields
+    // Tests for enhanced event context fields with enums
 
     @Test
     fun `json click serialization with enhanced context fields`() {
@@ -181,14 +186,40 @@ internal class JsonTest {
         assertThat(purchase).isEqualTo(deserialized)
         assertThat(deserialized.deviceType).isNotNull()
         assertThat(deserialized.channel).isNotNull()
+        assertThat(deserialized.page).isNotNull()
         assertThat(deserialized.items.first().vendorId).isNotNull()
     }
 
     @Test
-    fun `click constants are correctly defined`() {
-        assertThat(Click.CLICK_TYPE_PRODUCT).isEqualTo("product")
-        assertThat(Click.CLICK_TYPE_LIKE).isEqualTo("like")
-        assertThat(Click.CLICK_TYPE_ADD_TO_CART).isEqualTo("add-to-cart")
+    fun `enum values serialize to correct strings`() {
+        assertThat(DeviceType.DESKTOP.value).isEqualTo("desktop")
+        assertThat(DeviceType.MOBILE.value).isEqualTo("mobile")
+        assertThat(Channel.ONSITE.value).isEqualTo("onsite")
+        assertThat(Channel.OFFSITE.value).isEqualTo("offsite")
+        assertThat(Channel.INSTORE.value).isEqualTo("instore")
+        assertThat(ClickType.PRODUCT.value).isEqualTo("product")
+        assertThat(ClickType.LIKE.value).isEqualTo("like")
+        assertThat(ClickType.ADD_TO_CART.value).isEqualTo("add-to-cart")
+        assertThat(PageType.HOME.value).isEqualTo("home")
+        assertThat(PageType.PDP.value).isEqualTo("PDP")
+    }
+
+    @Test
+    fun `enum fromValue parses correctly`() {
+        assertThat(DeviceType.fromValue("desktop")).isEqualTo(DeviceType.DESKTOP)
+        assertThat(DeviceType.fromValue("mobile")).isEqualTo(DeviceType.MOBILE)
+        assertThat(DeviceType.fromValue("invalid")).isNull()
+        assertThat(DeviceType.fromValue(null)).isNull()
+
+        assertThat(Channel.fromValue("onsite")).isEqualTo(Channel.ONSITE)
+        assertThat(Channel.fromValue("offsite")).isEqualTo(Channel.OFFSITE)
+        assertThat(Channel.fromValue("instore")).isEqualTo(Channel.INSTORE)
+        assertThat(Channel.fromValue("invalid")).isNull()
+
+        assertThat(ClickType.fromValue("product")).isEqualTo(ClickType.PRODUCT)
+        assertThat(ClickType.fromValue("like")).isEqualTo(ClickType.LIKE)
+        assertThat(ClickType.fromValue("add-to-cart")).isEqualTo(ClickType.ADD_TO_CART)
+        assertThat(ClickType.fromValue("invalid")).isNull()
     }
 
     @Test
@@ -249,6 +280,7 @@ internal class JsonTest {
         assertThat(purchase.id).isEqualTo("purchase-123")
         assertThat(purchase.deviceType).isNull()
         assertThat(purchase.channel).isNull()
+        assertThat(purchase.page).isNull()
         assertThat(purchase.items.first().vendorId).isNull()
     }
 
@@ -283,5 +315,35 @@ internal class JsonTest {
 
         assertThat(json.has("deviceType")).isFalse()
         assertThat(json.has("channel")).isFalse()
+        assertThat(json.has("page")).isFalse()
+    }
+
+    @Test
+    fun `purchasedItem roundtrip with vendorId`() {
+        val item = PurchasedItem(
+            productId = "prod-123",
+            quantity = 2,
+            unitPrice = 999,
+            resolvedBidId = "bid-456",
+            vendorId = "vendor-789",
+        )
+
+        val serialized = item.toJsonObject().toString()
+        val deserialized = PurchasedItem.fromJsonObject(JSONObject(serialized))
+
+        assertThat(deserialized).isEqualTo(item)
+        assertThat(deserialized.vendorId).isEqualTo("vendor-789")
+    }
+
+    @Test
+    fun `purchasedItem serialization omits null vendorId`() {
+        val item = PurchasedItem(
+            productId = "prod-123",
+            quantity = 1,
+        )
+
+        val json = item.toJsonObject()
+
+        assertThat(json.has("vendorId")).isFalse()
     }
 }

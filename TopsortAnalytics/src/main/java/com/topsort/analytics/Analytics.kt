@@ -13,8 +13,11 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.topsort.analytics.core.randomId
+import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.ClickType
+import com.topsort.analytics.model.DeviceType
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.Impression
@@ -70,8 +73,8 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
         page: Page?,
     ) {
         if (!assertSetup()) {
@@ -101,8 +104,8 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
         page: Page?,
     ) {
         if (!assertSetup()) {
@@ -132,10 +135,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
         page: Page?,
-        clickType: String?,
+        clickType: ClickType?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -165,10 +168,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
         page: Page?,
-        clickType: String?,
+        clickType: ClickType?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -197,8 +200,9 @@ object Analytics : TopsortAnalytics {
         id: String,
         opaqueUserId: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -214,6 +218,7 @@ object Analytics : TopsortAnalytics {
                     opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
                     deviceType = deviceType,
                     channel = channel,
+                    page = page,
                 ),
             ),
         )
@@ -227,8 +232,8 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: DeviceType?,
+        channel: Channel?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
