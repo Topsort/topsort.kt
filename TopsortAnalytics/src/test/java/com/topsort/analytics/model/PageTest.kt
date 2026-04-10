@@ -1,7 +1,6 @@
 package com.topsort.analytics.model
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -197,22 +196,43 @@ internal class PageTest {
     }
 
     @Test
-    fun `type constants are correct`() {
-        assertThat(Page.TYPE_HOME).isEqualTo("home")
-        assertThat(Page.TYPE_CATEGORY).isEqualTo("category")
-        assertThat(Page.TYPE_PDP).isEqualTo("PDP")
-        assertThat(Page.TYPE_SEARCH).isEqualTo("search")
-        assertThat(Page.TYPE_CART).isEqualTo("cart")
-        assertThat(Page.TYPE_OTHER).isEqualTo("other")
+    fun `PageType enum values are correct`() {
+        assertThat(PageType.HOME.value).isEqualTo("home")
+        assertThat(PageType.CATEGORY.value).isEqualTo("category")
+        assertThat(PageType.PDP.value).isEqualTo("PDP")
+        assertThat(PageType.SEARCH.value).isEqualTo("search")
+        assertThat(PageType.CART.value).isEqualTo("cart")
+        assertThat(PageType.OTHER.value).isEqualTo("other")
     }
 
     @Test
-    fun `deviceType and channel constants are correct`() {
-        assertThat(Page.DEVICE_TYPE_DESKTOP).isEqualTo("desktop")
-        assertThat(Page.DEVICE_TYPE_MOBILE).isEqualTo("mobile")
-        assertThat(Page.CHANNEL_ONSITE).isEqualTo("onsite")
-        assertThat(Page.CHANNEL_OFFSITE).isEqualTo("offsite")
-        assertThat(Page.CHANNEL_INSTORE).isEqualTo("instore")
+    fun `PageType fromValue parses correctly`() {
+        assertThat(PageType.fromValue("home")).isEqualTo(PageType.HOME)
+        assertThat(PageType.fromValue("category")).isEqualTo(PageType.CATEGORY)
+        assertThat(PageType.fromValue("PDP")).isEqualTo(PageType.PDP)
+        assertThat(PageType.fromValue("search")).isEqualTo(PageType.SEARCH)
+        assertThat(PageType.fromValue("cart")).isEqualTo(PageType.CART)
+        assertThat(PageType.fromValue("other")).isEqualTo(PageType.OTHER)
+        assertThat(PageType.fromValue("invalid")).isNull()
+        assertThat(PageType.fromValue(null)).isNull()
+    }
+
+    @Test
+    fun `Factory build accepts PageType enum`() {
+        val page = Page.Factory.build(type = PageType.HOME)
+        assertThat(page.type).isEqualTo("home")
+    }
+
+    @Test
+    fun `Factory buildWithId accepts PageType enum`() {
+        val page = Page.Factory.buildWithId(type = PageType.PDP, pageId = "prod-1")
+        assertThat(page.type).isEqualTo("PDP")
+    }
+
+    @Test
+    fun `Factory buildWithValues accepts PageType enum`() {
+        val page = Page.Factory.buildWithValues(type = PageType.CATEGORY, values = listOf("A", "B"))
+        assertThat(page.type).isEqualTo("category")
     }
 
     @Test
@@ -238,17 +258,19 @@ internal class PageTest {
     }
 
     @Test
-    fun `copy with both value and values throws IllegalArgumentException`() {
+    fun `copy with both value and values logs warning but does not crash`() {
         val page = Page.Factory.buildWithId(
             type = "search",
             pageId = "search-1",
             value = "shoes"
         )
 
-        assertThatThrownBy {
-            page.copy(values = listOf("A", "B"))
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("mutually exclusive")
+        // Should not throw - graceful degradation (logs warning instead)
+        val copied = page.copy(values = listOf("A", "B"))
+
+        // When both are set, values takes precedence in serialization
+        assertThat(copied.value).isEqualTo("shoes")
+        assertThat(copied.values).containsExactly("A", "B")
     }
 
     @Test
