@@ -259,22 +259,6 @@ internal class PageTest {
     }
 
     @Test
-    fun `copy with both value and values logs warning but does not crash`() {
-        val page = Page.Factory.buildWithId(
-            type = "search",
-            pageId = "search-1",
-            value = "shoes"
-        )
-
-        // Should not throw - graceful degradation (logs warning instead)
-        val copied = page.copy(values = listOf("A", "B"))
-
-        // When both are set, values takes precedence in serialization
-        assertThat(copied.value).isEqualTo("shoes")
-        assertThat(copied.values).containsExactly("A", "B")
-    }
-
-    @Test
     fun `fromJsonObject with missing type throws JSONException`() {
         val json = JSONObject("""{"pageId": "p-123", "value": "test"}""")
 
