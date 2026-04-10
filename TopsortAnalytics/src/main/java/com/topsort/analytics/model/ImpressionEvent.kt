@@ -2,6 +2,7 @@ package com.topsort.analytics.model
 
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -59,9 +60,24 @@ data class Impression private constructor(
     val opaqueUserId: String,
 
     /**
-     * The marketplace assigned ID for the order
+     * The marketplace's unique ID for the impression.
      */
     val id: String,
+
+    /**
+     * The device type where the impression occurred.
+     */
+    val deviceType: Device? = null,
+
+    /**
+     * The channel where the impression occurred.
+     */
+    val channel: Channel? = null,
+
+    /**
+     * The page context where the impression occurred.
+     */
+    val page: Page? = null,
 ) : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -72,11 +88,19 @@ data class Impression private constructor(
                     it.put("resolvedBidId", resolvedBidId)
                 }
             }
-            .put("additionalAttribution", additionalAttribution)
+            .apply {
+                // Consistent null handling: omit keys when value is null
+                additionalAttribution?.let { put("additionalAttribution", it) }
+            }
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
+            .apply {
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
+                page?.let { put("page", it.toJsonObject()) }
+            }
     }
 
     object Factory {
@@ -89,6 +113,9 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: Device? = null,
+            channel: Channel? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 resolvedBidId = resolvedBidId,
@@ -97,6 +124,9 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
@@ -108,6 +138,9 @@ data class Impression private constructor(
             opaqueUserId: String,
             id: String,
             additionalAttribution: String? = null,
+            deviceType: Device? = null,
+            channel: Channel? = null,
+            page: Page? = null,
         ): Impression {
             return Impression(
                 entity = entity,
@@ -116,6 +149,9 @@ data class Impression private constructor(
                 opaqueUserId = opaqueUserId,
                 id = id,
                 additionalAttribution = additionalAttribution,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         }
 
@@ -131,6 +167,9 @@ data class Impression private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 

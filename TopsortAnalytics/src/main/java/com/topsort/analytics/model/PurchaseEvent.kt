@@ -4,6 +4,7 @@ import androidx.annotation.IntRange
 import com.topsort.analytics.core.getIntOrNull
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 
 import org.json.JSONObject
@@ -23,9 +24,7 @@ data class PurchaseEvent(
         fun fromJson(json : String?) : PurchaseEvent? {
             if(json == null) return null
             val array = JSONObject(json).getJSONArray("purchases")
-            val purchases = (0 until array.length()).map {
-                Purchase.fromJsonObject(array.getJSONObject(it))
-            }
+            val purchases = Purchase.fromJsonArray(array)
 
             return PurchaseEvent(purchases = purchases)
         }
@@ -53,6 +52,22 @@ data class Purchase(
      * Items purchased
      */
     val items: List<PurchasedItem>,
+
+    /**
+     * The device type where the purchase occurred.
+     */
+    val deviceType: Device? = null,
+
+    /**
+     * The channel where the purchase occurred.
+     */
+    val channel: Channel? = null,
+
+    /**
+     * The page context where the purchase occurred.
+     * Typically used for checkout or cart pages.
+     */
+    val page: Page? = null,
 )  : JsonSerializable {
     override fun toJsonObject(): JSONObject {
         return JSONObject()
@@ -60,6 +75,11 @@ data class Purchase(
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
             .put("items", JSONArray(items.map { it.toJsonObject() }))
+            .apply {
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
+                page?.let { put("page", it.toJsonObject()) }
+            }
     }
 
     companion object {
@@ -72,6 +92,9 @@ data class Purchase(
                 items = (0 until itemsArray.length()).map {
                     PurchasedItem.fromJsonObject(itemsArray.getJSONObject(it))
                 },
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
+                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 
@@ -102,15 +125,25 @@ data class PurchasedItem(
     /**
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
      */
-    val resolvedBidId: String? = null
+    val resolvedBidId: String? = null,
+
+    /**
+     * The vendor ID for halo attribution.
+     * Used to attribute purchases to vendors when applicable.
+     */
+    val vendorId: String? = null,
 ) {
 
     fun toJsonObject(): JSONObject {
         return JSONObject()
             .put("productId", productId)
             .put("quantity", quantity)
-            .put("unitPrice", unitPrice)
-            .put("resolvedBidId", resolvedBidId)
+            .apply {
+                // Consistent null handling: omit keys when value is null
+                unitPrice?.let { put("unitPrice", it) }
+                resolvedBidId?.let { put("resolvedBidId", it) }
+                vendorId?.let { put("vendorId", it) }
+            }
     }
 
     companion object {
@@ -120,6 +153,7 @@ data class PurchasedItem(
                 quantity = json.getInt("quantity"),
                 unitPrice = json.getIntOrNull("unitPrice"),
                 resolvedBidId = json.getStringOrNull("resolvedBidId"),
+                vendorId = json.getStringOrNull("vendorId"),
             )
         }
     }

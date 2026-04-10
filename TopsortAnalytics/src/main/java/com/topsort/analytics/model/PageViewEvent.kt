@@ -2,6 +2,7 @@ package com.topsort.analytics.model
 
 import com.topsort.analytics.core.getListFromJsonArray
 import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.auctions.Device
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -57,15 +58,13 @@ internal data class PageView private constructor(
 
     /**
      * The device type where the page view occurred.
-     * Use [Page.DEVICE_TYPE_DESKTOP] or [Page.DEVICE_TYPE_MOBILE].
      */
-    val deviceType: String? = null,
+    val deviceType: Device? = null,
 
     /**
      * The channel where the page view occurred.
-     * Use [Page.CHANNEL_ONSITE], [Page.CHANNEL_OFFSITE], or [Page.CHANNEL_INSTORE].
      */
-    val channel: String? = null,
+    val channel: Channel? = null,
 ) : JsonSerializable {
 
     override fun toJsonObject(): JSONObject {
@@ -75,8 +74,8 @@ internal data class PageView private constructor(
             .put("opaqueUserId", opaqueUserId)
             .put("id", id)
             .apply {
-                deviceType?.let { put("deviceType", it) }
-                channel?.let { put("channel", it) }
+                deviceType?.let { put("deviceType", it.value) }
+                channel?.let { put("channel", it.value) }
             }
     }
 
@@ -89,8 +88,8 @@ internal data class PageView private constructor(
          * @param occurredAt RFC3339 formatted timestamp
          * @param opaqueUserId The opaque user ID
          * @param id The marketplace's unique ID for this event
-         * @param deviceType Optional device type ("desktop" or "mobile")
-         * @param channel Optional channel ("onsite", "offsite", or "instore")
+         * @param deviceType Optional device type
+         * @param channel Optional channel
          */
         @JvmOverloads
         fun build(
@@ -98,8 +97,8 @@ internal data class PageView private constructor(
             occurredAt: String,
             opaqueUserId: String,
             id: String,
-            deviceType: String? = null,
-            channel: String? = null,
+            deviceType: Device? = null,
+            channel: Channel? = null,
         ): PageView {
             return PageView(
                 page = page,
@@ -117,8 +116,8 @@ internal data class PageView private constructor(
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
                 id = json.getString("id"),
-                deviceType = json.getStringOrNull("deviceType"),
-                channel = json.getStringOrNull("channel"),
+                deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
+                channel = Channel.fromValue(json.getStringOrNull("channel")),
             )
         }
 

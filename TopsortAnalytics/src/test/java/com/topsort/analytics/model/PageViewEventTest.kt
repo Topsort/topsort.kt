@@ -1,5 +1,6 @@
 package com.topsort.analytics.model
 
+import com.topsort.analytics.model.auctions.Device
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,12 +34,12 @@ internal class PageViewEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-123",
             id = "pv-789",
-            deviceType = "mobile",
-            channel = "onsite"
+            deviceType = Device.MOBILE,
+            channel = Channel.ONSITE
         )
 
-        assertThat(pageView.deviceType).isEqualTo("mobile")
-        assertThat(pageView.channel).isEqualTo("onsite")
+        assertThat(pageView.deviceType).isEqualTo(Device.MOBILE)
+        assertThat(pageView.channel).isEqualTo(Channel.ONSITE)
     }
 
     @Test
@@ -69,8 +70,8 @@ internal class PageViewEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-123",
             id = "pv-123",
-            deviceType = "desktop",
-            channel = "offsite"
+            deviceType = Device.DESKTOP,
+            channel = Channel.OFFSITE
         )
 
         val json = pageView.toJsonObject()
@@ -116,8 +117,8 @@ internal class PageViewEventTest {
         val pageView = PageView.Factory.fromJsonObject(json)
 
         assertThat(pageView.page.pageId).isEqualTo("prod-99")
-        assertThat(pageView.deviceType).isEqualTo("mobile")
-        assertThat(pageView.channel).isEqualTo("instore")
+        assertThat(pageView.deviceType).isEqualTo(Device.MOBILE)
+        assertThat(pageView.channel).isEqualTo(Channel.INSTORE)
     }
 
     @Test
@@ -128,8 +129,8 @@ internal class PageViewEventTest {
             occurredAt = "2024-03-01T12:00:00Z",
             opaqueUserId = "user-roundtrip",
             id = "pv-roundtrip",
-            deviceType = "mobile",
-            channel = "onsite"
+            deviceType = Device.MOBILE,
+            channel = Channel.ONSITE
         )
 
         val serialized = original.toJsonObject().toString()
@@ -248,8 +249,8 @@ internal class PageViewEventTest {
             occurredAt = "2024-06-15T14:30:00Z",
             opaqueUserId = "user-rt",
             id = "pv-rt",
-            deviceType = "desktop",
-            channel = "onsite"
+            deviceType = Device.DESKTOP,
+            channel = Channel.ONSITE
         )
 
         val original = PageViewEvent(pageviews = listOf(pageView))

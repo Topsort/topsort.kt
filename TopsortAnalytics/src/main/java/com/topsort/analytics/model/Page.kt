@@ -1,8 +1,11 @@
 package com.topsort.analytics.model
 
+import android.util.Log
 import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
+
+private const val LOG_TAG = "TopsortAnalytics"
 
 /**
  * Represents the page context where an event occurred.
@@ -21,6 +24,7 @@ import org.json.JSONObject
 data class Page private constructor(
     /**
      * The type of page. Typically one of: "home", "category", "PDP", "search", "cart", "other".
+     * Use [PageType] enum values for type safety.
      */
     val type: String,
 
@@ -43,8 +47,9 @@ data class Page private constructor(
 ) : JsonSerializable {
 
     init {
-        require(!(value != null && values != null)) {
-            "Page cannot have both 'value' and 'values' set. They are mutually exclusive."
+        // Log warning instead of crashing to follow "never crash host app" principle
+        if (value != null && values != null) {
+            Log.w(LOG_TAG, "Page created with both 'value' and 'values' set. They are mutually exclusive. 'values' will be used.")
         }
     }
 
@@ -52,8 +57,11 @@ data class Page private constructor(
         return JSONObject().apply {
             put("type", type)
             pageId?.let { put("pageId", it) }
-            value?.let { put("value", it) }
-            values?.let { put("value", JSONArray(it)) }
+            // Prefer values over value if both are set (shouldn't happen, but graceful degradation)
+            when {
+                values != null -> put("value", JSONArray(values))
+                value != null -> put("value", value)
+            }
         }
     }
 
@@ -62,10 +70,19 @@ data class Page private constructor(
         /**
          * Build a page with just a type.
          *
-         * @param type The page type (e.g., "home", "cart", "other")
+         * @param type The page type (e.g., [PageType.HOME], [PageType.CART])
          */
         fun build(type: String): Page {
             return Page(type = type)
+        }
+
+        /**
+         * Build a page with a [PageType] enum.
+         *
+         * @param type The page type enum
+         */
+        fun build(type: PageType): Page {
+            return Page(type = type.value)
         }
 
         /**
@@ -89,6 +106,26 @@ data class Page private constructor(
         }
 
         /**
+         * Build a page with a [PageType] enum and page ID.
+         *
+         * @param type The page type enum
+         * @param pageId The page identifier
+         * @param value Optional single value
+         */
+        @JvmOverloads
+        fun buildWithId(
+            type: PageType,
+            pageId: String,
+            value: String? = null,
+        ): Page {
+            return Page(
+                type = type.value,
+                pageId = pageId,
+                value = value,
+            )
+        }
+
+        /**
          * Build a page with multiple values (e.g., category hierarchy).
          *
          * @param type The page type
@@ -103,6 +140,26 @@ data class Page private constructor(
         ): Page {
             return Page(
                 type = type,
+                pageId = pageId,
+                values = values,
+            )
+        }
+
+        /**
+         * Build a page with a [PageType] enum and multiple values.
+         *
+         * @param type The page type enum
+         * @param pageId Optional page identifier
+         * @param values List of values (e.g., category path)
+         */
+        @JvmOverloads
+        fun buildWithValues(
+            type: PageType,
+            values: List<String>,
+            pageId: String? = null,
+        ): Page {
+            return Page(
+                type = type.value,
                 pageId = pageId,
                 values = values,
             )
@@ -140,31 +197,28 @@ data class Page private constructor(
             )
         }
     }
+}
+
+/**
+ * Type of page where an event occurred.
+ */
+enum class PageType(val value: String) {
+    HOME("home"),
+    CATEGORY("category"),
+    /** Product Detail Page - uppercase per API contract */
+    PDP("PDP"),
+    SEARCH("search"),
+    CART("cart"),
+    OTHER("other");
 
     companion object {
         /**
-         * Page type constants matching the Topsort API contract.
-         * Note: TYPE_PDP is uppercase ("PDP") per the API specification,
-         * while other types are lowercase.
+         * Parse a page type from its string value.
+         * Returns null for unrecognized values (graceful degradation).
          */
-        const val TYPE_HOME = "home"
-        const val TYPE_CATEGORY = "category"
-        /** Product Detail Page - uppercase per API contract */
-        const val TYPE_PDP = "PDP"
-        const val TYPE_SEARCH = "search"
-        const val TYPE_CART = "cart"
-        const val TYPE_OTHER = "other"
-
-        /** Device type constant for desktop devices */
-        const val DEVICE_TYPE_DESKTOP = "desktop"
-        /** Device type constant for mobile devices */
-        const val DEVICE_TYPE_MOBILE = "mobile"
-
-        /** Channel constant for onsite events */
-        const val CHANNEL_ONSITE = "onsite"
-        /** Channel constant for offsite events */
-        const val CHANNEL_OFFSITE = "offsite"
-        /** Channel constant for in-store events */
-        const val CHANNEL_INSTORE = "instore"
+        fun fromValue(value: String?): PageType? {
+            if (value == null) return null
+            return entries.find { it.value == value }
+        }
     }
 }

@@ -1,9 +1,14 @@
 package com.topsort.analytics
 
+import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
+import com.topsort.analytics.model.ClickType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Impression
+import com.topsort.analytics.model.PageType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.PurchasedItem
 import org.json.JSONObject
 import org.junit.Test
 import org.assertj.core.api.Assertions.assertThat
@@ -128,5 +133,217 @@ internal class JsonTest {
 
         assertThat(json.getString("path")).isEqualTo("factory/path")
         assertThat(json.isNull("categoryIds")).isTrue()
+    }
+
+    // Tests for enhanced event context fields with enums
+
+    @Test
+    fun `json click serialization with enhanced context fields`() {
+        val clicks = listOf(
+            getClickPromotedWithContext(),
+            getClickOrganicWithContext()
+        )
+
+        for (click in clicks) {
+            val serialized = click.toJsonObject().toString()
+            val deserialized = Click.Factory.fromJsonObject(JSONObject(serialized))
+
+            assertThat(click).isNotSameAs(deserialized)
+            assertThat(click).isEqualTo(deserialized)
+            assertThat(deserialized.deviceType).isNotNull()
+            assertThat(deserialized.channel).isNotNull()
+            assertThat(deserialized.page).isNotNull()
+            assertThat(deserialized.clickType).isNotNull()
+        }
+    }
+
+    @Test
+    fun `json impression serialization with enhanced context fields`() {
+        val impressions = listOf(
+            getImpressionPromotedWithContext(),
+            getImpressionOrganicWithContext()
+        )
+
+        for (impression in impressions) {
+            val serialized = impression.toJsonObject().toString()
+            val deserialized = Impression.Factory.fromJsonObject(JSONObject(serialized))
+
+            assertThat(impression).isNotSameAs(deserialized)
+            assertThat(impression).isEqualTo(deserialized)
+            assertThat(deserialized.deviceType).isNotNull()
+            assertThat(deserialized.channel).isNotNull()
+            assertThat(deserialized.page).isNotNull()
+        }
+    }
+
+    @Test
+    fun `json purchase serialization with enhanced context fields`() {
+        val purchase = getRandomPurchaseWithContext()
+        val serialized = purchase.toJsonObject().toString()
+        val deserialized = Purchase.fromJsonObject(JSONObject(serialized))
+
+        assertThat(purchase).isNotSameAs(deserialized)
+        assertThat(purchase).isEqualTo(deserialized)
+        assertThat(deserialized.deviceType).isNotNull()
+        assertThat(deserialized.channel).isNotNull()
+        assertThat(deserialized.page).isNotNull()
+        assertThat(deserialized.items.first().vendorId).isNotNull()
+    }
+
+    @Test
+    fun `enum values serialize to correct strings`() {
+        assertThat(Device.DESKTOP.value).isEqualTo("desktop")
+        assertThat(Device.MOBILE.value).isEqualTo("mobile")
+        assertThat(Channel.ONSITE.value).isEqualTo("onsite")
+        assertThat(Channel.OFFSITE.value).isEqualTo("offsite")
+        assertThat(Channel.INSTORE.value).isEqualTo("instore")
+        assertThat(ClickType.PRODUCT.value).isEqualTo("product")
+        assertThat(ClickType.LIKE.value).isEqualTo("like")
+        assertThat(ClickType.ADD_TO_CART.value).isEqualTo("add-to-cart")
+        assertThat(PageType.HOME.value).isEqualTo("home")
+        assertThat(PageType.PDP.value).isEqualTo("PDP")
+    }
+
+    @Test
+    fun `enum fromValue parses correctly`() {
+        assertThat(Device.fromValue("desktop")).isEqualTo(Device.DESKTOP)
+        assertThat(Device.fromValue("mobile")).isEqualTo(Device.MOBILE)
+        assertThat(Device.fromValue("invalid")).isNull()
+        assertThat(Device.fromValue(null)).isNull()
+
+        assertThat(Channel.fromValue("onsite")).isEqualTo(Channel.ONSITE)
+        assertThat(Channel.fromValue("offsite")).isEqualTo(Channel.OFFSITE)
+        assertThat(Channel.fromValue("instore")).isEqualTo(Channel.INSTORE)
+        assertThat(Channel.fromValue("invalid")).isNull()
+
+        assertThat(ClickType.fromValue("product")).isEqualTo(ClickType.PRODUCT)
+        assertThat(ClickType.fromValue("like")).isEqualTo(ClickType.LIKE)
+        assertThat(ClickType.fromValue("add-to-cart")).isEqualTo(ClickType.ADD_TO_CART)
+        assertThat(ClickType.fromValue("invalid")).isNull()
+    }
+
+    @Test
+    fun `click deserialization handles missing optional context fields`() {
+        // Simulate JSON from older SDK version without new fields
+        val jsonWithoutNewFields = """
+            {
+                "resolvedBidId": "bid-123",
+                "placement": {"path": "test"},
+                "occurredAt": "2024-01-01T00:00:00Z",
+                "opaqueUserId": "user-123",
+                "id": "click-123"
+            }
+        """.trimIndent()
+
+        val click = Click.Factory.fromJsonObject(JSONObject(jsonWithoutNewFields))
+
+        assertThat(click.resolvedBidId).isEqualTo("bid-123")
+        assertThat(click.deviceType).isNull()
+        assertThat(click.channel).isNull()
+        assertThat(click.page).isNull()
+        assertThat(click.clickType).isNull()
+    }
+
+    @Test
+    fun `impression deserialization handles missing optional context fields`() {
+        val jsonWithoutNewFields = """
+            {
+                "resolvedBidId": "bid-123",
+                "placement": {"path": "test"},
+                "occurredAt": "2024-01-01T00:00:00Z",
+                "opaqueUserId": "user-123",
+                "id": "impression-123"
+            }
+        """.trimIndent()
+
+        val impression = Impression.Factory.fromJsonObject(JSONObject(jsonWithoutNewFields))
+
+        assertThat(impression.resolvedBidId).isEqualTo("bid-123")
+        assertThat(impression.deviceType).isNull()
+        assertThat(impression.channel).isNull()
+        assertThat(impression.page).isNull()
+    }
+
+    @Test
+    fun `purchase deserialization handles missing optional context fields`() {
+        val jsonWithoutNewFields = """
+            {
+                "occurredAt": "2024-01-01T00:00:00Z",
+                "opaqueUserId": "user-123",
+                "id": "purchase-123",
+                "items": [{"productId": "prod-1", "quantity": 1}]
+            }
+        """.trimIndent()
+
+        val purchase = Purchase.fromJsonObject(JSONObject(jsonWithoutNewFields))
+
+        assertThat(purchase.id).isEqualTo("purchase-123")
+        assertThat(purchase.deviceType).isNull()
+        assertThat(purchase.channel).isNull()
+        assertThat(purchase.page).isNull()
+        assertThat(purchase.items.first().vendorId).isNull()
+    }
+
+    @Test
+    fun `click serialization omits null optional fields from json`() {
+        val click = getClickPromoted() // Has null deviceType, channel, page, clickType
+
+        val json = click.toJsonObject()
+
+        assertThat(json.has("deviceType")).isFalse()
+        assertThat(json.has("channel")).isFalse()
+        assertThat(json.has("page")).isFalse()
+        assertThat(json.has("clickType")).isFalse()
+    }
+
+    @Test
+    fun `impression serialization omits null optional fields from json`() {
+        val impression = getImpressionPromoted()
+
+        val json = impression.toJsonObject()
+
+        assertThat(json.has("deviceType")).isFalse()
+        assertThat(json.has("channel")).isFalse()
+        assertThat(json.has("page")).isFalse()
+    }
+
+    @Test
+    fun `purchase serialization omits null optional fields from json`() {
+        val purchase = getRandomPurchase()
+
+        val json = purchase.toJsonObject()
+
+        assertThat(json.has("deviceType")).isFalse()
+        assertThat(json.has("channel")).isFalse()
+        assertThat(json.has("page")).isFalse()
+    }
+
+    @Test
+    fun `purchasedItem roundtrip with vendorId`() {
+        val item = PurchasedItem(
+            productId = "prod-123",
+            quantity = 2,
+            unitPrice = 999,
+            resolvedBidId = "bid-456",
+            vendorId = "vendor-789",
+        )
+
+        val serialized = item.toJsonObject().toString()
+        val deserialized = PurchasedItem.fromJsonObject(JSONObject(serialized))
+
+        assertThat(deserialized).isEqualTo(item)
+        assertThat(deserialized.vendorId).isEqualTo("vendor-789")
+    }
+
+    @Test
+    fun `purchasedItem serialization omits null vendorId`() {
+        val item = PurchasedItem(
+            productId = "prod-123",
+            quantity = 1,
+        )
+
+        val json = item.toJsonObject()
+
+        assertThat(json.has("vendorId")).isFalse()
     }
 }

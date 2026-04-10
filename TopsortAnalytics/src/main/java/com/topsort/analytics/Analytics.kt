@@ -13,8 +13,11 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.topsort.analytics.core.randomId
+import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.ClickType
+import com.topsort.analytics.model.auctions.Device
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.Impression
@@ -70,6 +73,9 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -81,8 +87,11 @@ object Analytics : TopsortAnalytics {
                 resolvedBidId = resolvedBidId,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
+                id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         )
 
@@ -95,6 +104,9 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -106,8 +118,11 @@ object Analytics : TopsortAnalytics {
                 entity = entity,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
+                id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
             )
         )
 
@@ -120,6 +135,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
+        clickType: ClickType?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -131,8 +150,12 @@ object Analytics : TopsortAnalytics {
                 resolvedBidId = resolvedBidId,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
-                occurredAt = occurredAt ?: eventTime()
+                id = id ?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         )
 
@@ -145,6 +168,10 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
+        clickType: ClickType?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -156,8 +183,12 @@ object Analytics : TopsortAnalytics {
                 entity = entity,
                 placement = placement,
                 opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
-                id = id?: randomId(),
-                occurredAt = occurredAt ?: eventTime()
+                id = id ?: randomId(),
+                occurredAt = occurredAt ?: eventTime(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+                clickType = clickType,
             )
         )
 
@@ -169,6 +200,9 @@ object Analytics : TopsortAnalytics {
         id: String,
         opaqueUserId: String?,
         occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -182,6 +216,9 @@ object Analytics : TopsortAnalytics {
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
                     opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                    deviceType = deviceType,
+                    channel = channel,
+                    page = page,
                 ),
             ),
         )
@@ -195,8 +232,8 @@ object Analytics : TopsortAnalytics {
         opaqueUserId: String?,
         id: String?,
         occurredAt: String?,
-        deviceType: String?,
-        channel: String?,
+        deviceType: Device?,
+        channel: Channel?,
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
