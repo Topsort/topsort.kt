@@ -47,6 +47,21 @@ class AuctionResponseTest {
     }
 
     @Test
+    fun `AuctionWinnerItem campaignId is null when explicitly null in JSON`() {
+        val json = org.json.JSONObject().apply {
+            put("rank", 1)
+            put("type", "product")
+            put("id", "product-123")
+            put("resolvedBidId", "bid-456")
+            put("campaignId", org.json.JSONObject.NULL)
+        }
+
+        val winner = AuctionResponse.AuctionWinnerItem.fromJsonObject(json)
+
+        assertThat(winner.campaignId).isNull()
+    }
+
+    @Test
     fun `Asset parses content when present`() {
         val json = """
             {
@@ -74,6 +89,19 @@ class AuctionResponseTest {
         val asset = AuctionResponse.Asset.fromJsonObject(
             org.json.JSONObject(json)
         )
+
+        assertThat(asset.url).isEqualTo("https://example.com/banner.png")
+        assertThat(asset.content).isNull()
+    }
+
+    @Test
+    fun `Asset content is null when explicitly null in JSON`() {
+        val json = org.json.JSONObject().apply {
+            put("url", "https://example.com/banner.png")
+            put("content", org.json.JSONObject.NULL)
+        }
+
+        val asset = AuctionResponse.Asset.fromJsonObject(json)
 
         assertThat(asset.url).isEqualTo("https://example.com/banner.png")
         assertThat(asset.content).isNull()

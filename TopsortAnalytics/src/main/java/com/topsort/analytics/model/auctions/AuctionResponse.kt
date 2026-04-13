@@ -1,5 +1,6 @@
 package com.topsort.analytics.model.auctions
 
+import com.topsort.analytics.core.getStringOrNull
 import org.json.JSONObject
 
 data class AuctionResponse private constructor(
@@ -96,7 +97,7 @@ data class AuctionResponse private constructor(
                         id = json.getString("id"),
                         resolvedBidId = json.getString("resolvedBidId"),
                         asset = assets,
-                        campaignId = json.optString("campaignId", null),
+                        campaignId = json.getStringOrNull("campaignId"),
                     )
                 } catch (e: AuctionError) {
                     throw e
@@ -118,7 +119,7 @@ data class AuctionResponse private constructor(
             fun fromJsonObject(json: JSONObject): Asset {
                 try {
                     val url = json.getString("url")
-                    val content = json.optString("content", null)
+                    val content = json.getStringOrNull("content")
                     return Asset(url = url, content = content)
                 } catch (e: Exception) {
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
