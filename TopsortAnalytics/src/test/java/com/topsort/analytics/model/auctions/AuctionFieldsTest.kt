@@ -69,24 +69,31 @@ internal class AuctionFieldsTest {
     }
 
     @Test
-    fun `auctionConfig placementId must be between 1 and 8`() {
-        assertThatThrownBy {
-            AuctionConfig.ProductIds(
-                numSlots = 1,
-                ids = listOf("p1"),
-                placementId = 0
-            )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("placementId must be between 1 and 8")
+    fun `auctionConfig placementId outside 1-8 is silently ignored`() {
+        // Invalid values should be accepted but silently ignored during serialization
+        val configWithZero = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = 0
+        )
+        val auctionWithZero = Auction.fromConfig(configWithZero)
+        assertThat(auctionWithZero.placementId).isNull()
 
-        assertThatThrownBy {
-            AuctionConfig.ProductIds(
-                numSlots = 1,
-                ids = listOf("p1"),
-                placementId = 9
-            )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("placementId must be between 1 and 8")
+        val configWithNine = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = 9
+        )
+        val auctionWithNine = Auction.fromConfig(configWithNine)
+        assertThat(auctionWithNine.placementId).isNull()
+
+        val configWithNegative = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = -1
+        )
+        val auctionWithNegative = Auction.fromConfig(configWithNegative)
+        assertThat(auctionWithNegative.placementId).isNull()
     }
 
     @Test
@@ -142,44 +149,53 @@ internal class AuctionFieldsTest {
     }
 
     @Test
-    fun `products qualityScores size must match ids size`() {
-        assertThatThrownBy {
-            Auction.Products(
-                ids = listOf("p1", "p2", "p3"),
-                qualityScores = listOf(0.5, 0.7)
-            )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("qualityScores size (2) must match ids size (3)")
+    fun `products qualityScores size mismatch is silently ignored in serialization`() {
+        // Mismatched sizes should be accepted but scores silently omitted in JSON
+        val products = Auction.Products(
+            ids = listOf("p1", "p2", "p3"),
+            qualityScores = listOf(0.5, 0.7) // size 2 vs ids size 3
+        )
+
+        // qualityScores is stored
+        assertThat(products.qualityScores).containsExactly(0.5, 0.7)
+
+        // But omitted from JSON because sizes don't match
+        val json = products.toJsonObject()
+        assertThat(json.has("qualityScores")).isFalse()
     }
 
     @Test
-    fun `auctionConfig qualityScores size must match ids size`() {
-        assertThatThrownBy {
-            AuctionConfig.ProductIds(
-                numSlots = 1,
-                ids = listOf("p1", "p2"),
-                qualityScores = listOf(0.5)
-            )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("qualityScores size (1) must match ids size (2)")
+    fun `auctionConfig qualityScores size mismatch is silently ignored`() {
+        // Mismatched sizes should be accepted but scores silently omitted
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1", "p2"),
+            qualityScores = listOf(0.5) // size 1 vs ids size 2
+        )
+
+        val auction = Auction.fromConfig(config)
+
+        // qualityScores should be null because sizes don't match
+        assertThat(auction.products!!.qualityScores).isNull()
     }
 
-    // Tests for Factory methods with new fields
+    // Tests for Factory methods
 
     @Test
-    fun `factory buildSponsoredListingAuctionProductIds with new fields`() {
+    fun `deprecated factory methods do not support new fields - use AuctionConfig instead`() {
+        // Deprecated methods only have original params (slots, ids, geoTargeting)
+        // Users should migrate to AuctionConfig for opaqueUserId, placementId, qualityScores
         @Suppress("DEPRECATION")
         val auction = Auction.Factory.buildSponsoredListingAuctionProductIds(
             slots = 2,
             ids = listOf("p1", "p2"),
-            opaqueUserId = "user-123",
-            placementId = 4,
-            qualityScores = listOf(0.8, 0.9)
+            geoTargeting = "US"
         )
 
-        assertThat(auction.opaqueUserId).isEqualTo("user-123")
-        assertThat(auction.placementId).isEqualTo(4)
-        assertThat(auction.products!!.qualityScores).containsExactly(0.8, 0.9)
+        // New fields are not available on deprecated methods
+        assertThat(auction.opaqueUserId).isNull()
+        assertThat(auction.placementId).isNull()
+        assertThat(auction.products!!.qualityScores).isNull()
     }
 
     @Test
@@ -248,15 +264,28 @@ internal class AuctionFieldsTest {
     }
 
     @Test
-    fun `factory validatePlacementId rejects invalid values`() {
-        assertThatThrownBy {
-            Auction.Factory.buildBannerAuctionCategorySingle(
-                slots = 1,
-                slotId = "slot",
-                category = "cat",
-                placementId = 10
-            )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("placementId must be between")
+    fun `factory banner methods silently ignore invalid placementId`() {
+        val auction = Auction.Factory.buildBannerAuctionCategorySingle(
+            slots = 1,
+            slotId = "slot",
+            category = "cat",
+            placementId = 10 // Invalid - outside 1-8 range
+        )
+
+        // Invalid placementId should be silently set to null
+        assertThat(auction.placementId).isNull()
+    }
+
+    @Test
+    fun `factory banner methods silently ignore mismatched qualityScores`() {
+        val auction = Auction.Factory.buildBannerAuctionLandingPage(
+            slots = 1,
+            slotId = "slot",
+            ids = listOf("p1", "p2", "p3"),
+            qualityScores = listOf(0.5, 0.7) // Size 2 vs ids size 3
+        )
+
+        // Mismatched qualityScores should be silently set to null
+        assertThat(auction.products!!.qualityScores).isNull()
     }
 }

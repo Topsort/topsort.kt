@@ -18,18 +18,23 @@ sealed class AuctionConfig(
     /** Optional opaque user ID for targeting context. */
     abstract val opaqueUserId: String?
 
-    /** Optional experiment bucket (1-8) for A/B testing. */
+    /**
+     * Optional experiment bucket (1-8) for A/B testing.
+     * Values outside the valid range are silently ignored during serialization.
+     */
     abstract val placementId: Int?
 
     init {
         require(slots > 0) { "Number of slots must be positive" }
     }
 
-    protected fun validatePlacementId() {
-        placementId?.let {
-            require(it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID) {
-                "placementId must be between ${ApiConstants.MIN_PLACEMENT_ID} and ${ApiConstants.MAX_PLACEMENT_ID}"
-            }
+    /**
+     * Returns the placementId if it's within the valid range (1-8), null otherwise.
+     * This follows the "never crash host app" principle - invalid values are ignored.
+     */
+    internal fun validatedPlacementId(): Int? {
+        return placementId?.takeIf {
+            it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID
         }
     }
 
@@ -37,7 +42,8 @@ sealed class AuctionConfig(
      * Auction targeting specific product IDs.
      *
      * @property ids list of product IDs to target (must not be empty)
-     * @property qualityScores optional quality scores for products (must match ids size if provided)
+     * @property qualityScores optional quality scores for products. If size doesn't match ids,
+     *                         the scores are silently ignored during serialization.
      */
     data class ProductIds(
         val numSlots: Int,
@@ -48,13 +54,15 @@ sealed class AuctionConfig(
         val qualityScores: List<Double>? = null,
     ) : AuctionConfig(numSlots, geo) {
         init {
-            validatePlacementId()
             require(ids.isNotEmpty()) { "Product IDs list cannot be empty" }
-            qualityScores?.let {
-                require(it.size == ids.size) {
-                    "qualityScores size (${it.size}) must match ids size (${ids.size})"
-                }
-            }
+        }
+
+        /**
+         * Returns qualityScores if size matches ids, null otherwise.
+         * This follows the "never crash host app" principle.
+         */
+        internal fun validatedQualityScores(): List<Double>? {
+            return qualityScores?.takeIf { it.size == ids.size }
         }
     }
 
@@ -71,7 +79,6 @@ sealed class AuctionConfig(
         override val placementId: Int? = null,
     ) : AuctionConfig(numSlots, geo) {
         init {
-            validatePlacementId()
             require(category.isNotBlank()) { "Category cannot be blank" }
         }
     }
@@ -89,7 +96,6 @@ sealed class AuctionConfig(
         override val placementId: Int? = null,
     ) : AuctionConfig(numSlots, geo) {
         init {
-            validatePlacementId()
             require(categories.isNotEmpty()) { "Categories list cannot be empty" }
         }
     }
@@ -107,7 +113,6 @@ sealed class AuctionConfig(
         override val placementId: Int? = null,
     ) : AuctionConfig(numSlots, geo) {
         init {
-            validatePlacementId()
             require(disjunctions.isNotEmpty()) { "Disjunctions list cannot be empty" }
         }
     }
@@ -125,7 +130,6 @@ sealed class AuctionConfig(
         override val placementId: Int? = null,
     ) : AuctionConfig(numSlots, geo) {
         init {
-            validatePlacementId()
             require(keyword.isNotBlank()) { "Keyword cannot be blank" }
         }
     }
