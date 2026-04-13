@@ -89,6 +89,8 @@ Package layout:
 - Branch names should be descriptive (e.g., `feat/add-google-environment`, `fix/merge-pagination-offset`).
 - **Large changes must be broken into stacked PRs** — each PR should be independently reviewable and represent a single logical unit of work. Avoid monolithic PRs that touch many unrelated things at once.
 - Each PR in a stack should be based on the previous branch, not `main`, so they can be reviewed and merged in order.
+- **After a stacked PR is squash-merged**, all child branches must be rebased onto the updated `main` to drop the now-duplicate commits. Squash merges create a new SHA on `main`, so the original commits appear as unrelated changes in child PRs if not rebased. Use `git rebase --onto main <old-base> <child-branch>` to cleanly re-root.
+- **Before opening any PR**, verify that `git log --oneline main..HEAD` only shows commits belonging to your change. If you see commits from already-merged PRs, rebase first.
 - **Admin override** (`gh pr merge --admin`) is only appropriate to bypass the review requirement when all CI checks pass. Never use it to force-merge a PR with failing CI — fix the failures first.
 - Keep branches up to date with `main` before merging — rebase or merge `main` into your branch to resolve conflicts locally, not in the merge commit.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages (e.g., `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
