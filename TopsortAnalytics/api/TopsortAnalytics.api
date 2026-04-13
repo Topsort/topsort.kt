@@ -581,9 +581,7 @@ public final class com/topsort/analytics/model/auctions/ApiConstants {
 	public static final field EVENTS_ENDPOINT Ljava/lang/String;
 	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/ApiConstants;
 	public static final field MAX_AUCTIONS I
-	public static final field MAX_PLACEMENT_ID I
 	public static final field MIN_AUCTIONS I
-	public static final field MIN_PLACEMENT_ID I
 	public final fun getBaseApiUrl ()Ljava/lang/String;
 	public final fun setBaseApiUrl (Ljava/lang/String;)V
 }
