@@ -1,5 +1,6 @@
 package com.topsort.analytics.model.auctions
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 data class Auction private constructor(
@@ -20,6 +21,14 @@ data class Auction private constructor(
      */
     val placementId: Int? = null,
 ) {
+    init {
+        require(slots > 0) { "Number of slots must be positive" }
+        placementId?.let {
+            require(it in ApiConstants.MIN_PLACEMENT_ID..ApiConstants.MAX_PLACEMENT_ID) {
+                "placementId must be between ${ApiConstants.MIN_PLACEMENT_ID} and ${ApiConstants.MAX_PLACEMENT_ID}"
+            }
+        }
+    }
 
     fun toJsonObject(): JSONObject {
         try {
@@ -401,8 +410,8 @@ data class Auction private constructor(
 
         fun toJsonObject(): JSONObject {
             return JSONObject().apply {
-                put("ids", org.json.JSONArray(ids))
-                validatedQualityScores()?.let { put("qualityScores", org.json.JSONArray(it)) }
+                put("ids", JSONArray(ids))
+                validatedQualityScores()?.let { put("qualityScores", JSONArray(it)) }
             }
         }
     }

@@ -288,4 +288,157 @@ internal class AuctionFieldsTest {
         // Mismatched qualityScores should be silently set to null
         assertThat(auction.products!!.qualityScores).isNull()
     }
+
+    // MAJOR #3: Products wire format compatibility test
+    @Test
+    fun `products toJsonObject wire format compatibility`() {
+        val products = Auction.Products(listOf("p1", "p2"))
+        val json = products.toJsonObject()
+
+        // Verify backward-compatible wire format
+        assertThat(json.getJSONArray("ids").length()).isEqualTo(2)
+        assertThat(json.getJSONArray("ids").getString(0)).isEqualTo("p1")
+        assertThat(json.getJSONArray("ids").getString(1)).isEqualTo("p2")
+        assertThat(json.length()).isEqualTo(1) // no extra keys when qualityScores is null
+    }
+
+    @Test
+    fun `products toJsonObject wire format with qualityScores`() {
+        val products = Auction.Products(listOf("p1", "p2"), listOf(0.8, 0.9))
+        val json = products.toJsonObject()
+
+        assertThat(json.getJSONArray("ids").length()).isEqualTo(2)
+        assertThat(json.getJSONArray("qualityScores").length()).isEqualTo(2)
+        assertThat(json.length()).isEqualTo(2) // exactly 2 keys: ids and qualityScores
+    }
+
+    // MINOR #6: qualityScores edge cases
+
+    @Test
+    fun `products qualityScores with negative values serializes correctly`() {
+        val products = Auction.Products(
+            ids = listOf("p1", "p2"),
+            qualityScores = listOf(-0.5, 0.7)
+        )
+
+        val json = products.toJsonObject()
+        val scoresArray = json.getJSONArray("qualityScores")
+        assertThat(scoresArray.getDouble(0)).isEqualTo(-0.5)
+        assertThat(scoresArray.getDouble(1)).isEqualTo(0.7)
+    }
+
+    @Test
+    fun `products qualityScores with zero values serializes correctly`() {
+        val products = Auction.Products(
+            ids = listOf("p1", "p2"),
+            qualityScores = listOf(0.0, 0.0)
+        )
+
+        val json = products.toJsonObject()
+        val scoresArray = json.getJSONArray("qualityScores")
+        assertThat(scoresArray.getDouble(0)).isEqualTo(0.0)
+        assertThat(scoresArray.getDouble(1)).isEqualTo(0.0)
+    }
+
+    @Test
+    fun `products qualityScores with boundary values serializes correctly`() {
+        val products = Auction.Products(
+            ids = listOf("p1", "p2"),
+            qualityScores = listOf(Double.MIN_VALUE, Double.MAX_VALUE)
+        )
+
+        val json = products.toJsonObject()
+        val scoresArray = json.getJSONArray("qualityScores")
+        assertThat(scoresArray.getDouble(0)).isEqualTo(Double.MIN_VALUE)
+        assertThat(scoresArray.getDouble(1)).isEqualTo(Double.MAX_VALUE)
+    }
+
+    // Tests for Auction init block validation (MAJOR #2)
+
+    @Test
+    fun `auction copy with invalid placementId throws exception`() {
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = 5
+        )
+        val auction = Auction.fromConfig(config)
+
+        assertThatThrownBy {
+            auction.copy(placementId = 99)
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("placementId must be between")
+    }
+
+    @Test
+    fun `auction copy with zero slots throws exception`() {
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1")
+        )
+        val auction = Auction.fromConfig(config)
+
+        assertThatThrownBy {
+            auction.copy(slots = 0)
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("Number of slots must be positive")
+    }
+
+    @Test
+    fun `auction copy with negative slots throws exception`() {
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1")
+        )
+        val auction = Auction.fromConfig(config)
+
+        assertThatThrownBy {
+            auction.copy(slots = -1)
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("Number of slots must be positive")
+    }
+
+    @Test
+    fun `auction copy with valid placementId succeeds`() {
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = 5
+        )
+        val auction = Auction.fromConfig(config)
+
+        val copiedAuction = auction.copy(placementId = 8)
+        assertThat(copiedAuction.placementId).isEqualTo(8)
+    }
+
+    @Test
+    fun `auction copy with null placementId succeeds`() {
+        val config = AuctionConfig.ProductIds(
+            numSlots = 1,
+            ids = listOf("p1"),
+            placementId = 5
+        )
+        val auction = Auction.fromConfig(config)
+
+        val copiedAuction = auction.copy(placementId = null)
+        assertThat(copiedAuction.placementId).isNull()
+    }
+
+    // Test for CategoryDisjunctions via fromConfig with new fields (MINOR #6)
+
+    @Test
+    fun `auctionConfig CategoryDisjunctions with opaqueUserId and placementId via fromConfig`() {
+        val config = AuctionConfig.CategoryDisjunctions(
+            numSlots = 2,
+            disjunctions = listOf(listOf("cat1", "cat2"), listOf("cat3")),
+            opaqueUserId = "user-disjunction",
+            placementId = 4
+        )
+
+        val auction = Auction.fromConfig(config)
+
+        assertThat(auction.opaqueUserId).isEqualTo("user-disjunction")
+        assertThat(auction.placementId).isEqualTo(4)
+        assertThat(auction.category?.disjunctions).isEqualTo(listOf(listOf("cat1", "cat2"), listOf("cat3")))
+    }
 }
