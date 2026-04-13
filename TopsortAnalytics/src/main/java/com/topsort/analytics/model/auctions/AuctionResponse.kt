@@ -75,6 +75,10 @@ data class AuctionResponse private constructor(
         val id: String,
         val resolvedBidId: String,
         val asset: List<Asset>? = null,
+        /**
+         * The campaign ID associated with this winning bid.
+         */
+        val campaignId: String? = null,
     ) {
         companion object {
             fun fromJsonObject(json: JSONObject): AuctionWinnerItem {
@@ -92,6 +96,7 @@ data class AuctionResponse private constructor(
                         id = json.getString("id"),
                         resolvedBidId = json.getString("resolvedBidId"),
                         asset = assets,
+                        campaignId = json.optString("campaignId", null),
                     )
                 } catch (e: AuctionError) {
                     throw e
@@ -102,12 +107,19 @@ data class AuctionResponse private constructor(
         }
     }
 
-    data class Asset(val url: String) {
+    data class Asset(
+        val url: String,
+        /**
+         * Optional content associated with the asset (e.g., HTML or text content).
+         */
+        val content: String? = null,
+    ) {
         companion object {
             fun fromJsonObject(json: JSONObject): Asset {
                 try {
                     val url = json.getString("url")
-                    return Asset(url = url)
+                    val content = json.optString("content", null)
+                    return Asset(url = url, content = content)
                 } catch (e: Exception) {
                     throw AuctionError.DeserializationError(e, json.toString().toByteArray())
                 }
