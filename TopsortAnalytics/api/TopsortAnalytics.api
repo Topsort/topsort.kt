@@ -642,24 +642,61 @@ public final class com/topsort/analytics/model/auctions/Auction$Companion {
 
 public final class com/topsort/analytics/model/auctions/Auction$Factory {
 	public static final field INSTANCE Lcom/topsort/analytics/model/auctions/Auction$Factory;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildBannerAuctionCategoryDisjunctions (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildBannerAuctionCategoryDisjunctions$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildBannerAuctionCategoryMultiple (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildBannerAuctionCategoryMultiple$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildBannerAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildBannerAuctionCategorySingle$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildBannerAuctionKeywords (ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildBannerAuctionKeywords$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildBannerAuctionLandingPage (ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildBannerAuctionLandingPage$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/util/List;Lcom/topsort/analytics/model/auctions/Device;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildSponsoredListingAuctionCategoryDisjunctions (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildSponsoredListingAuctionCategoryDisjunctions$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildSponsoredListingAuctionCategoryMultiple (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildSponsoredListingAuctionCategoryMultiple$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildSponsoredListingAuctionCategorySingle (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildSponsoredListingAuctionCategorySingle$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildSponsoredListingAuctionKeyword (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildSponsoredListingAuctionKeyword$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/topsort/analytics/model/auctions/Auction;
+	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lcom/topsort/analytics/model/auctions/Auction;
 	public final fun buildSponsoredListingAuctionProductIds (ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;)Lcom/topsort/analytics/model/auctions/Auction;
 	public static synthetic fun buildSponsoredListingAuctionProductIds$default (Lcom/topsort/analytics/model/auctions/Auction$Factory;ILjava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)Lcom/topsort/analytics/model/auctions/Auction;
 }
@@ -697,6 +734,7 @@ public abstract class com/topsort/analytics/model/auctions/AuctionConfig {
 	public abstract fun getOpaqueUserId ()Ljava/lang/String;
 	public abstract fun getPlacementId ()Ljava/lang/Integer;
 	public final fun getSlots ()I
+	protected final fun validatePlacementId ()V
 }
 
 public final class com/topsort/analytics/model/auctions/AuctionConfig$CategoryDisjunctions : com/topsort/analytics/model/auctions/AuctionConfig {
