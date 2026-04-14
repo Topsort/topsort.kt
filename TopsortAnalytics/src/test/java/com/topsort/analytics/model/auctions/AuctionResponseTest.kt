@@ -1,9 +1,96 @@
 package com.topsort.analytics.model.auctions
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.json.JSONObject
 import org.junit.Test
 
 class AuctionResponseTest {
+
+    // ==================== Error handling tests ====================
+
+    @Test
+    fun `fromJson throws EmptyResponse when json is null`() {
+        assertThatThrownBy {
+            AuctionResponse.fromJson(null)
+        }.isInstanceOf(AuctionError.EmptyResponse::class.java)
+    }
+
+    @Test
+    fun `fromJson throws DeserializationError when results field is missing`() {
+        val json = """{"something": "else"}"""
+
+        assertThatThrownBy {
+            AuctionResponse.fromJson(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    @Test
+    fun `fromJson throws DeserializationError when json is malformed`() {
+        val json = "not valid json"
+
+        assertThatThrownBy {
+            AuctionResponse.fromJson(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    @Test
+    fun `fromJson parses empty results array`() {
+        val json = """{"results": []}"""
+
+        val response = AuctionResponse.fromJson(json)
+
+        assertThat(response.results).isEmpty()
+    }
+
+    @Test
+    fun `AuctionResponseItem throws DeserializationError when winners field is missing`() {
+        val json = JSONObject().apply {
+            put("resultType", "listings")
+            put("error", false)
+        }
+
+        assertThatThrownBy {
+            AuctionResponse.AuctionResponseItem.fromJsonObject(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    @Test
+    fun `AuctionResponseItem throws DeserializationError when resultType is missing`() {
+        val json = JSONObject().apply {
+            put("winners", org.json.JSONArray())
+            put("error", false)
+        }
+
+        assertThatThrownBy {
+            AuctionResponse.AuctionResponseItem.fromJsonObject(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    @Test
+    fun `AuctionWinnerItem throws DeserializationError when required fields are missing`() {
+        val json = JSONObject().apply {
+            put("rank", 1)
+            // missing type, id, resolvedBidId
+        }
+
+        assertThatThrownBy {
+            AuctionResponse.AuctionWinnerItem.fromJsonObject(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    @Test
+    fun `Asset throws DeserializationError when url is missing`() {
+        val json = JSONObject().apply {
+            put("content", "some content")
+        }
+
+        assertThatThrownBy {
+            AuctionResponse.Asset.fromJsonObject(json)
+        }.isInstanceOf(AuctionError.DeserializationError::class.java)
+    }
+
+    // ==================== Happy path tests ====================
 
     @Test
     fun `AuctionWinnerItem parses campaignId when present`() {
@@ -173,8 +260,7 @@ class AuctionResponseTest {
 
         val response = AuctionResponse.fromJson(json)
 
-        assertThat(response).isNotNull
-        assertThat(response!!.results).hasSize(1)
+        assertThat(response.results).hasSize(1)
         assertThat(response.results[0].winners).hasSize(2)
 
         val winner1 = response.results[0].winners[0]
