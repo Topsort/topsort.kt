@@ -33,7 +33,14 @@ jobs:
         run: ./gradlew :TopsortAnalytics:test
 
       - name: Generate coverage report
-        run: ./gradlew :TopsortAnalytics:koverHtmlReport :TopsortAnalytics:koverVerify
+        run: ./gradlew :TopsortAnalytics:koverHtmlReport :TopsortAnalytics:koverXmlReport :TopsortAnalytics:koverVerify
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d  # v5.4.2
+        with:
+          files: TopsortAnalytics/build/reports/kover/report.xml
+          flags: unittests
+          fail_ci_if_error: false
 
       - name: Upload coverage report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
