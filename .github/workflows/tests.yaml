@@ -1,6 +1,8 @@
 name: Tests
 
 on:
+  push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -38,7 +40,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d  # v5.4.2
         with:
-          files: TopsortAnalytics/build/reports/kover/report.xml
+          files: TopsortAnalytics/build/reports/kover/xml/report.xml
           flags: unittests
           fail_ci_if_error: false
 

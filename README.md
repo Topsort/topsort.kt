@@ -3,7 +3,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.topsort/topsort-kt)](https://central.sonatype.com/artifact/com.topsort/topsort-kt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Topsort/topsort.kt/blob/main/LICENSE)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg)](https://android-arsenal.com/api?level=24)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9-blue.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
 [![CI](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml/badge.svg)](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml)
 [![codecov](https://codecov.io/gh/Topsort/topsort.kt/branch/main/graph/badge.svg)](https://codecov.io/gh/Topsort/topsort.kt)
 
@@ -82,9 +82,9 @@ class MyApplication : Application() {
         super.onCreate()
 
         Analytics.setup(
-            context = this,
+            application = this,
             opaqueUserId = "user-unique-id", // Consistent ID for the user
-            bearerToken = "your-api-token"
+            token = "your-api-token"
         )
     }
 }
@@ -119,7 +119,7 @@ Analytics.reportImpressionPromoted(
     // Optional context
     deviceType = Device.MOBILE,
     channel = Channel.ONSITE,
-    page = Page.Factory.buildWithId(Page.TYPE_SEARCH, "electronics")
+    page = Page.Factory.buildWithId(PageType.SEARCH, "electronics")
 )
 ```
 
@@ -185,7 +185,7 @@ Track page/screen views for analytics:
 ```kotlin
 Analytics.reportPageView(
     page = Page.Factory.buildWithId(
-        type = Page.TYPE_PDP,
+        type = PageType.PDP,
         pageId = "product-123"
     ),
     deviceType = Device.MOBILE,
@@ -193,7 +193,7 @@ Analytics.reportPageView(
 )
 ```
 
-**Page types**: `TYPE_HOME`, `TYPE_PDP`, `TYPE_SEARCH`, `TYPE_CATEGORY`, `TYPE_CHECKOUT`, `TYPE_OTHER`
+**Page types** (from `PageType` enum): `HOME`, `PDP`, `SEARCH`, `CATEGORY`, `CART`, `OTHER`
 
 ## Running Auctions
 
@@ -218,6 +218,7 @@ val request = AuctionRequest(listOf(auction))
 lifecycleScope.launch(Dispatchers.IO) {
     try {
         val response = TopsortAuctionsHttpService.runAuctionsSync(request)
+            ?: return@launch  // No response
 
         response.results.forEach { result ->
             result.winners.forEach { winner ->
@@ -282,16 +283,18 @@ val config = BannerConfig.LandingPage(
     ids = listOf("featured-product-1", "featured-product-2")
 )
 
-bannerView.setup(
-    config = config,
-    path = "/home",
-    location = "hero-banner"
-) { id, type ->
-    // Handle click
-    when (type) {
-        EntityType.PRODUCT -> openProductPage(id)
-        EntityType.VENDOR -> openVendorPage(id)
-        else -> openUrl(id)
+lifecycleScope.launch {
+    bannerView.setup(
+        config = config,
+        path = "/home",
+        location = "hero-banner"
+    ) { id, type ->
+        // Handle click
+        when (type) {
+            EntityType.PRODUCT -> openProductPage(id)
+            EntityType.VENDOR -> openVendorPage(id)
+            else -> openUrl(id)
+        }
     }
 }
 ```
@@ -313,9 +316,9 @@ channel = Channel.ONSITE      // or OFFSITE, INSTORE
 clickType = ClickType.PRODUCT // or LIKE, ADD_TO_CART
 
 // Page context
-page = Page.Factory.buildWithId(Page.TYPE_SEARCH, "query-id")
+page = Page.Factory.buildWithId(PageType.SEARCH, "query-id")
 // or with multiple values
-page = Page.Factory.buildWithValues(Page.TYPE_CATEGORY, listOf("electronics", "phones"))
+page = Page.Factory.buildWithValues(PageType.CATEGORY, listOf("electronics", "phones"))
 ```
 
 ### A/B Testing
@@ -349,6 +352,9 @@ The SDK uses `AuctionError` sealed class for auction errors:
 ```kotlin
 try {
     val response = TopsortAuctionsHttpService.runAuctionsSync(request)
+        ?: throw AuctionError.EmptyResponse
+
+    // Use response...
 } catch (e: AuctionError) {
     when (e) {
         is AuctionError.HttpError ->
