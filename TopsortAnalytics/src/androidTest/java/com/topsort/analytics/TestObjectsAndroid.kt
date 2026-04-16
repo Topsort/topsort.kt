@@ -85,7 +85,7 @@ fun getRandomPurchase(): Purchase {
     )
 }
 
-fun getRandomPageView(): PageView {
+internal fun getRandomPageView(): PageView {
     return PageView.Factory.build(
         page = Page.Factory.build(type = PageType.HOME),
         occurredAt = eventNow(),
@@ -94,7 +94,7 @@ fun getRandomPageView(): PageView {
     )
 }
 
-fun getRandomPageViewWithContext(): PageView {
+internal fun getRandomPageViewWithContext(): PageView {
     return PageView.Factory.build(
         page = Page.Factory.buildWithId(type = PageType.PDP, pageId = "product-123"),
         occurredAt = eventNow(),
@@ -132,6 +132,6 @@ fun getTestPurchaseEvent(): PurchaseEvent {
     return PurchaseEvent(purchases = listOf(getRandomPurchase()))
 }
 
-fun getTestPageViewEvent(): PageViewEvent {
+internal fun getTestPageViewEvent(): PageViewEvent {
     return PageViewEvent(pageviews = listOf(getRandomPageView()))
 }
