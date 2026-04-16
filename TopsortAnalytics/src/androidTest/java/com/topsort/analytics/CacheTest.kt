@@ -237,14 +237,20 @@ class CacheTest {
     }
 
     @Test
-    fun reading_wrong_event_type_returns_null_or_fails_gracefully() {
+    fun reading_wrong_event_type_throws_or_returns_mismatched_data() {
         val impression = getTestImpressionEvent()
         val recordId = Cache.storeImpression(impression)
 
-        // Reading as click should return null (different JSON structure)
-        val asClick = Cache.readClick(recordId)
-        // The JSON structure is different so parsing will fail and return null
-        // or it might parse with wrong fields - either way it's not the expected event
+        // Reading as click will fail because JSON has "impressions" not "clicks"
+        val exceptionThrown = try {
+            Cache.readClick(recordId)
+            false
+        } catch (e: Exception) {
+            // Expected - JSON structure is incompatible
+            true
+        }
+
+        assertThat(exceptionThrown).isTrue()
 
         // Reading as impression should work
         val asImpression = Cache.readImpression(recordId)
