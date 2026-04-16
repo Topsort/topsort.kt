@@ -64,7 +64,6 @@ kover {
         filters {
             excludes {
                 classes("com.topsort.analytics.BuildConfig")
-                packages("com.topsort.analytics.worker")
             }
         }
     }
