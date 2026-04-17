@@ -80,6 +80,19 @@ class EventEmitterWorkerTest {
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
     }
 
+    @Test
+    fun doWork_with_out_of_range_event_type_ordinal_returns_success() {
+        val inputData = Data.Builder()
+            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, 1)
+            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, 999) // Out of range
+            .build()
+
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+    }
+
     // ==================== Impression tests ====================
 
     @Test
