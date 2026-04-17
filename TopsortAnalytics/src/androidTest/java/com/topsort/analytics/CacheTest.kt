@@ -1,8 +1,10 @@
 package com.topsort.analytics
 
+import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +22,19 @@ class CacheTest {
             opaqueUserId = "test-user-id",
             token = "test-token"
         )
+    }
+
+    @After
+    fun cleanup() {
+        // Clear SharedPreferences to ensure test isolation
+        context.getSharedPreferences("TOPSORT_EVENTS_CACHE", Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
+        context.getSharedPreferences("TOPSORT_EVENTS_CACHE_ENCRYPTED", Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
     }
 
     // ==================== Token and session storage tests ====================
