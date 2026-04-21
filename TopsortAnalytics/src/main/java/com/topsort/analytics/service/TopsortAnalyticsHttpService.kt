@@ -1,5 +1,6 @@
 package com.topsort.analytics.service
 
+import androidx.annotation.VisibleForTesting
 import com.topsort.analytics.Cache
 import com.topsort.analytics.core.HttpClient
 import com.topsort.analytics.core.HttpResponse
@@ -14,7 +15,29 @@ internal object TopsortAnalyticsHttpService {
 
     val httpClient: HttpClient = HttpClient("${ApiConstants.BASE_API_URL}${ApiConstants.EVENTS_ENDPOINT}")
 
-    val service: Service = buildService()
+    private val defaultService: Service = buildService()
+
+    /**
+     * The current service instance, can be replaced for testing
+     */
+    var service: Service = defaultService
+        private set
+
+    /**
+     * Sets a mock implementation for testing purposes
+     */
+    @VisibleForTesting
+    fun setMockService(mockService: Service) {
+        service = mockService
+    }
+
+    /**
+     * Resets to the default implementation
+     */
+    @VisibleForTesting
+    fun resetToDefaultService() {
+        service = defaultService
+    }
 
     private fun buildService(): Service {
         return object : Service {
