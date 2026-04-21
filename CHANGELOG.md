@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.0.0](https://github.com/Topsort/topsort.kt/compare/v2.0.1...v3.0.0) (2026-04-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* deviceType, channel, clickType fields now use enums instead of String
+
+### Features
+
+* add auction enhancements (placementId, qualityScores, opaqueUserId) ([#120](https://github.com/Topsort/topsort.kt/issues/120)) ([b27faf2](https://github.com/Topsort/topsort.kt/commit/b27faf297e4029b7d9329e3117c7b075fb1e42dd))
+* add enhanced event context fields ([#116](https://github.com/Topsort/topsort.kt/issues/116)) ([0c570fe](https://github.com/Topsort/topsort.kt/commit/0c570fef8aa230f2ceec2decbda9f1787f15c5c1))
+* add Page model and PageView event tracking ([#115](https://github.com/Topsort/topsort.kt/issues/115)) ([29044aa](https://github.com/Topsort/topsort.kt/commit/29044aa5b3818bba7085e79602bb8f3b7c28ba6f))
+* add response enhancements (campaignId, Asset.content) ([#122](https://github.com/Topsort/topsort.kt/issues/122)) ([457570f](https://github.com/Topsort/topsort.kt/commit/457570f823154bd5fdd4e02598a3b9447fbb9d89))
+
+
+### Bug Fixes
+
+* handle explicit JSON null in getStringOrNull, getIntOrNull, getStringListOrNull ([#113](https://github.com/Topsort/topsort.kt/issues/113)) ([b6deb3f](https://github.com/Topsort/topsort.kt/commit/b6deb3f96c0b9faa8b40ec5f3614b8f890283531))
+
 ## [2.0.1](https://github.com/Topsort/topsort.kt/compare/v2.0.0...v2.0.1) (2026-03-09)
 
 
