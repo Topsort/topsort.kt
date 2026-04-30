@@ -64,6 +64,10 @@ kover {
         filters {
             excludes {
                 classes("com.topsort.analytics.BuildConfig")
+                // Worker tests are instrumented (androidTest), not JVM unit tests.
+                // Kover gate only measures JVM test coverage, so exclude until
+                // Robolectric unit tests are added.
+                packages("com.topsort.analytics.worker")
             }
         }
     }

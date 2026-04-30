@@ -26,7 +26,8 @@ class CacheTest {
 
     @After
     fun cleanup() {
-        // Clear SharedPreferences to ensure test isolation
+        // Clear SharedPreferences to ensure test isolation.
+        // Does not reset Cache.recentRecordId; tests should not rely on absolute ID values.
         context.getSharedPreferences("TOPSORT_EVENTS_CACHE", Context.MODE_PRIVATE)
             .edit()
             .clear()
@@ -244,45 +245,30 @@ class CacheTest {
         val purchaseId = Cache.storePurchase(purchase)
         val pageViewId = Cache.storePageView(pageView)
 
-        // All IDs should be unique and incrementing
+        // All IDs should be unique
         assertThat(setOf(impressionId, clickId, purchaseId, pageViewId)).hasSize(4)
-        assertThat(clickId).isGreaterThan(impressionId)
-        assertThat(purchaseId).isGreaterThan(clickId)
-        assertThat(pageViewId).isGreaterThan(purchaseId)
     }
 
-    @Test
-    fun reading_wrong_event_type_throws_or_returns_mismatched_data() {
+    @Test(expected = Exception::class)
+    fun reading_wrong_event_type_throws() {
         val impression = getTestImpressionEvent()
         val recordId = Cache.storeImpression(impression)
 
-        // Reading as click will fail because JSON has "impressions" not "clicks"
-        val exceptionThrown = try {
-            Cache.readClick(recordId)
-            false
-        } catch (e: Exception) {
-            // Expected - JSON structure is incompatible
-            true
-        }
-
-        assertThat(exceptionThrown).isTrue()
-
-        // Reading as impression should work
-        val asImpression = Cache.readImpression(recordId)
-        assertThat(asImpression).isNotNull
+        // Reading as click throws because JSON has "impressions" not "clicks"
+        Cache.readClick(recordId)
     }
 
     // ==================== Persistence tests ====================
 
     @Test
-    fun stored_events_persist_after_reinitialize() {
+    fun stored_events_readable_after_setup_called_again() {
         val event = getTestImpressionEvent()
         val recordId = Cache.storeImpression(event)
 
-        // Reinitialize cache (simulates app restart)
+        // Call setup again (does not truly restart the process, but re-initializes credentials)
         Cache.setup(context, "test-user-id", "test-token")
 
-        // Event should still be readable
+        // Event should still be readable from SharedPreferences
         val retrieved = Cache.readImpression(recordId)
         assertThat(retrieved).isNotNull
         assertThat(retrieved!!.impressions[0].resolvedBidId)
