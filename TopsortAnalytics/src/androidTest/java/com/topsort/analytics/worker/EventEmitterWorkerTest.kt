@@ -107,6 +107,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
         assertThat(Cache.readImpression(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportImpression")
     }
 
     @Test
@@ -121,6 +122,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         assertThat(Cache.readImpression(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportImpression")
     }
 
     @Test
@@ -136,6 +138,7 @@ class EventEmitterWorkerTest {
         assertThat(result).isEqualTo(ListenableWorker.Result.retry())
         // Event should NOT be deleted on transient failure
         assertThat(Cache.readImpression(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportImpression")
     }
 
     @Test
@@ -161,6 +164,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
         assertThat(Cache.readClick(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportClick")
     }
 
     @Test
@@ -175,6 +179,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         assertThat(Cache.readClick(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportClick")
     }
 
     @Test
@@ -189,6 +194,16 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.retry())
         assertThat(Cache.readClick(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportClick")
+    }
+
+    @Test
+    fun doWork_click_nonexistent_returns_success() {
+        val inputData = buildInputData(999998L, EventType.Click)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
     }
 
     // ==================== Purchase tests ====================
@@ -205,6 +220,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
         assertThat(Cache.readPurchase(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportPurchase")
     }
 
     @Test
@@ -219,6 +235,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         assertThat(Cache.readPurchase(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportPurchase")
     }
 
     @Test
@@ -233,6 +250,16 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.retry())
         assertThat(Cache.readPurchase(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportPurchase")
+    }
+
+    @Test
+    fun doWork_purchase_nonexistent_returns_success() {
+        val inputData = buildInputData(999997L, EventType.Purchase)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
     }
 
     // ==================== PageView tests ====================
@@ -249,6 +276,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
         assertThat(Cache.readPageView(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportPageView")
     }
 
     @Test
@@ -263,6 +291,7 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         assertThat(Cache.readPageView(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportPageView")
     }
 
     @Test
@@ -277,6 +306,16 @@ class EventEmitterWorkerTest {
 
         assertThat(result).isEqualTo(ListenableWorker.Result.retry())
         assertThat(Cache.readPageView(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportPageView")
+    }
+
+    @Test
+    fun doWork_pageview_nonexistent_returns_success() {
+        val inputData = buildInputData(999996L, EventType.PageView)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
     }
 
     // ==================== Exception handling tests ====================
@@ -317,24 +356,30 @@ class EventEmitterWorkerTest {
     private class MockAnalyticsService : TopsortAnalyticsHttpService.Service {
         var responseCode: Int = 200
         var shouldThrowException: Boolean = false
+        var lastMethod: String? = null
 
         override fun reportImpression(impressionEvent: ImpressionEvent): HttpResponse {
+            lastMethod = "reportImpression"
             return mockResponse()
         }
 
         override fun reportClick(clickEvent: ClickEvent): HttpResponse {
+            lastMethod = "reportClick"
             return mockResponse()
         }
 
         override fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse {
+            lastMethod = "reportPurchase"
             return mockResponse()
         }
 
         override fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse {
+            lastMethod = "reportPageView"
             return mockResponse()
         }
 
         override fun reportEvent(event: Event): HttpResponse {
+            lastMethod = "reportEvent"
             return mockResponse()
         }
 

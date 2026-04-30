@@ -2,7 +2,6 @@ package com.topsort.analytics
 
 import com.topsort.analytics.core.eventNow
 import com.topsort.analytics.core.randomId
-import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Entity
@@ -17,9 +16,8 @@ import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
-import com.topsort.analytics.model.auctions.Device
 
-fun getClickPromoted(): Click {
+internal fun getClickPromoted(): Click {
     return Click.Factory.buildPromoted(
         placement = getTestPlacement(),
         occurredAt = eventNow(),
@@ -30,7 +28,7 @@ fun getClickPromoted(): Click {
     )
 }
 
-fun getClickOrganic(): Click {
+internal fun getClickOrganic(): Click {
     return Click.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
@@ -44,7 +42,7 @@ fun getClickOrganic(): Click {
     )
 }
 
-fun getImpressionPromoted(): Impression {
+internal fun getImpressionPromoted(): Impression {
     return Impression.Factory.buildPromoted(
         placement = getTestPlacement(),
         occurredAt = eventNow(),
@@ -55,7 +53,7 @@ fun getImpressionPromoted(): Impression {
     )
 }
 
-fun getImpressionOrganic(): Impression {
+internal fun getImpressionOrganic(): Impression {
     return Impression.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
@@ -69,7 +67,7 @@ fun getImpressionOrganic(): Impression {
     )
 }
 
-fun getRandomPurchase(): Purchase {
+internal fun getRandomPurchase(): Purchase {
     return Purchase(
         opaqueUserId = randomId("oId_"),
         occurredAt = eventNow(),
@@ -91,17 +89,6 @@ internal fun getRandomPageView(): PageView {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("pvId_"),
-    )
-}
-
-internal fun getRandomPageViewWithContext(): PageView {
-    return PageView.Factory.build(
-        page = Page.Factory.buildWithId(type = PageType.PDP, pageId = "product-123"),
-        occurredAt = eventNow(),
-        opaqueUserId = randomId("oId_"),
-        id = randomId("pvId_"),
-        deviceType = Device.MOBILE,
-        channel = Channel.ONSITE,
     )
 }
 
