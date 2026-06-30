@@ -33,11 +33,11 @@ internal class EventEmitterWorker(
             val eventTypeOrdinal = getInt(EXTRA_EVENT_TYPE, -1)
             recordId = getLong(EXTRA_RECORD_ID, -1)
 
-            if (recordId < 0 || eventTypeOrdinal < 0) {
+            if (recordId < 0 || eventTypeOrdinal < 0 || eventTypeOrdinal >= EventType.entries.size) {
                 return Result.success()
             }
 
-            eventType = EventType.values()[eventTypeOrdinal]
+            eventType = EventType.entries[eventTypeOrdinal]
         }
 
         val sendResult = when (eventType) {

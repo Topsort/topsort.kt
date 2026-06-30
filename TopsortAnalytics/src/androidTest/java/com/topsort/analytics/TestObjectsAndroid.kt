@@ -3,14 +3,21 @@ package com.topsort.analytics
 import com.topsort.analytics.core.eventNow
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Click
+import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Impression
+import com.topsort.analytics.model.ImpressionEvent
+import com.topsort.analytics.model.Page
+import com.topsort.analytics.model.PageType
+import com.topsort.analytics.model.PageView
+import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
+import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
 
-fun getClickPromoted() : Click {
+internal fun getClickPromoted(): Click {
     return Click.Factory.buildPromoted(
         placement = getTestPlacement(),
         occurredAt = eventNow(),
@@ -21,7 +28,7 @@ fun getClickPromoted() : Click {
     )
 }
 
-fun getClickOrganic() : Click {
+internal fun getClickOrganic(): Click {
     return Click.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
@@ -35,8 +42,8 @@ fun getClickOrganic() : Click {
     )
 }
 
-fun getImpressionPromoted() : Impression {
-    return Impression.Factory.buildPromoted (
+internal fun getImpressionPromoted(): Impression {
+    return Impression.Factory.buildPromoted(
         placement = getTestPlacement(),
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
@@ -46,8 +53,8 @@ fun getImpressionPromoted() : Impression {
     )
 }
 
-fun getImpressionOrganic() : Impression {
-    return Impression.Factory.buildOrganic (
+internal fun getImpressionOrganic(): Impression {
+    return Impression.Factory.buildOrganic(
         placement = getTestPlacement(),
         entity = Entity(
             type = EntityType.PRODUCT,
@@ -60,7 +67,7 @@ fun getImpressionOrganic() : Impression {
     )
 }
 
-fun getRandomPurchase() : Purchase {
+internal fun getRandomPurchase(): Purchase {
     return Purchase(
         opaqueUserId = randomId("oId_"),
         occurredAt = eventNow(),
@@ -76,7 +83,16 @@ fun getRandomPurchase() : Purchase {
     )
 }
 
-private fun getTestPlacement() : Placement {
+internal fun getRandomPageView(): PageView {
+    return PageView.Factory.build(
+        page = Page.Factory.build(type = PageType.HOME),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("pvId_"),
+    )
+}
+
+private fun getTestPlacement(): Placement {
     return Placement(
         path = "test",
         position = 2,
@@ -87,4 +103,22 @@ private fun getTestPlacement() : Placement {
         searchQuery = "search query",
         location = "gibraltar",
     )
+}
+
+// Event wrappers for Cache tests
+
+fun getTestImpressionEvent(): ImpressionEvent {
+    return ImpressionEvent(impressions = listOf(getImpressionPromoted()))
+}
+
+fun getTestClickEvent(): ClickEvent {
+    return ClickEvent(clicks = listOf(getClickPromoted()))
+}
+
+fun getTestPurchaseEvent(): PurchaseEvent {
+    return PurchaseEvent(purchases = listOf(getRandomPurchase()))
+}
+
+internal fun getTestPageViewEvent(): PageViewEvent {
+    return PageViewEvent(pageviews = listOf(getRandomPageView()))
 }
