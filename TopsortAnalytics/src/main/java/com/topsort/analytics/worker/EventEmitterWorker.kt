@@ -11,6 +11,7 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
+import org.joda.time.DateTime
 import org.json.JSONException
 
 internal class EventEmitterWorker(
@@ -23,6 +24,7 @@ internal class EventEmitterWorker(
 
     private lateinit var eventType: EventType
     private var recordId = -1L
+    private var ageAnchorMillis = -1L
 
     init {
         Cache.initialize(context)
@@ -38,6 +40,13 @@ internal class EventEmitterWorker(
             }
 
             eventType = EventType.values()[eventTypeOrdinal]
+            ageAnchorMillis = getLong(EXTRA_AGE_ANCHOR_MILLIS, -1)
+        }
+
+        if (isPastAgeCap()) {
+            Log.w(TAG, "Discarding event older than $MAX_EVENT_AGE_DAYS days")
+            Cache.deleteEvent(recordId)
+            return Result.success()
         }
 
         val sendResult = try {
@@ -61,6 +70,22 @@ internal class EventEmitterWorker(
             }
             SendResult.TRANSIENT_FAILURE -> Result.retry()
         }
+    }
+
+    /**
+     * Whether this event is too old to be worth sending.
+     *
+     * Checked here rather than only in the sweep, because a work unit can sit in retry backoff or
+     * wait on connectivity for days. Without this, an event stranded that way still ships with its
+     * original backdated timestamp - most likely outside its attribution window.
+     *
+     * The anchor travels in the work's input data, so this costs no extra read of the cache. A
+     * freshly reported event anchors at the moment it was accepted for delivery; a record picked up
+     * by the sweep anchors at its own occurredAt, which is the more conservative of the two.
+     */
+    private fun isPastAgeCap(): Boolean {
+        if (ageAnchorMillis < 0) return false
+        return DateTime(ageAnchorMillis).isBefore(DateTime.now().minusDays(MAX_EVENT_AGE_DAYS))
     }
 
     private fun sendCachedEvent(): SendResult? = when (eventType) {
@@ -136,6 +161,13 @@ internal class EventEmitterWorker(
 
         const val EXTRA_RECORD_ID = "EXTRA_RECORD_ID"
         const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
+        const val EXTRA_AGE_ANCHOR_MILLIS = "EXTRA_AGE_ANCHOR_MILLIS"
+
+        /**
+         * How long delivery may keep being attempted, measured from the event's age anchor. Lives
+         * here rather than in Analytics because both the sweep and this worker enforce it.
+         */
+        const val MAX_EVENT_AGE_DAYS = 7
 
         const val WORK_NAME = "TopsortAnalyticsReporter"
 

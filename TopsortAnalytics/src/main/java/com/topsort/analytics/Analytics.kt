@@ -30,12 +30,15 @@ import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
 import com.topsort.analytics.model.Session
 import com.topsort.analytics.worker.EventEmitterWorker
+import com.topsort.analytics.worker.PendingEventSweepWorker
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
 
+/** Upper bound on how many cached records one sweep reads, prunes and re-enqueues. */
+private const val MAX_RESEND_PER_SETUP = 100
 object Analytics : TopsortAnalytics {
 
     // Volatile: setup() writes these from the host's thread while WorkManager threads and any
@@ -86,6 +89,8 @@ object Analytics : TopsortAnalytics {
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
         )
+
+        schedulePendingEventSweep()
     }
 
     override fun reportImpressionPromoted(
@@ -305,6 +310,54 @@ object Analytics : TopsortAnalytics {
         if (opaqueUserId.isNotBlank()) this
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
+     * Asks the sweep to run in the background.
+     *
+     * Deliberately not inline: [setup] is documented as something to call from the Application
+     * class, reading the cache decrypts every record, and pruning writes synchronously. Doing that
+     * on the caller's thread risked an ANR at startup - worst on exactly the installs with a large
+     * stranded backlog, which are the ones the sweep exists for.
+     *
+     * KEEP leaves an already-pending sweep alone rather than duplicating it.
+     */
+    private fun schedulePendingEventSweep() {
+        val wm = workManager ?: return
+        wm.enqueueUniqueWork(
+            PendingEventSweepWorker.WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<PendingEventSweepWorker>().build(),
+        )
+    }
+
+    /**
+     * Prunes undelivered records too old to be worth sending, then re-enqueues the rest.
+     *
+     * Only called from [PendingEventSweepWorker], so never on the main thread.
+     *
+     * A stranded record keeps its original occurredAt, so flushing a long backlog would deliver
+     * heavily backdated events - most likely outside their attribution window, and landing as a
+     * spike in the marketplace's reporting. Losing an event that was already lost is the better
+     * trade. Records whose age cannot be read are kept: dropping data on a parsing quirk is worse
+     * than sending it late.
+     */
+    internal fun sweepPendingEvents() {
+        val candidates = Cache.pendingRecords(MAX_RESEND_PER_SETUP)
+        if (candidates.isEmpty()) return
+
+        val cutoff = DateTime.now().minusDays(EventEmitterWorker.MAX_EVENT_AGE_DAYS)
+        val (stale, fresh) = candidates.partition {
+            it.occurredAt != null && it.occurredAt.isBefore(cutoff)
+        }
+
+        if (stale.isNotEmpty()) {
+            Log.w(LOG_TAG, "Discarding ${stale.size} undelivered event(s) past the age cap")
+            Cache.deleteEvents(stale.map { it.recordId })
+        }
+
+        if (fresh.isEmpty()) return
+        Log.i(LOG_TAG, "Re-enqueueing ${fresh.size} undelivered cached event(s)")
+        fresh.forEach { enqueueEventRequest(it.recordId, it.eventType, it.occurredAt) }
+    }
+
     /**
      * Schedules a work and enqueues it, the work manager will execute this work based on the
      * work configuration provided!
@@ -312,10 +365,14 @@ object Analytics : TopsortAnalytics {
     private fun enqueueEventRequest(
         recordId: Long,
         eventType: EventType
+
+        eventType: EventType,
+        ageAnchor: DateTime? = DateTime.now(),
     ) {
         val data = Data.Builder()
             .putLong(EventEmitterWorker.EXTRA_RECORD_ID, recordId)
             .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, eventType.ordinal)
+            .putLong(EventEmitterWorker.EXTRA_AGE_ANCHOR_MILLIS, ageAnchor?.millis ?: -1)
             .build()
 
         val constraints = Constraints.Builder()

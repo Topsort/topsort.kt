@@ -9,9 +9,13 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import org.json.JSONObject
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
@@ -23,7 +27,21 @@ private const val KEY_RECORD = "KEY_RECORD_%d"
 private const val KEY_RECORD_PREFIX = "KEY_RECORD_"
 private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
 
+/** Mirrors the top-level key each event model serialises itself under. */
+private val EVENT_TYPE_BY_JSON_KEY = mapOf(
+    "impressions" to EventType.Impression,
+    "clicks" to EventType.Click,
+    "purchases" to EventType.Purchase,
+    "pageviews" to EventType.PageView,
+)
 private const val TAG = "TopsortCache"
+
+/** An event sitting in the cache that has not been delivered. */
+internal data class PendingRecord(
+    val recordId: Long,
+    val eventType: EventType,
+    val occurredAt: DateTime?,
+)
 
 internal object Cache {
 
@@ -237,6 +255,57 @@ internal object Cache {
     }
 
     /**
+     * Undelivered records, oldest first, at most [limit] of them.
+     *
+     * A record is only removed once a worker has actually run for it, so anything still here was
+     * never delivered. Each record is read and parsed exactly once - the event type and the
+     * timestamp both come out of that single pass, because reading a record decrypts it.
+     *
+     * [limit] bounds the work, not just the caller's appetite: a silenced install can accumulate an
+     * unbounded backlog, and an unbounded scan of it is unbounded decryption.
+     *
+     * A record that cannot be read is skipped on its own rather than aborting the enumeration - one
+     * corrupt entry must not be able to disable recovery for the whole install.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    fun pendingRecords(limit: Int): List<PendingRecord> {
+        val ids = try {
+            cachedRecordIds().take(limit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not enumerate cached records", e)
+            return emptyList()
+        }
+
+        return ids.mapNotNull { recordId ->
+            try {
+                parseRecord(recordId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Skipping unreadable cached record $recordId", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * Reads a record once and pulls out both the event type, from its top-level JSON key, and when
+     * its first event occurred. Null when the record is absent or its shape is unrecognised.
+     */
+    private fun parseRecord(recordId: Long): PendingRecord? {
+        val json = readEvent(recordId) ?: return null
+        val obj = JSONObject(json)
+        val key = EVENT_TYPE_BY_JSON_KEY.keys.firstOrNull { obj.has(it) } ?: return null
+
+        val events = obj.getJSONArray(key)
+        val occurredAt = events.takeIf { it.length() > 0 }
+            ?.getJSONObject(0)
+            ?.optString("occurredAt")
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { ISODateTimeFormat.dateTimeParser().parseDateTime(it) }
+
+        return PendingRecord(recordId, EVENT_TYPE_BY_JSON_KEY.getValue(key), occurredAt)
+    }
+
+    /**
      * Record ids currently held in the cache. Test-only; the delivery tests assert on whether a
      * record survived its send.
      */
@@ -259,6 +328,17 @@ internal object Cache {
      * same event again - which the events API would count twice, since it does not de-duplicate on
      * event id.
      */
+    /**
+     * Removes several records in one editor, so pruning a backlog is one synchronous write rather
+     * than one per record.
+     */
+    fun deleteEvents(recordIds: Collection<Long>) {
+        if (recordIds.isEmpty()) return
+        val editor = preferences.edit()
+        recordIds.forEach { editor.remove(recordKey(it)) }
+        editor.commit()
+    }
+
     fun deleteEvent(recordId: Long) {
         preferences
             .edit()

@@ -40,6 +40,12 @@ WorkManager                   ◄── one unique work unit per cached record,
 TopsortAnalyticsHttpService   ◄── POST /v2/events
 ```
 
+A record is deleted only once a worker has actually run for it, so anything still in the cache is
+by definition undelivered. `Analytics.setup()` therefore enqueues `PendingEventSweepWorker`, which
+re-enqueues undelivered records and prunes any past `MAX_EVENT_AGE_DAYS`. The sweep runs on a
+WorkManager thread, never inline in `setup()`: reading the cache decrypts every record and pruning
+writes synchronously.
+
 Events are never enqueued onto a shared work chain. A chain couples unrelated events — work
 appended after a terminal failure never runs, which used to silence an install permanently after a
 single 4xx.
@@ -51,7 +57,7 @@ Package layout:
 - `com.topsort.analytics.banners/` — BannerView, BannerConfig (sealed), banner auction helpers
 - `com.topsort.analytics.service/` — HTTP services (AuctionsHttpService interface, implementations)
 - `com.topsort.analytics.core/` — HttpClient, JsonExtensions, RandomGenerator, EventTimestamp
-- `com.topsort.analytics.worker/` — EventEmitterWorker (one work unit per cached event)
+- `com.topsort.analytics.worker/` — EventEmitterWorker (one work unit per cached event), PendingEventSweepWorker (recovery of undelivered events)
 
 ## SDK Design Principles
 
