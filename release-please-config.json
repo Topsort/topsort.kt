@@ -7,15 +7,11 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "gradle.properties",
-          "search-for": "VERSION_NAME=",
-          "replace-with": "VERSION_NAME={{version}}"
+          "path": "gradle.properties"
         },
         {
           "type": "generic",
-          "path": "README.md",
-          "search-for": "com.topsort:topsort-kt:",
-          "replace-with": "com.topsort:topsort-kt:{{version}}"
+          "path": "README.md"
         }
       ],
       "changelog-path": "CHANGELOG.md",
