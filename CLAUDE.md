@@ -31,14 +31,18 @@ Event pipeline:
 Analytics.report*()
     │
     ▼
-Cache (SharedPreferences)     ◄── persistent, synchronous
-    │
+Cache (SharedPreferences)     ◄── persistent; event body and record counter
+    │                             written in one editor
     ▼
-WorkManager                   ◄── background, network-constrained
-    │
-    ▼
+WorkManager                   ◄── one unique work unit per cached record,
+    │                             network-constrained; a failure is isolated
+    ▼                             to its own event
 TopsortAnalyticsHttpService   ◄── POST /v2/events
 ```
+
+Events are never enqueued onto a shared work chain. A chain couples unrelated events — work
+appended after a terminal failure never runs, which used to silence an install permanently after a
+single 4xx.
 
 Package layout:
 - `com.topsort.analytics.Analytics` — main singleton, implements `TopsortAnalytics` interface
@@ -47,7 +51,7 @@ Package layout:
 - `com.topsort.analytics.banners/` — BannerView, BannerConfig (sealed), banner auction helpers
 - `com.topsort.analytics.service/` — HTTP services (AuctionsHttpService interface, implementations)
 - `com.topsort.analytics.core/` — HttpClient, JsonExtensions, RandomGenerator, EventTimestamp
-- `com.topsort.analytics.worker/` — EventEmitterWorker (WorkManager background processing)
+- `com.topsort.analytics.worker/` — EventEmitterWorker (one work unit per cached event)
 
 ## SDK Design Principles
 
@@ -58,7 +62,7 @@ Package layout:
 - **Factory companion objects** — deserialization via `fromJsonObject()` / `fromJsonArray()` on companion.
 - **Sealed classes for closed hierarchies** — errors (`AuctionError`), configs (`BannerConfig`), enums where exhaustive matching matters.
 - **Graceful degradation** — if `Analytics.setup()` not called, events are logged but not sent. Never crash the host app.
-- **Thread safety** — coroutines + `SupervisorJob` for background work, `AtomicBoolean` for flags, `SharedPreferences.apply()` for async writes.
+- **Thread safety** — coroutines + `SupervisorJob` for background work, `AtomicBoolean` for flags. `SharedPreferences.apply()` for writes that can happen on the caller's thread; `commit()` only from worker threads, where losing the write would cost an event or duplicate one.
 
 ## SDK Anti-patterns
 

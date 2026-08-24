@@ -1,5 +1,6 @@
 public final class com/topsort/analytics/Analytics : com/topsort/analytics/TopsortAnalytics {
 	public static final field INSTANCE Lcom/topsort/analytics/Analytics;
+	public final fun getOpaqueUserId ()Ljava/lang/String;
 	public fun reportClickOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;Lcom/topsort/analytics/model/ClickType;)V
 	public fun reportClickPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;Lcom/topsort/analytics/model/ClickType;)V
 	public fun reportImpressionOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;)V

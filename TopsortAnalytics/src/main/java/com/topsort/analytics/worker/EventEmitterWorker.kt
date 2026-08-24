@@ -11,6 +11,7 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
+import org.json.JSONException
 
 internal class EventEmitterWorker(
     context: Context,
@@ -27,7 +28,6 @@ internal class EventEmitterWorker(
         Cache.initialize(context)
     }
 
-    @Suppress("detekt:CyclomaticComplexMethod")
     override fun doWork(): Result {
         with (inputData) {
             val eventTypeOrdinal = getInt(EXTRA_EVENT_TYPE, -1)
@@ -40,23 +40,14 @@ internal class EventEmitterWorker(
             eventType = EventType.values()[eventTypeOrdinal]
         }
 
-        val sendResult = when (eventType) {
-            EventType.Impression -> {
-                val event = Cache.readImpression(recordId) ?: return Result.success()
-                reportImpression(event)
-            }
-            EventType.Click -> {
-                val event = Cache.readClick(recordId) ?: return Result.success()
-                reportClick(event)
-            }
-            EventType.Purchase -> {
-                val event = Cache.readPurchase(recordId) ?: return Result.success()
-                reportPurchase(event)
-            }
-            EventType.PageView -> {
-                val event = Cache.readPageView(recordId) ?: return Result.success()
-                reportPageView(event)
-            }
+        val sendResult = try {
+            sendCachedEvent() ?: return Result.success()
+        } catch (e: JSONException) {
+            // The cached body cannot be turned back into an event, so it can never be sent. Left in
+            // place it would be re-read by every sweep for the lifetime of the install.
+            Log.e(TAG, "Discarding unparseable cached record $recordId", e)
+            Cache.deleteEvent(recordId)
+            return Result.success()
         }
 
         return when (sendResult) {
@@ -70,6 +61,13 @@ internal class EventEmitterWorker(
             }
             SendResult.TRANSIENT_FAILURE -> Result.retry()
         }
+    }
+
+    private fun sendCachedEvent(): SendResult? = when (eventType) {
+        EventType.Impression -> Cache.readImpression(recordId)?.let(::reportImpression)
+        EventType.Click -> Cache.readClick(recordId)?.let(::reportClick)
+        EventType.Purchase -> Cache.readPurchase(recordId)?.let(::reportPurchase)
+        EventType.PageView -> Cache.readPageView(recordId)?.let(::reportPageView)
     }
 
     private fun reportImpression(impressionEvent: ImpressionEvent): SendResult {
@@ -140,5 +138,11 @@ internal class EventEmitterWorker(
         const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
 
         const val WORK_NAME = "TopsortAnalyticsReporter"
+
+        /**
+         * Unique work name for a single cached record. One name per record keeps enqueueing
+         * idempotent and keeps one event's failure from touching any other.
+         */
+        fun workNameFor(recordId: Long): String = "$WORK_NAME-$recordId"
     }
 }
