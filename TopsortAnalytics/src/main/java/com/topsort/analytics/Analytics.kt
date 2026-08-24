@@ -310,6 +310,7 @@ object Analytics : TopsortAnalytics {
         if (opaqueUserId.isNotBlank()) this
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
+    /**
      * Asks the sweep to run in the background.
      *
      * Deliberately not inline: [setup] is documented as something to call from the Application
@@ -364,8 +365,6 @@ object Analytics : TopsortAnalytics {
      */
     private fun enqueueEventRequest(
         recordId: Long,
-        eventType: EventType
-
         eventType: EventType,
         ageAnchor: DateTime? = DateTime.now(),
     ) {

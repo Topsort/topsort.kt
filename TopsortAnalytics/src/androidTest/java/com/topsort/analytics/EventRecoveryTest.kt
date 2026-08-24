@@ -145,4 +145,57 @@ class EventRecoveryTest {
 
         assertThat(fake.impressionsSent).hasSize(1)
     }
+
+    /**
+     * A timestamp that will not parse means the age is unknown, not that the record is junk.
+     * `occurredAt` is carried as a string all the way to the wire - only the sweep's age check
+     * parses it - so the event is still perfectly deliverable and must still be delivered.
+     *
+     * Regression: that parse used to throw, the sweep treated it as an unreadable record and
+     * skipped it, and nothing removed it - so the event was never sent and never pruned.
+     */
+    @Test
+    fun an_undelivered_event_with_an_unparseable_timestamp_is_still_resent() {
+        setUpWith()
+        reportImpression("bid-unparseable-timestamp")
+        val recordId = Cache.cachedRecordIds().single()
+        EventPipelineHarness.corruptOccurredAt(recordId, "not-a-timestamp")
+
+        loseScheduledWork()
+        Analytics.setup(
+            EventPipelineHarness.application,
+            EventPipelineHarness.OPAQUE_USER_ID,
+            EventPipelineHarness.TOKEN,
+        )
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.impressionsSent).hasSize(1)
+        assertThat(fake.impressionsSent.single().impressions.single().occurredAt)
+            .isEqualTo("not-a-timestamp")
+        assertThat(Cache.cachedRecordIds()).doesNotContain(recordId)
+    }
+
+    /**
+     * A record whose event type cannot be determined can never be sent, so leaving it in place
+     * would mean re-reading and re-decrypting it on every sweep forever. It is pruned instead.
+     */
+    @Test
+    fun a_cached_record_that_cannot_be_interpreted_is_pruned_rather_than_swept_forever() {
+        setUpWith()
+        EventPipelineHarness.plantRawRecord(
+            recordId = 701,
+            json = """{"somethingElse":[{"occurredAt":"2026-08-20T10:00:00.000Z"}]}""",
+        )
+
+        loseScheduledWork()
+        Analytics.setup(
+            EventPipelineHarness.application,
+            EventPipelineHarness.OPAQUE_USER_ID,
+            EventPipelineHarness.TOKEN,
+        )
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.sent).isEmpty()
+        assertThat(Cache.cachedRecordIds()).doesNotContain(701L)
+    }
 }

@@ -276,14 +276,28 @@ internal object Cache {
             return emptyList()
         }
 
-        return ids.mapNotNull { recordId ->
-            try {
+        val records = mutableListOf<PendingRecord>()
+        val uninterpretable = mutableListOf<Long>()
+        ids.forEach { recordId ->
+            val record = try {
                 parseRecord(recordId)
             } catch (e: Exception) {
-                Log.e(TAG, "Skipping unreadable cached record $recordId", e)
+                Log.e(TAG, "Cached record $recordId cannot be read", e)
                 null
             }
+            if (record != null) records += record else uninterpretable += recordId
         }
+
+        // A record whose event type cannot be determined can never be sent - nothing knows which
+        // endpoint it belongs to. Skipping it without removing it would leave it to be re-read and
+        // re-decrypted by every sweep for the lifetime of the install. This is the same call the
+        // worker makes when a cached body will not parse back into an event.
+        if (uninterpretable.isNotEmpty()) {
+            Log.w(TAG, "Discarding ${uninterpretable.size} uninterpretable cached record(s)")
+            deleteEvents(uninterpretable)
+        }
+
+        return records
     }
 
     /**
@@ -295,14 +309,35 @@ internal object Cache {
         val obj = JSONObject(json)
         val key = EVENT_TYPE_BY_JSON_KEY.keys.firstOrNull { obj.has(it) } ?: return null
 
-        val events = obj.getJSONArray(key)
-        val occurredAt = events.takeIf { it.length() > 0 }
-            ?.getJSONObject(0)
+        return PendingRecord(
+            recordId,
+            EVENT_TYPE_BY_JSON_KEY.getValue(key),
+            parseOccurredAt(obj, key),
+        )
+    }
+
+    /**
+     * When the record's first event occurred, or null when that cannot be determined.
+     *
+     * A timestamp that will not parse is an unknown age, not an undeliverable record. The sweep
+     * keeps records of unknown age rather than discarding them, so failing soft here is what makes
+     * "dropping data on a parsing quirk is worse than sending it late" actually hold - throwing
+     * would instead strand the record: skipped by the sweep, and so never sent and never pruned.
+     */
+    private fun parseOccurredAt(obj: JSONObject, key: String): DateTime? {
+        val raw = obj.optJSONArray(key)
+            ?.takeIf { it.length() > 0 }
+            ?.optJSONObject(0)
             ?.optString("occurredAt")
             ?.takeIf { it.isNotEmpty() }
-            ?.let { ISODateTimeFormat.dateTimeParser().parseDateTime(it) }
+            ?: return null
 
-        return PendingRecord(recordId, EVENT_TYPE_BY_JSON_KEY.getValue(key), occurredAt)
+        return try {
+            ISODateTimeFormat.dateTimeParser().parseDateTime(raw)
+        } catch (e: IllegalArgumentException) {
+            Log.w(TAG, "Cached record has an unparseable occurredAt; treating its age as unknown", e)
+            null
+        }
     }
 
     /**
