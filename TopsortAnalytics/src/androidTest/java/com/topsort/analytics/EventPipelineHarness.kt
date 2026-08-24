@@ -17,6 +17,7 @@ import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import com.topsort.analytics.worker.EventEmitterWorker
+import java.util.UUID
 
 /**
  * Shared instrumentation for exercising the event pipeline: Analytics -> Cache -> WorkManager ->
@@ -43,6 +44,9 @@ internal object EventPipelineHarness {
     val context: Context get() = application
 
     private var installed = false
+
+    /** Bound on [runPendingEventWork]'s drain loop, so a stuck chain fails instead of hanging. */
+    private const val MAX_DRAIN_PASSES = 20
 
     /**
      * Puts the pipeline into a known state: synchronous WorkManager, scripted HTTP, empty cache.
@@ -90,15 +94,41 @@ internal object EventPipelineHarness {
         workManager().getWorkInfosByTag(EventEmitterWorker.WORK_NAME).get()
 
     /**
-     * Releases the network constraint on any pending event work so it executes inline. Event
-     * requests are enqueued with [androidx.work.NetworkType.CONNECTED], which a test WorkManager
-     * never satisfies on its own.
+     * Releases the network constraint on pending event work so it executes inline, draining until
+     * there is nothing left to release. Event requests are enqueued with
+     * [androidx.work.NetworkType.CONNECTED], which a test WorkManager never satisfies on its own.
+     *
+     * Draining in a loop rather than in one pass is load-bearing. Events enqueued onto a shared
+     * chain leave only the head-most node ENQUEUED; the next leaves BLOCKED only while its
+     * predecessor runs, which is after a single pass has already taken its snapshot. Releasing once
+     * would deliver one event and silently strand the rest, and the resulting short delivery reads
+     * as the pipeline dropping events rather than as the harness not having released them.
+     *
+     * Each work unit is released at most once per call, which is what separates "this only just
+     * became releasable" from "this ran and asked to be retried". A chain successor is a different
+     * work id and so still gets released; a unit that returned Result.retry() keeps the same id and
+     * is deliberately left pending, because re-driving it here would silently convert a transient
+     * failure into however many attempts the loop had passes for.
+     *
+     * Absence of a driver is an error rather than a no-op: it means [install] did not run, and
+     * every "was not delivered" assertion downstream would otherwise pass for the wrong reason.
      */
     fun runPendingEventWork() {
-        val driver = WorkManagerTestInitHelper.getTestDriver(context) ?: return
-        eventWork()
-            .filter { it.state == WorkInfo.State.ENQUEUED }
-            .forEach { driver.setAllConstraintsMet(it.id) }
+        val driver = requireNotNull(WorkManagerTestInitHelper.getTestDriver(context)) {
+            "No TestDriver - install() did not initialise a test WorkManager"
+        }
+        val released = mutableSetOf<UUID>()
+        repeat(MAX_DRAIN_PASSES) {
+            // Re-query every pass: releasing one node is what lets the next leave BLOCKED.
+            val pending = eventWork()
+                .filter { it.state == WorkInfo.State.ENQUEUED && it.id !in released }
+            if (pending.isEmpty()) return
+            pending.forEach {
+                released += it.id
+                driver.setAllConstraintsMet(it.id)
+            }
+        }
+        error("Event work was still pending after $MAX_DRAIN_PASSES drain passes")
     }
 
 }

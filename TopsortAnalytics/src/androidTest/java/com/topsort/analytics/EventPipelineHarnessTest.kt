@@ -61,6 +61,30 @@ class EventPipelineHarnessTest {
         assertThat(fake.impressionsSent).hasSize(1)
     }
 
+    /**
+     * The drain has to keep going while work is still becoming releasable, not release whatever
+     * happened to be ENQUEUED when it was called.
+     *
+     * Regression: a single release pass delivered exactly one of these two events. Events share a
+     * work chain here, so the second was BLOCKED at snapshot time and left stranded - which in a
+     * delivery test would have looked like the pipeline dropping an event.
+     */
+    @Test
+    fun releasing_constraints_drains_every_pending_event() {
+        Analytics.reportImpressionPromoted(
+            resolvedBidId = "bid-4",
+            placement = Placement(path = "/harness"),
+        )
+        Analytics.reportImpressionPromoted(
+            resolvedBidId = "bid-5",
+            placement = Placement(path = "/harness"),
+        )
+
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.impressionsSent).hasSize(2)
+    }
+
     @Test
     fun a_scripted_four_hundred_makes_the_event_work_fail() {
         fake.scriptNext(FakeAnalyticsHttpService.BAD_REQUEST_CODE)
