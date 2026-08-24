@@ -3,6 +3,7 @@ package com.topsort.analytics
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
+import androidx.annotation.VisibleForTesting
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
@@ -177,6 +178,19 @@ internal object Cache {
 
     fun readPageView(recordId: Long): PageViewEvent? {
         return PageViewEvent.fromJson(readEvent(recordId))
+    }
+
+    /**
+     * Drops every cached record and the stored session identity, in memory as well as on disk.
+     * Clearing only the preferences would leave stale values behind for a caller that does not
+     * re-initialize, so the in-memory fields are reset too. Test-only.
+     */
+    @VisibleForTesting
+    fun clearForTests() {
+        preferences.edit().clear().commit()
+        recentRecordId = 0
+        token = ""
+        opaqueUserId = ""
     }
 
     fun deleteEvent(recordId: Long) {
