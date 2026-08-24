@@ -11,8 +11,40 @@ plugins {
     alias(libs.plugins.dokka)
 }
 
+// The User-Agent must report the version we actually publish. Generating it from VERSION_NAME
+// keeps them from drifting; the hand-maintained constant had been stuck at 1.0 across every
+// release. Generated rather than exposed through BuildConfig so it stays internal and out of the
+// published ABI.
+def libraryVersionSrcDir = layout.buildDirectory.dir("generated/libraryVersion")
+
+def generateLibraryVersion = tasks.register("generateLibraryVersion") {
+    def outputDir = libraryVersionSrcDir
+    def libraryVersion = VERSION_NAME
+    inputs.property("libraryVersion", libraryVersion)
+    outputs.dir(outputDir)
+    doLast {
+        def packageDir = new File(outputDir.get().asFile, "com/topsort/analytics/core")
+        packageDir.mkdirs()
+        new File(packageDir, "LibraryVersion.kt").text =
+            "// Generated from VERSION_NAME in gradle.properties. Do not edit.\n" +
+            "package com.topsort.analytics.core\n" +
+            "\n" +
+            "internal const val LIBRARY_VERSION: String = \"" + libraryVersion + "\"\n"
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(generateLibraryVersion)
+}
+
 android {
     namespace 'com.topsort.analytics'
+
+    sourceSets {
+        main {
+            java.srcDir(libraryVersionSrcDir)
+        }
+    }
     compileSdk 36
 
     defaultConfig {
