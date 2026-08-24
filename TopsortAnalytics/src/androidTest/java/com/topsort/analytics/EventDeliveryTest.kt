@@ -151,4 +151,37 @@ class EventDeliveryTest {
         assertThat(fake.impressionsSent).hasSize(1)
         assertThat(Cache.cachedRecordIds()).isNotEmpty()
     }
+
+    /**
+     * A record id is reused if the cache's counter is ever reset while the WorkManager database
+     * still holds the terminated work unit from the previous owner of that id - so the same unique
+     * work name is enqueued twice, the second time while a FAILED entry under that name exists.
+     *
+     * This pins the WorkManager semantics the per-record fix depends on: KEEP only keeps work that
+     * is *pending*. FAILED and CANCELLED are finished states, so the new request is inserted rather
+     * than silently dropped. If that ever stopped being true, every reused id would go dark and
+     * nothing else in the suite would notice.
+     */
+    @Test
+    fun a_work_name_reused_after_a_failed_send_still_delivers() {
+        setUpWith()
+        fake.scriptNext(FakeAnalyticsHttpService.BAD_REQUEST_CODE)
+
+        reportImpression("bid-rejected")
+        val reusedRecordId = Cache.cachedRecordIds().single()
+        EventPipelineHarness.runPendingEventWork()
+        assertThat(EventPipelineHarness.eventWork().map { it.state })
+            .contains(WorkInfo.State.FAILED)
+
+        // Reset the counter so the next event lands on the same record id, and so on the same
+        // unique work name, while that FAILED work unit is still in the database.
+        Cache.clearForTests()
+        reportImpression("bid-reusing-the-id")
+        assertThat(Cache.cachedRecordIds()).containsExactly(reusedRecordId)
+
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.impressionsSent).hasSize(2)
+        assertThat(Cache.cachedRecordIds()).isEmpty()
+    }
 }
