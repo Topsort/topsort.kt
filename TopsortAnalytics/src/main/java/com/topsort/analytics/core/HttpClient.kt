@@ -10,7 +10,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.zip.GZIPOutputStream
 
-internal const val LIBRARY_VERSION = 1.0
+// LIBRARY_VERSION is generated from VERSION_NAME - see the generateLibraryVersion task.
 
 internal data class HttpResponse(
     val code : Int,
