@@ -2,6 +2,7 @@ package com.topsort.analytics
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkInfo
+import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -183,5 +184,31 @@ class EventDeliveryTest {
 
         assertThat(fake.impressionsSent).hasSize(2)
         assertThat(Cache.cachedRecordIds()).isEmpty()
+    }
+
+    /**
+     * The batch entry point takes events the caller assembled themselves, through public factories
+     * that do not validate the id, so it bypasses the per-call resolution the convenience methods
+     * get. A blank arriving that way is the same guaranteed 400 this fix exists to prevent.
+     */
+    @Test
+    fun a_batched_impression_with_a_blank_opaque_user_id_is_still_sent_with_the_session_id() {
+        setUpWith()
+
+        Analytics.reportImpressions(
+            listOf(
+                Impression.Factory.buildPromoted(
+                    resolvedBidId = "bid-batched",
+                    placement = Placement(path = "/delivery"),
+                    occurredAt = "2026-08-25T00:00:00.000Z",
+                    opaqueUserId = "",
+                    id = "batched-1",
+                )
+            )
+        )
+        EventPipelineHarness.runPendingEventWork()
+
+        val sent = fake.impressionsSent.single().impressions.single()
+        assertThat(sent.opaqueUserId).isEqualTo(EventPipelineHarness.OPAQUE_USER_ID)
     }
 }

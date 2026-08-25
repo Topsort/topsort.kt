@@ -36,7 +36,6 @@ import org.joda.time.format.ISODateTimeFormat
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
 
-
 object Analytics : TopsortAnalytics {
 
     private var applicationContext: Context? = null
@@ -76,7 +75,6 @@ object Analytics : TopsortAnalytics {
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
         )
-
     }
 
     override fun reportImpressionPromoted(
@@ -283,12 +281,26 @@ object Analytics : TopsortAnalytics {
         opaqueUserId?.takeIf { it.isNotBlank() } ?: session!!.opaqueUserId
 
     /**
+     * The batch entry points take events the caller built themselves, through public factories that
+     * do not validate the id. Sanitising here rather than at each factory keeps the invariant at the
+     * one choke point every event passes through on its way into the cache: nothing reaches the wire
+     * with a blank opaqueUserId, whichever entry point it came in by.
+     */
+    private fun Impression.withResolvedOpaqueUserId(): Impression =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
+
+    private fun Click.withResolvedOpaqueUserId(): Click =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
+
+    /**
      * Schedules a work and enqueues it, the work manager will execute this work based on the
      * work configuration provided!
      */
     private fun enqueueEventRequest(
         recordId: Long,
-        eventType: EventType,
+        eventType: EventType
     ) {
         val data = Data.Builder()
             .putLong(EventEmitterWorker.EXTRA_RECORD_ID, recordId)
@@ -307,7 +319,6 @@ object Analytics : TopsortAnalytics {
             // Tagged so all event work stays queryable as a group, independently of how it is
             // scheduled. Useful for diagnostics and for tests.
             .addTag(EventEmitterWorker.WORK_NAME)
-
 
         val wm = workManager ?: run {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
@@ -346,7 +357,7 @@ object Analytics : TopsortAnalytics {
         }
 
         val impressionEvent = ImpressionEvent(
-            impressions = impressions,
+            impressions = impressions.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
@@ -362,7 +373,7 @@ object Analytics : TopsortAnalytics {
         }
 
         val clickEvent = ClickEvent(
-            clicks = clicks
+            clicks = clicks.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeClick(clickEvent)

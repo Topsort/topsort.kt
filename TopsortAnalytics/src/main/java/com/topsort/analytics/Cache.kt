@@ -23,12 +23,17 @@ private const val KEY_RECORD = "KEY_RECORD_%d"
 private const val KEY_RECORD_PREFIX = "KEY_RECORD_"
 private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
 
-
 private const val TAG = "TopsortCache"
 
 internal object Cache {
 
+    @Volatile
     private lateinit var applicationContext: Context
+
+    // Volatile because initialize() reassigns these from WorkManager threads while other threads
+    // read them. Per-record work units run in parallel, so there is no longer a single-worker
+    // invariant making that safe.
+    @Volatile
     private lateinit var preferences: SharedPreferences
 
     private var recentRecordId: Long = 0
@@ -42,6 +47,18 @@ internal object Cache {
 
     private var opaqueUserId: String = ""
 
+    /**
+     * Synchronized for the same reason [setup] and [storeEvent] are, and it matters more than it
+     * looks: this is the one mutator reached from WorkManager threads, via EventEmitterWorker's
+     * init block. Under the old shared work chain at most one worker existed at a time, so an
+     * unguarded initialize() could not interleave with anything. Per-record work units remove that
+     * accident, and without the monitor a worker re-reading identity from disk can land in the
+     * middle of a setup() that has already decided a different one, leaving the in-memory id blank
+     * while disk holds the real one.
+     *
+     * Reentrant, so setup() calling this while holding the monitor is fine.
+     */
+    @Synchronized
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
         preferences = createEncryptedPreferences(applicationContext)

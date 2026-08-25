@@ -20,7 +20,7 @@ class EventPipelineHarnessTest {
     private lateinit var fake: FakeAnalyticsHttpService
 
     @Before
-    fun set_up() {
+    fun setUp() {
         fake = EventPipelineHarness.install()
         Analytics.setup(
             EventPipelineHarness.application,
