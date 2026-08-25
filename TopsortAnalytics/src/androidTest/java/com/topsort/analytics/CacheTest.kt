@@ -1,9 +1,10 @@
 package com.topsort.analytics
 
-import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.json.JSONException
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -26,16 +27,7 @@ class CacheTest {
 
     @After
     fun cleanup() {
-        // Clear SharedPreferences to ensure test isolation.
-        // Does not reset Cache.recentRecordId; tests should not rely on absolute ID values.
-        context.getSharedPreferences("TOPSORT_EVENTS_CACHE", Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .commit()
-        context.getSharedPreferences("TOPSORT_EVENTS_CACHE_ENCRYPTED", Context.MODE_PRIVATE)
-            .edit()
-            .clear()
-            .commit()
+        Cache.clearForTests()
     }
 
     // ==================== Token and session storage tests ====================
@@ -249,13 +241,23 @@ class CacheTest {
         assertThat(setOf(impressionId, clickId, purchaseId, pageViewId)).hasSize(4)
     }
 
-    @Test(expected = Exception::class)
-    fun reading_wrong_event_type_throws() {
+    /**
+     * The thrown type is load-bearing, not incidental: JSONException specifically is what
+     * EventEmitterWorker.doWork() catches, to prune the record and report success. Any other type
+     * escapes that catch, propagates out of doWork(), and WorkManager marks the unit FAILED - a
+     * materially different outcome. This is the only executable statement of that contract.
+     *
+     * Scoped to the read rather than annotated on the method, so a throw from storeImpression
+     * cannot satisfy it.
+     */
+    @Test
+    fun reading_wrong_event_type_throws_json_exception() {
         val impression = getTestImpressionEvent()
         val recordId = Cache.storeImpression(impression)
 
-        // Reading as click throws because JSON has "impressions" not "clicks"
-        Cache.readClick(recordId)
+        // Reading as click throws because the JSON has "impressions", not "clicks".
+        assertThatThrownBy { Cache.readClick(recordId) }
+            .isInstanceOf(JSONException::class.java)
     }
 
     // ==================== Persistence tests ====================

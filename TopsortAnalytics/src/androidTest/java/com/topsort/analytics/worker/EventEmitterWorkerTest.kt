@@ -40,6 +40,11 @@ class EventEmitterWorkerTest {
     @After
     fun teardown() {
         TopsortAnalyticsHttpService.resetToDefaultService()
+        // The 5xx and exception tests deliberately leave their record cached - that is the
+        // assertion. Without this the class finishes having written undelivered records and an
+        // advanced id counter into the real store, and the next class either happens to clear it
+        // or happens not to care. Isolation by coincidence, and it breaks order-dependently.
+        Cache.clearForTests()
     }
 
     // ==================== Invalid input tests ====================
@@ -55,6 +60,12 @@ class EventEmitterWorkerTest {
         val result = worker.doWork()
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Asserts nothing was sent. Note this does NOT pin the recordId < 0 clause of the input
+        // guard: with a negative id, removing that clause just falls through to the record-absent
+        // branch, which also sends nothing and also returns success. Verified by deleting the
+        // clause - this test still passes. The clause is defensive and unobservable from here; what
+        // this test does pin is that a negative id never reaches the wire.
+        assertThat(mockService.lastMethod).isNull()
     }
 
     @Test
@@ -148,6 +159,10 @@ class EventEmitterWorkerTest {
         val result = worker.doWork()
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Not just "returned success" - success has five sources in doWork() (input guard,
+        // age cap, record absent, unparseable body, real send). Without this the test passes
+        // whichever one fired, including a genuine delivery.
+        assertThat(mockService.lastMethod).isNull()
     }
 
     // ==================== Click tests ====================
@@ -204,6 +219,10 @@ class EventEmitterWorkerTest {
         val result = worker.doWork()
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Not just "returned success" - success has five sources in doWork() (input guard,
+        // age cap, record absent, unparseable body, real send). Without this the test passes
+        // whichever one fired, including a genuine delivery.
+        assertThat(mockService.lastMethod).isNull()
     }
 
     // ==================== Purchase tests ====================
@@ -260,6 +279,10 @@ class EventEmitterWorkerTest {
         val result = worker.doWork()
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Not just "returned success" - success has five sources in doWork() (input guard,
+        // age cap, record absent, unparseable body, real send). Without this the test passes
+        // whichever one fired, including a genuine delivery.
+        assertThat(mockService.lastMethod).isNull()
     }
 
     // ==================== PageView tests ====================
@@ -316,6 +339,10 @@ class EventEmitterWorkerTest {
         val result = worker.doWork()
 
         assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Not just "returned success" - success has five sources in doWork() (input guard,
+        // age cap, record absent, unparseable body, real send). Without this the test passes
+        // whichever one fired, including a genuine delivery.
+        assertThat(mockService.lastMethod).isNull()
     }
 
     // ==================== Exception handling tests ====================

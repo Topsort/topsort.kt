@@ -107,15 +107,15 @@ private fun getTestPlacement(): Placement {
 
 // Event wrappers for Cache tests
 
-fun getTestImpressionEvent(): ImpressionEvent {
+internal fun getTestImpressionEvent(): ImpressionEvent {
     return ImpressionEvent(impressions = listOf(getImpressionPromoted()))
 }
 
-fun getTestClickEvent(): ClickEvent {
+internal fun getTestClickEvent(): ClickEvent {
     return ClickEvent(clicks = listOf(getClickPromoted()))
 }
 
-fun getTestPurchaseEvent(): PurchaseEvent {
+internal fun getTestPurchaseEvent(): PurchaseEvent {
     return PurchaseEvent(purchases = listOf(getRandomPurchase()))
 }
 
