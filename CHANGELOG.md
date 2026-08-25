@@ -1,5 +1,42 @@
 # Changelog
 
+## [3.0.0](https://github.com/Topsort/topsort.kt/compare/v2.0.1...v3.0.0) (2026-08-25)
+
+
+### ⚠ BREAKING CHANGES
+
+**No source migration is required to upgrade from 2.0.1.** This is a major release because
+public signatures changed shape, not because an API you were using behaves differently.
+
+* **A recompile is required.** The reporting methods (`reportImpressionPromoted`,
+  `reportClickPromoted`, `reportImpressionOrganic`, `reportClickOrganic`, `reportPurchase`)
+  and the `Click`, `Impression`, `Purchase` and `Auction` types gained new optional
+  parameters. They are *appended*, so existing Kotlin call sites compile unchanged, whether
+  they pass arguments positionally or by name. Binary compatibility is broken though: code
+  compiled against 2.0.1 and not rebuilt will fail with `NoSuchMethodError`.
+* **Java callers must pass the new arguments explicitly**, because Kotlin default arguments
+  do not generate Java overloads.
+* `deviceType`, `channel` and `clickType` are enums (`DeviceType`, `Channel`, `ClickType`)
+  rather than `String`. These fields were added after 2.0.1 and never shipped as `String` in
+  any release, so there is nothing to migrate.
+
+### Features
+
+* add auction enhancements (placementId, qualityScores, opaqueUserId) ([#120](https://github.com/Topsort/topsort.kt/issues/120)) ([b27faf2](https://github.com/Topsort/topsort.kt/commit/b27faf297e4029b7d9329e3117c7b075fb1e42dd))
+* add enhanced event context fields ([#116](https://github.com/Topsort/topsort.kt/issues/116)) ([0c570fe](https://github.com/Topsort/topsort.kt/commit/0c570fef8aa230f2ceec2decbda9f1787f15c5c1))
+* add Page model and PageView event tracking ([#115](https://github.com/Topsort/topsort.kt/issues/115)) ([29044aa](https://github.com/Topsort/topsort.kt/commit/29044aa5b3818bba7085e79602bb8f3b7c28ba6f))
+* add response enhancements (campaignId, Asset.content) ([#122](https://github.com/Topsort/topsort.kt/issues/122)) ([457570f](https://github.com/Topsort/topsort.kt/commit/457570f823154bd5fdd4e02598a3b9447fbb9d89))
+
+
+### Bug Fixes
+
+* bound the event-type ordinal in EventEmitterWorker, with instrumented Cache and worker tests ([#124](https://github.com/Topsort/topsort.kt/issues/124)) ([d6b7de1](https://github.com/Topsort/topsort.kt/commit/d6b7de14c04b1d9c174594a704cb55697e976e70))
+* give each event its own work unit so one failure can't silence the pipeline ([#159](https://github.com/Topsort/topsort.kt/issues/159)) ([417984b](https://github.com/Topsort/topsort.kt/commit/417984b8ce9eb948fcb3f51d75142f675a4a265b))
+* handle explicit JSON null in getStringOrNull, getIntOrNull, getStringListOrNull ([#113](https://github.com/Topsort/topsort.kt/issues/113)) ([b6deb3f](https://github.com/Topsort/topsort.kt/commit/b6deb3f96c0b9faa8b40ec5f3614b8f890283531))
+* make release-please actually bump the published version ([#162](https://github.com/Topsort/topsort.kt/issues/162)) ([7a29394](https://github.com/Topsort/topsort.kt/commit/7a29394c02ed240621dd30dc89e11393f172c7e7))
+* recover events that were cached but never delivered ([#161](https://github.com/Topsort/topsort.kt/issues/161)) ([163d1bc](https://github.com/Topsort/topsort.kt/commit/163d1bc77f54c1360941f0af300919547f7a206e))
+* report the real SDK version in the User-Agent ([#160](https://github.com/Topsort/topsort.kt/issues/160)) ([7bd520f](https://github.com/Topsort/topsort.kt/commit/7bd520f5170335b99f0e6eeaf72bd04f59b0f453))
+
 ## [2.0.1](https://github.com/Topsort/topsort.kt/compare/v2.0.0...v2.0.1) (2026-03-09)
 
 
