@@ -42,9 +42,11 @@ internal object Cache {
      * Bearer token in effect. Persisted by [setup] rather than on assignment, so it is written in
      * the same editor as the opaque user id.
      */
+    @Volatile
     var token: String = ""
         private set
 
+    @Volatile
     private var opaqueUserId: String = ""
 
     /**
@@ -60,6 +62,15 @@ internal object Cache {
      */
     @Synchronized
     fun initialize(context: Context) {
+        // Once per process. Without this guard every worker construction re-runs
+        // MasterKeys.getOrCreate + EncryptedSharedPreferences.create + the migration check while
+        // holding the monitor that storeEvent also needs - and storeEvent is reached from
+        // report*() on the host's UI thread. Per-record work units mean several workers can be
+        // constructed at once, so a burst serialised that keystore cost in front of the UI thread.
+        // Under the old shared chain only one worker existed at a time and initialize took no lock,
+        // so the cost was never on anyone's critical path.
+        if (::preferences.isInitialized) return
+
         applicationContext = context.applicationContext
         preferences = createEncryptedPreferences(applicationContext)
 
