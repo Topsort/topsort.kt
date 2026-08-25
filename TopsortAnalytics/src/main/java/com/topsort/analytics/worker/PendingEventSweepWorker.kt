@@ -75,7 +75,7 @@ internal class PendingEventSweepWorker(
 
         Log.i(TAG, "Re-enqueueing ${candidates.size} undelivered cached event(s)")
         candidates.forEach {
-            EventEmitterWorker.enqueue(workManager, it.recordId, it.eventType, it.occurredAt)
+            EventEmitterWorker.enqueue(workManager, it.recordId, it.eventType)
         }
     }
 

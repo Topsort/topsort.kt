@@ -14,8 +14,6 @@ import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.json.JSONObject
 import java.util.Locale
 
@@ -35,13 +33,22 @@ private val EVENT_TYPE_BY_JSON_KEY = mapOf(
     "purchases" to EventType.Purchase,
     "pageviews" to EventType.PageView,
 )
+/**
+ * Upper bound on undelivered records held on disk.
+ *
+ * Sized from measurement rather than taste: enumerating the cache decrypts every record, at roughly
+ * 0.33ms per record on a mid-range device, so 5000 keeps a sweep's read under ~1.7s in the worst
+ * case while sitting far above any healthy install. See INTE-2694 for removing the decryption cost
+ * itself, after which this could go up.
+ */
+private const val MAX_CACHED_RECORDS = 5_000
+
 private const val TAG = "TopsortCache"
 
 /** An event sitting in the cache that has not been delivered. */
 internal data class PendingRecord(
     val recordId: Long,
     val eventType: EventType,
-    val occurredAt: DateTime?,
 )
 
 internal object Cache {
@@ -275,12 +282,37 @@ internal object Cache {
      * it disables recovery for the whole install. Tracked in INTE-2694 with the cost issue above.
      */
     @Suppress("TooGenericExceptionCaught")
-    fun pendingRecords(limit: Int): List<PendingRecord> {
-        val ids = try {
-            cachedRecordIds().take(limit)
+    fun pendingRecords(limit: Int): List<PendingRecord> =
+        pendingRecords(limit, MAX_CACHED_RECORDS)
+
+    /** [pendingRecords] with the capacity bound injected, so tests need not write MAX records. */
+    @VisibleForTesting
+    fun pendingRecordsForTest(limit: Int, capacity: Int): List<PendingRecord> =
+        pendingRecords(limit, capacity)
+
+    private fun pendingRecords(limit: Int, capacity: Int): List<PendingRecord> {
+        val all = try {
+            cachedRecordIds()
         } catch (e: Exception) {
             Log.e(TAG, "Could not enumerate cached records", e)
             return emptyList()
+        }
+
+        // Enforce the capacity bound off the enumeration we already paid for. Doing it as a
+        // separate call would double the cost of a sweep, and the enumeration - not the delete - is
+        // the expensive half: the delete is one editor and one commit however many records go.
+        //
+        // This is a resource bound, not a judgement about whether an event is still worth sending.
+        // The SDK cannot make that judgement: whether a late event still attributes depends on the
+        // marketplace's attribution window, and whether it is still billable depends on the
+        // campaign's charge type - a CPM impression is chargeable long after it can attribute.
+        // Both facts live server-side, so nothing is discarded here for being old.
+        val ids = if (all.size > capacity) {
+            val excess = all.take(all.size - capacity)
+            discardAll(excess, DiscardReason.CACHE_OVER_CAPACITY)
+            all.drop(excess.size).take(limit)
+        } else {
+            all.take(limit)
         }
 
         val records = mutableListOf<PendingRecord>()
@@ -312,35 +344,7 @@ internal object Cache {
         val json = readEvent(recordId) ?: return null
         val obj = JSONObject(json)
         val key = EVENT_TYPE_BY_JSON_KEY.keys.firstOrNull { obj.has(it) } ?: return null
-
-        return PendingRecord(
-            recordId,
-            EVENT_TYPE_BY_JSON_KEY.getValue(key),
-            parseOccurredAt(obj, key),
-        )
-    }
-
-    /**
-     * When the record's first event occurred, or null when that cannot be determined.
-     *
-     * A timestamp that will not parse is an unknown age, not an undeliverable record. The sweep
-     * keeps records of unknown age rather than discarding them, so failing soft here is what makes
-     * "dropping data on a parsing quirk is worse than sending it late" actually hold - throwing
-     * would instead strand the record: skipped by the sweep, and so never sent and never pruned.
-     */
-    private fun parseOccurredAt(obj: JSONObject, key: String): DateTime? {
-        val raw = obj.optJSONArray(key)
-            ?.takeIf { it.length() > 0 }
-            ?.optJSONObject(0)
-            ?.getStringOrNull("occurredAt")
-            ?: return null
-
-        return try {
-            ISODateTimeFormat.dateTimeParser().parseDateTime(raw)
-        } catch (e: IllegalArgumentException) {
-            Log.w(TAG, "Cached record has an unparseable occurredAt; treating its age as unknown", e)
-            null
-        }
+        return PendingRecord(recordId, EVENT_TYPE_BY_JSON_KEY.getValue(key))
     }
 
     /**
@@ -390,8 +394,8 @@ internal object Cache {
      * would make the discard count useless.
      */
     internal enum class DiscardReason {
-        /** Past MAX_EVENT_AGE_DAYS, measured from the work's age anchor. */
-        PAST_AGE_CAP,
+        /** Evicted to keep the cache under MAX_CACHED_RECORDS. */
+        CACHE_OVER_CAPACITY,
 
         /** The cached body will not parse back into an event, so nothing can ever send it. */
         UNPARSEABLE_BODY,

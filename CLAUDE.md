@@ -46,16 +46,15 @@ re-enqueues undelivered records — at most `MAX_RESEND_PER_SWEEP` per run, so a
 across several launches. The sweep runs on a WorkManager thread, never inline in `setup()`: reading
 the cache decrypts every record and pruning writes synchronously.
 
-`EventEmitterWorker` is the only place an age decision deletes a record. It prunes when the work's
-age anchor is past `MAX_EVENT_AGE_DAYS` — the anchor being enqueue time for a freshly reported
-event, and the record's own `occurredAt` for one the sweep recovered. The sweep does not prune by
-age itself: it cannot distinguish a record stranded for a week from one reported a moment ago with
-a deliberately backdated `occurredAt`, and pruning on that basis destroyed events that the delivery
-path would have sent. `KEEP` makes the sweep's re-enqueue a no-op for any record that already has
-work pending, so the record stays owned by whoever enqueued it first.
+Nothing is discarded for being old. Whether a late event still attributes depends on the
+marketplace's attribution window, and whether it is still billable depends on the campaign's charge
+type — a CPM impression is chargeable long after it can attribute — and both facts live server-side.
+The client's only bound is `MAX_CACHED_RECORDS`: when the cache exceeds it the oldest records are
+evicted, enforced off the enumeration the sweep already performs so it costs nothing extra. That is
+a resource decision, which this side can make correctly, rather than a billing one, which it cannot.
 
-The one record the sweep does delete is one whose event type cannot be determined — nothing knows
-which endpoint it belongs to, so it can never be sent by anyone.
+The sweep also deletes a record whose event type cannot be determined — nothing knows which
+endpoint it belongs to, so it can never be sent by anyone.
 
 Events are never enqueued onto a shared work chain. A chain couples unrelated events — work
 appended after a terminal failure never runs, which used to silence an install permanently after a

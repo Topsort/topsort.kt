@@ -17,7 +17,6 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
-import org.joda.time.DateTime
 import org.json.JSONException
 
 internal class EventEmitterWorker(
@@ -30,7 +29,6 @@ internal class EventEmitterWorker(
 
     private lateinit var eventType: EventType
     private var recordId = -1L
-    private var ageAnchorMillis = -1L
 
     init {
         Cache.initialize(context)
@@ -46,16 +44,6 @@ internal class EventEmitterWorker(
             }
 
             eventType = EventType.values()[eventTypeOrdinal]
-            ageAnchorMillis = getLong(EXTRA_AGE_ANCHOR_MILLIS, -1)
-        }
-
-        if (isPastAgeCap()) {
-            Cache.discard(
-                recordId,
-                Cache.DiscardReason.PAST_AGE_CAP,
-                "$eventType anchored at ${DateTime(ageAnchorMillis)}, cap is $MAX_EVENT_AGE_DAYS days",
-            )
-            return Result.success()
         }
 
         val sendResult = try {
@@ -78,22 +66,6 @@ internal class EventEmitterWorker(
             }
             SendResult.TRANSIENT_FAILURE -> Result.retry()
         }
-    }
-
-    /**
-     * Whether this event is too old to be worth sending.
-     *
-     * Checked here rather than in the sweep, because a work unit can sit in retry backoff or
-     * wait on connectivity for days. Without this, an event stranded that way still ships with its
-     * original backdated timestamp - most likely outside its attribution window.
-     *
-     * The anchor travels in the work's input data, so this costs no extra read of the cache. A
-     * freshly reported event anchors at the moment it was accepted for delivery; a record picked up
-     * by the sweep anchors at its own occurredAt, which is the more conservative of the two.
-     */
-    private fun isPastAgeCap(): Boolean {
-        if (ageAnchorMillis < 0) return false
-        return DateTime(ageAnchorMillis).isBefore(DateTime.now().minusDays(MAX_EVENT_AGE_DAYS))
     }
 
     private fun sendCachedEvent(): SendResult? = when (eventType) {
@@ -169,18 +141,6 @@ internal class EventEmitterWorker(
 
         const val EXTRA_RECORD_ID = "EXTRA_RECORD_ID"
         const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
-        const val EXTRA_AGE_ANCHOR_MILLIS = "EXTRA_AGE_ANCHOR_MILLIS"
-
-        /**
-         * How long delivery may keep being attempted, measured from the event's age anchor.
-         *
-         * This worker is the only place an age decision deletes a record. The sweep deliberately
-         * does not prune by age - it cannot tell a record stranded for a week from one reported a
-         * moment ago with a backdated occurredAt, and doing so destroyed events the delivery path
-         * would have sent.
-         */
-        const val MAX_EVENT_AGE_DAYS = 7
-
         const val WORK_NAME = "TopsortAnalyticsReporter"
 
         /**
@@ -195,20 +155,19 @@ internal class EventEmitterWorker(
          * naming the same work for the same record collapse to one unit rather than delivering
          * twice, and the events API does not de-duplicate on event id.
          *
-         * [ageAnchor] is when the clock starts for [MAX_EVENT_AGE_DAYS]. A freshly reported event
-         * anchors at now; a record the sweep recovered anchors at its own occurredAt, which is the
-         * more conservative of the two. Null means unknown age, which disables the cap.
+         * Nothing here decides whether an event is too old to send. That depends on the
+         * marketplace's attribution window and the campaign's charge type - a CPM impression is
+         * billable long after it can attribute - and both live server-side. The client's only
+         * bound is how much it can hold, which Cache enforces by capacity.
          */
         fun enqueue(
             workManager: WorkManager,
             recordId: Long,
             eventType: EventType,
-            ageAnchor: DateTime? = DateTime.now(),
         ) {
             val data = Data.Builder()
                 .putLong(EXTRA_RECORD_ID, recordId)
                 .putInt(EXTRA_EVENT_TYPE, eventType.ordinal)
-                .putLong(EXTRA_AGE_ANCHOR_MILLIS, ageAnchor?.millis ?: -1)
                 .build()
 
             val constraints = Constraints.Builder()

@@ -105,88 +105,6 @@ class EventRecoveryTest {
     }
 
     /**
-     * A stranded record keeps its original occurredAt, so flushing a long backlog after an app
-     * upgrade would deliver heavily backdated events. Anything past the cap is discarded instead.
-     */
-    @Test
-    fun an_undelivered_event_older_than_a_week_is_discarded_rather_than_sent() {
-        setUpWith()
-        val nineDaysAgo = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(9))
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "bid-stale",
-            placement = Placement(path = "/regression"),
-            occurredAt = nineDaysAgo,
-        )
-        assertThat(Cache.pendingRecords(limit = 100)).isNotEmpty()
-
-        // Strand the record. Without this the original work unit is still live and the assertion
-        // below passes because the worker no-ops on an already-deleted record, not because the age
-        // cap prevented a delivery.
-        loseScheduledWork()
-
-        Analytics.setup(
-            EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
-            EventPipelineHarness.TOKEN,
-        )
-        EventPipelineHarness.runPendingEventWork()
-
-        assertThat(fake.impressionsSent).isEmpty()
-        assertThat(Cache.pendingRecords(limit = 100)).isEmpty()
-    }
-
-    /** A record inside the cap is still recovered. */
-    @Test
-    fun an_undelivered_event_inside_the_cap_is_still_resent() {
-        setUpWith()
-        val twoDaysAgo = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(2))
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "bid-recent",
-            placement = Placement(path = "/regression"),
-            occurredAt = twoDaysAgo,
-        )
-        loseScheduledWork()
-
-        Analytics.setup(
-            EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
-            EventPipelineHarness.TOKEN,
-        )
-        EventPipelineHarness.runPendingEventWork()
-
-        assertThat(fake.impressionsSent).hasSize(1)
-    }
-
-    /**
-     * A timestamp that will not parse means the age is unknown, not that the record is junk.
-     * `occurredAt` is carried as a string all the way to the wire - only the sweep's age check
-     * parses it - so the event is still perfectly deliverable and must still be delivered.
-     *
-     * Regression: that parse used to throw, the sweep treated it as an unreadable record and
-     * skipped it, and nothing removed it - so the event was never sent and never pruned.
-     */
-    @Test
-    fun an_undelivered_event_with_an_unparseable_timestamp_is_still_resent() {
-        setUpWith()
-        reportImpression("bid-unparseable-timestamp")
-        val recordId = Cache.cachedRecordIds().single()
-        EventPipelineHarness.corruptOccurredAt(recordId, "not-a-timestamp")
-
-        loseScheduledWork()
-        Analytics.setup(
-            EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
-            EventPipelineHarness.TOKEN,
-        )
-        EventPipelineHarness.runPendingEventWork()
-
-        assertThat(fake.impressionsSent).hasSize(1)
-        assertThat(fake.impressionsSent.single().impressions.single().occurredAt)
-            .isEqualTo("not-a-timestamp")
-        assertThat(Cache.cachedRecordIds()).doesNotContain(recordId)
-    }
-
-    /**
      * A record whose event type cannot be determined can never be sent, so leaving it in place
      * would mean re-reading and re-decrypting it on every sweep forever. It is pruned instead.
      */
@@ -208,119 +126,6 @@ class EventRecoveryTest {
 
         assertThat(fake.sent).isEmpty()
         assertThat(Cache.cachedRecordIds()).doesNotContain(701L)
-    }
-
-    /**
-     * A record with unfinished delivery work is not stranded, so the sweep must leave it alone.
-     *
-     * Regression: an event reported with an explicit backdated occurredAt - a documented public
-     * parameter, and normal for backfilled order sync - was classified past the cap by the next
-     * sweep and destroyed while its own work unit was still pending. The same event was delivered
-     * when no sweep ran, so the loss was nondeterministic rather than a policy decision.
-     */
-    @Test
-    fun a_backdated_event_with_work_pending_is_not_swept_away() {
-        setUpWith()
-        val nineDaysAgo = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(9))
-
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "bid-backdated",
-            placement = Placement(path = "/recovery"),
-            occurredAt = nineDaysAgo,
-        )
-        val recordId = Cache.cachedRecordIds().single()
-
-        // setup() is documented as callable again; it schedules a sweep each time.
-        Analytics.setup(
-            EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
-            EventPipelineHarness.TOKEN,
-        )
-        EventPipelineHarness.runPendingEventWork()
-
-        assertThat(fake.impressionsSent).hasSize(1)
-        assertThat(Cache.cachedRecordIds()).doesNotContain(recordId)
-    }
-
-    /**
-     * The worker-side cap, driven directly rather than through the scheduler.
-     *
-     * The PR originally shipped this uncovered on the grounds that proving it needed time control
-     * or an injected anchor. The anchor is already injected - it travels in the work's input data -
-     * so the cost estimate was simply wrong, and this is the branch that deletes an event.
-     */
-    @Test
-    fun the_worker_discards_an_event_whose_age_anchor_is_past_the_cap() {
-        setUpWith()
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "bid-anchored",
-            placement = Placement(path = "/recovery"),
-        )
-        val recordId = Cache.cachedRecordIds().single()
-        fake.sent.clear()
-
-        val worker = TestWorkerBuilder<EventEmitterWorker>(
-            context = EventPipelineHarness.context,
-            executor = Executors.newSingleThreadExecutor(),
-            inputData = workDataOf(
-                EventEmitterWorker.EXTRA_RECORD_ID to recordId,
-                EventEmitterWorker.EXTRA_EVENT_TYPE to EventType.Impression.ordinal,
-                EventEmitterWorker.EXTRA_AGE_ANCHOR_MILLIS to
-                    DateTime.now().minusDays(EventEmitterWorker.MAX_EVENT_AGE_DAYS + 2).millis,
-            ),
-        ).build()
-
-        assertThat(worker.doWork()).isEqualTo(androidx.work.ListenableWorker.Result.success())
-        assertThat(fake.sent).isEmpty()
-        assertThat(Cache.cachedRecordIds()).doesNotContain(recordId)
-    }
-
-    /**
-     * The prune is a batch operation over a mixed set, and every other test here has exactly one
-     * record in the cache - so a bug that removed the wrong keys, or took a fresh record along with
-     * the stale ones, would pass all of them.
-     */
-    @Test
-    fun a_mixed_batch_prunes_only_the_records_that_should_go() {
-        setUpWith()
-        val old = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(9))
-
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "stale-1",
-            placement = Placement(path = "/recovery"),
-            occurredAt = old,
-        )
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "stale-2",
-            placement = Placement(path = "/recovery"),
-            occurredAt = old,
-        )
-        Analytics.reportImpressionPromoted(
-            resolvedBidId = "fresh",
-            placement = Placement(path = "/recovery"),
-        )
-        val ids = Cache.cachedRecordIds()
-        assertThat(ids).hasSize(3)
-        val freshId = ids.last()
-        EventPipelineHarness.plantRawRecord(
-            recordId = 9_000,
-            json = """{"somethingElse":[{"occurredAt":"$old"}]}""",
-        )
-
-        loseScheduledWork()
-        fake.sent.clear()
-        Analytics.setup(
-            EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
-            EventPipelineHarness.TOKEN,
-        )
-        EventPipelineHarness.runPendingEventWork()
-
-        // The two stale records and the uninterpretable one are gone; the fresh one was delivered.
-        assertThat(Cache.cachedRecordIds()).isEmpty()
-        assertThat(fake.impressionsSent).hasSize(1)
-        assertThat(fake.impressionsSent.single().impressions.single().resolvedBidId)
-            .isEqualTo("fresh")
     }
 
     /**
@@ -360,5 +165,61 @@ class EventRecoveryTest {
 
         assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get())
             .allMatch { it.state == WorkInfo.State.CANCELLED }
+    }
+
+    /**
+     * A backdated event is delivered, not discarded.
+     *
+     * The SDK has no basis for deciding an event is too old to send: whether it still attributes
+     * depends on the marketplace's attribution window, and whether it is still billable depends on
+     * the campaign's charge type - a CPM impression is chargeable long after it can attribute.
+     * Both live server-side. This replaces an age cap that deleted such events client-side.
+     */
+    @Test
+    fun a_long_backdated_event_is_still_delivered() {
+        setUpWith()
+        val longAgo = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(90))
+
+        Analytics.reportImpressionPromoted(
+            resolvedBidId = "bid-backdated",
+            placement = Placement(path = "/recovery"),
+            occurredAt = longAgo,
+        )
+        val recordId = Cache.cachedRecordIds().single()
+
+        loseScheduledWork()
+        Analytics.setup(
+            EventPipelineHarness.application,
+            EventPipelineHarness.OPAQUE_USER_ID,
+            EventPipelineHarness.TOKEN,
+        )
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.impressionsSent).hasSize(1)
+        assertThat(fake.impressionsSent.single().impressions.single().occurredAt).isEqualTo(longAgo)
+        assertThat(Cache.cachedRecordIds()).doesNotContain(recordId)
+    }
+
+    /**
+     * The only thing that evicts an undeliverable record now is capacity, and it takes the oldest
+     * first. Uses a lowered bound so the test does not have to write five thousand records.
+     */
+    @Test
+    fun a_cache_over_capacity_evicts_oldest_first() {
+        setUpWith()
+        repeat(12) { i ->
+            Analytics.reportImpressionPromoted(
+                resolvedBidId = "bid-$i",
+                placement = Placement(path = "/recovery"),
+            )
+        }
+        val all = Cache.cachedRecordIds()
+        assertThat(all).hasSize(12)
+
+        val kept = Cache.pendingRecordsForTest(limit = 100, capacity = 5)
+
+        // The five newest survive; the seven oldest are gone.
+        assertThat(Cache.cachedRecordIds()).isEqualTo(all.takeLast(5))
+        assertThat(kept.map { it.recordId }).isEqualTo(all.takeLast(5))
     }
 }
