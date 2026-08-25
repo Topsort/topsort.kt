@@ -66,8 +66,10 @@ class EventPipelineHarnessTest {
      * happened to be ENQUEUED when it was called.
      *
      * Regression: a single release pass delivered exactly one of these two events. Events share a
-     * work chain here, so the second was BLOCKED at snapshot time and left stranded - which in a
-     * delivery test would have looked like the pipeline dropping an event.
+     * work chain at this point in the stack, so the second was BLOCKED at snapshot time and left
+     * stranded - which in a delivery test would have looked like the pipeline dropping an event.
+     * Per-record work units remove the chain, after which one pass would suffice; this pins the
+     * harness against the shape it is written for.
      */
     @Test
     fun releasing_constraints_drains_every_pending_event() {

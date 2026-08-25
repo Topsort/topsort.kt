@@ -98,11 +98,13 @@ internal object EventPipelineHarness {
      * there is nothing left to release. Event requests are enqueued with
      * [androidx.work.NetworkType.CONNECTED], which a test WorkManager never satisfies on its own.
      *
-     * Draining in a loop rather than in one pass is load-bearing. Events enqueued onto a shared
-     * chain leave only the head-most node ENQUEUED; the next leaves BLOCKED only while its
-     * predecessor runs, which is after a single pass has already taken its snapshot. Releasing once
-     * would deliver one event and silently strand the rest, and the resulting short delivery reads
-     * as the pipeline dropping events rather than as the harness not having released them.
+     * The loop matters while events share a work chain, which is the state this harness is written
+     * against: a chain leaves only the head-most node ENQUEUED, and the next leaves BLOCKED only
+     * while its predecessor runs - after a single pass has already taken its snapshot. Once
+     * per-record work units replace the chain, every unit is independently ENQUEUED and one pass
+     * releases all of them, so the extra passes become no-ops. Kept because a single-pass drain
+     * fails silently rather than loudly: it delivers one event and strands the rest, which reads as
+     * the pipeline dropping events rather than as the harness not having released them.
      *
      * Each work unit is released at most once per call, which is what separates "this only just
      * became releasable" from "this ran and asked to be retried". A chain successor is a different
