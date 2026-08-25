@@ -9,10 +9,22 @@ on:
   # suppresses workflow triggers from that token to prevent recursive runs. Every release
   # so far has therefore tagged without publishing - v2.0.1 is tagged and absent from
   # Maven Central. Until release-please is given a PAT, this is how a release ships.
+  #
+  # `ref` should be the release tag, e.g. v3.0.0 - NOT a branch.
+  #
+  # Whatever ref is given here is what gets built, signed and uploaded, and the version it
+  # publishes under is VERSION_NAME in gradle.properties at that ref. Nothing downstream checks
+  # that the ref corresponds to a tag or to a release, so passing a branch publishes whatever
+  # happens to be on it at that moment, under whatever version that commit declares. Maven
+  # Central uploads cannot be withdrawn, so an accidental branch publish is permanent.
+  #
+  # 3.0.0 was published from `main` as a one-off: the v3.0.0 tag predated the fix in #166 that
+  # made the source jar buildable, so the tag itself could not be published. main and the tag
+  # were otherwise identical. Do not treat that as the pattern - pass the tag.
   workflow_dispatch:
     inputs:
       ref:
-        description: "Tag to publish, e.g. v3.0.0. Must be an existing tag."
+        description: "Release tag to publish, e.g. v3.0.0. Pass a tag, not a branch - see the note above the trigger."
         required: true
         type: string
 
