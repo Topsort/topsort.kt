@@ -228,6 +228,7 @@ internal object Cache {
      * re-initialize, so the in-memory fields are reset too. Test-only.
      */
     @VisibleForTesting
+    @Synchronized
     fun clearForTests() {
         preferences.edit().clear().commit()
         recentRecordId = 0
