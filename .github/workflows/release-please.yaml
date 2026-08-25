@@ -12,8 +12,35 @@ jobs:
   release-please:
     runs-on: ubuntu-22.04
 
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
     steps:
       - uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee  # v4
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # Publishing cannot hang off the release event: release-please creates releases with the default
+  # GITHUB_TOKEN, and GitHub suppresses workflow triggers from that token to stop workflows
+  # recursing. So every release until now tagged and then stopped - v2.0.1 sat tagged and absent
+  # from Maven Central for five months before anyone noticed.
+  #
+  # Chaining from this run avoids that without a PAT. This workflow is triggered by a push, which
+  # fires normally, so the publish is simply the next job.
+  #
+  # Gated on release_created rather than releases_created: this repository has a single root
+  # component, and release_created is the one that reports whether that component was released.
+  # Most pushes to main only refresh the release PR and create nothing, so this job is skipped.
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/publish-to-maven.yaml
+    with:
+      # The tag release-please just created. Passing this rather than a branch means the ref
+      # validation in the publish workflow is satisfied by construction, not by someone typing
+      # the right thing.
+      ref: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit
