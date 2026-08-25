@@ -284,6 +284,9 @@ object Analytics : TopsortAnalytics {
         val requestBuilder = OneTimeWorkRequestBuilder<EventEmitterWorker>()
             .setInputData(data)
             .setConstraints(constraints)
+            // Tagged so all event work stays queryable as a group, independently of how it is
+            // scheduled. Useful for diagnostics and for tests.
+            .addTag(EventEmitterWorker.WORK_NAME)
 
 
         val wm = workManager ?: run {
