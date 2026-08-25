@@ -9,7 +9,6 @@ import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.topsort.analytics.core.randomId
@@ -39,9 +38,31 @@ private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the app
 
 object Analytics : TopsortAnalytics {
 
+    // Volatile: setup() writes these from the host's thread while WorkManager threads and any
+    // caller of the public opaqueUserId getter read them. Without it a reader can miss the write
+    // and fall into the "setup was never called" path, or - worse - see session non-null in
+    // assertSetup() and null again at the session!! in resolveOpaqueUserId, which would throw out
+    // of public API. Same reason the cache's shared fields and the HTTP service instance are
+    // volatile; these were the ones left out.
+    @Volatile
     private var applicationContext: Context? = null
+
+    @Volatile
     private var workManager: WorkManager? = null
+
+    @Volatile
     private var session: Session? = null
+
+    /**
+     * The opaque user id currently in effect for reported events, or null before [setup] has run.
+     *
+     * This is not always the value passed to [setup]: a blank argument falls back to the last
+     * non-blank id, or to a generated placeholder when there is nothing to fall back on. Read this
+     * to reconcile reported events against your own records, and note that a placeholder will not
+     * audience-match - call [setup] again with your own identifier once it is available.
+     */
+    val opaqueUserId: String?
+        get() = session?.opaqueUserId
 
     /**
      * Setup initial properties required for the analytics library,
@@ -60,10 +81,10 @@ object Analytics : TopsortAnalytics {
     ) {
         applicationContext = application.applicationContext
         workManager = WorkManager.getInstance(applicationContext!!)
-        Cache.setup(application, opaqueUserId, token)
+        val resolvedOpaqueUserId = Cache.setup(application, opaqueUserId, token)
 
         session = Session(
-            opaqueUserId = opaqueUserId
+            opaqueUserId = resolvedOpaqueUserId
         )
     }
 
@@ -86,7 +107,7 @@ object Analytics : TopsortAnalytics {
             Impression.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
                 deviceType = deviceType,
@@ -117,7 +138,7 @@ object Analytics : TopsortAnalytics {
             Impression.Factory.buildOrganic(
                 entity = entity,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
                 deviceType = deviceType,
@@ -149,7 +170,7 @@ object Analytics : TopsortAnalytics {
             Click.Factory.buildPromoted(
                 resolvedBidId = resolvedBidId,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
                 deviceType = deviceType,
@@ -182,7 +203,7 @@ object Analytics : TopsortAnalytics {
             Click.Factory.buildOrganic(
                 entity = entity,
                 placement = placement,
-                opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
                 occurredAt = occurredAt ?: eventTime(),
                 deviceType = deviceType,
@@ -215,7 +236,7 @@ object Analytics : TopsortAnalytics {
                     id = id,
                     items = items,
                     occurredAt = occurredAt ?: eventTime(),
-                    opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                    opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                     deviceType = deviceType,
                     channel = channel,
                     page = page,
@@ -245,7 +266,7 @@ object Analytics : TopsortAnalytics {
                 PageView.Factory.build(
                     page = page,
                     occurredAt = occurredAt ?: eventTime(),
-                    opaqueUserId = opaqueUserId ?: session!!.opaqueUserId,
+                    opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                     id = id ?: randomId(),
                     deviceType = deviceType,
                     channel = channel,
@@ -261,6 +282,28 @@ object Analytics : TopsortAnalytics {
      * Returns ISO8601/RFC3339 formatted timestamp
      */
     private fun eventTime() = ISODateTimeFormat.dateTime().print(DateTime())
+
+    /**
+     * The opaque user id for a single reported event. A per-call value only overrides the session
+     * one when it is actually populated; a blank would be rejected by the API for a missing
+     * opaqueUserId, which is never what the caller meant.
+     */
+    private fun resolveOpaqueUserId(opaqueUserId: String?): String =
+        opaqueUserId?.takeIf { it.isNotBlank() } ?: session!!.opaqueUserId
+
+    /**
+     * The batch entry points take events the caller built themselves, through public factories that
+     * do not validate the id. Sanitising here rather than at each factory keeps the invariant at the
+     * one choke point every event passes through on its way into the cache: nothing reaches the wire
+     * with a blank opaqueUserId, whichever entry point it came in by.
+     */
+    private fun Impression.withResolvedOpaqueUserId(): Impression =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
+
+    private fun Click.withResolvedOpaqueUserId(): Click =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     /**
      * Schedules a work and enqueues it, the work manager will execute this work based on the
@@ -288,22 +331,26 @@ object Analytics : TopsortAnalytics {
             // scheduled. Useful for diagnostics and for tests.
             .addTag(EventEmitterWorker.WORK_NAME)
 
-
         val wm = workManager ?: run {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
             return
         }
 
-        val continuation = wm
-            .beginUniqueWork(
-                EventEmitterWorker.WORK_NAME,
-                ExistingWorkPolicy.APPEND,
-                OneTimeWorkRequest.Companion.from(EventEmitterWorker::class.java)
-            )
-
-        continuation
-            .then(requestBuilder.build())
-            .enqueue()
+        // One unique work name per record, rather than one shared chain for every event.
+        //
+        // A shared chain couples events that have nothing to do with each other: work appended
+        // after a chain has terminated is itself cancelled, so a single terminal failure used to
+        // silence an install permanently, and one event stuck in retry backoff held up every event
+        // behind it. Independent units also make enqueueing idempotent - KEEP means re-enqueueing a
+        // record that already has work pending is a no-op, so repeated setup() calls cannot deliver
+        // the same event twice.
+        //
+        // Events carry their own occurredAt, so delivery order does not matter.
+        wm.enqueueUniqueWork(
+            EventEmitterWorker.workNameFor(recordId),
+            ExistingWorkPolicy.KEEP,
+            requestBuilder.build(),
+        )
     }
 
     private fun assertSetup(): Boolean {
@@ -321,7 +368,7 @@ object Analytics : TopsortAnalytics {
         }
 
         val impressionEvent = ImpressionEvent(
-            impressions = impressions,
+            impressions = impressions.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
@@ -337,7 +384,7 @@ object Analytics : TopsortAnalytics {
         }
 
         val clickEvent = ClickEvent(
-            clicks = clicks
+            clicks = clicks.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeClick(clickEvent)

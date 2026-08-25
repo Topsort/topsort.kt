@@ -15,6 +15,8 @@ internal object TopsortAnalyticsHttpService {
 
     val httpClient: HttpClient = HttpClient("${ApiConstants.BASE_API_URL}${ApiConstants.EVENTS_ENDPOINT}")
 
+    // Volatile: written from tests, read from WorkManager threads.
+    @Volatile
     private var serviceInstance: Service = buildService()
 
     val service: Service

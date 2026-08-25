@@ -7,6 +7,7 @@ import androidx.annotation.VisibleForTesting
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
@@ -19,36 +20,57 @@ private const val ENCRYPTED_PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE_ENCRYPTED"
 private const val KEY_TOKEN = "KEY_TOKEN"
 private const val KEY_SESSION_ID = "KEY_SESSION_ID"
 private const val KEY_RECORD = "KEY_RECORD_%d"
+private const val KEY_RECORD_PREFIX = "KEY_RECORD_"
 private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
 
 private const val TAG = "TopsortCache"
 
 internal object Cache {
 
+    @Volatile
     private lateinit var applicationContext: Context
+
+    // Volatile because initialize() reassigns these from WorkManager threads while other threads
+    // read them. Per-record work units run in parallel, so there is no longer a single-worker
+    // invariant making that safe.
+    @Volatile
     private lateinit var preferences: SharedPreferences
 
     private var recentRecordId: Long = 0
 
+    /**
+     * Bearer token in effect. Persisted by [setup] rather than on assignment, so it is written in
+     * the same editor as the opaque user id.
+     */
+    @Volatile
     var token: String = ""
-        set(value) {
-            field = value
-            preferences
-                .edit()
-                .putString(KEY_TOKEN, value)
-                .apply()
-        }
+        private set
 
+    @Volatile
     private var opaqueUserId: String = ""
-        set(value) {
-            field = value
-            preferences
-                .edit()
-                .putString(KEY_SESSION_ID, value)
-                .apply()
-        }
 
+    /**
+     * Synchronized for the same reason [setup] and [storeEvent] are, and it matters more than it
+     * looks: this is the one mutator reached from WorkManager threads, via EventEmitterWorker's
+     * init block. Under the old shared work chain at most one worker existed at a time, so an
+     * unguarded initialize() could not interleave with anything. Per-record work units remove that
+     * accident, and without the monitor a worker re-reading identity from disk can land in the
+     * middle of a setup() that has already decided a different one, leaving the in-memory id blank
+     * while disk holds the real one.
+     *
+     * Reentrant, so setup() calling this while holding the monitor is fine.
+     */
+    @Synchronized
     fun initialize(context: Context) {
+        // Once per process. Without this guard every worker construction re-runs
+        // MasterKeys.getOrCreate + EncryptedSharedPreferences.create + the migration check while
+        // holding the monitor that storeEvent also needs - and storeEvent is reached from
+        // report*() on the host's UI thread. Per-record work units mean several workers can be
+        // constructed at once, so a burst serialised that keystore cost in front of the UI thread.
+        // Under the old shared chain only one worker existed at a time and initialize took no lock,
+        // so the cost was never on anyone's critical path.
+        if (::preferences.isInitialized) return
+
         applicationContext = context.applicationContext
         preferences = createEncryptedPreferences(applicationContext)
 
@@ -104,77 +126,97 @@ internal object Cache {
         }
     }
 
+    /**
+     * Initialises the cache and stores the session identity. Returns the opaque user id actually
+     * in effect, which may differ from [opaqueUserId] when that value is blank.
+     */
+    // Synchronized for the same reason storeEvent is: both write recentRecordId. Without it a
+    // concurrent setup can roll the counter back to a stale on-disk value, after which storeEvent
+    // overwrites an existing undelivered record and that event is lost silently.
+    @Synchronized
     fun setup(
         context: Context,
         opaqueUserId: String,
         token: String
-    ) {
+    ): String {
         initialize(context)
 
         recentRecordId = preferences.getLong(KEY_RECENT_RECORD_ID, 0)
-        this.opaqueUserId = opaqueUserId
+
+        val identity = resolveOpaqueUserId(opaqueUserId)
+        this.opaqueUserId = identity.opaqueUserId
         this.token = token
-    }
 
-    fun storeImpression(
-        impressionEvent: ImpressionEvent
-    ): Long {
-        val json = impressionEvent.toJsonObject().toString()
-        preferences
+        // One editor, so the two identity values cannot tear apart. Committed synchronously only
+        // when a placeholder was just minted: its entire value is being stable across launches, so
+        // losing it to a process death would mint a different id next time and break correlation.
+        // The common path - an id supplied by the integrator - stays asynchronous.
+        val editor = preferences
             .edit()
-            .putString(nextRecordKey(), json)
-            .apply()
+            .putString(KEY_SESSION_ID, identity.opaqueUserId)
+            .putString(KEY_TOKEN, token)
+        if (identity.wasGenerated) {
+            editor.commit()
+        } else {
+            editor.apply()
+        }
 
-        return recentRecordId
+        return identity.opaqueUserId
     }
+
+    private data class ResolvedIdentity(val opaqueUserId: String, val wasGenerated: Boolean)
+
+    /**
+     * Decides which opaque user id to use.
+     *
+     * The marketplace's own identifier always wins when one is supplied, because audience matching
+     * requires the id to correspond to the marketplace's records - an id minted here matches
+     * nothing. A blank value therefore never overwrites an id we already hold, and only when there
+     * is nothing at all to fall back on do we generate a placeholder, so that events remain
+     * reportable instead of being rejected by the API for a missing opaqueUserId. Calling setup
+     * again with a real id replaces the placeholder.
+     */
+    private fun resolveOpaqueUserId(supplied: String): ResolvedIdentity {
+        if (supplied.isNotBlank()) return ResolvedIdentity(supplied, wasGenerated = false)
+
+        val known = opaqueUserId
+        if (known.isNotBlank()) {
+            Log.w(TAG, "Blank opaqueUserId supplied; keeping the previously supplied one")
+            return ResolvedIdentity(known, wasGenerated = false)
+        }
+
+        Log.w(
+            TAG,
+            "No opaqueUserId supplied; generating a placeholder so events remain reportable. " +
+                "Call setup again with the marketplace's own id once it is available, " +
+                "otherwise audience matching will not work for these events.",
+        )
+        return ResolvedIdentity(randomId(), wasGenerated = true)
+    }
+
+    fun storeImpression(impressionEvent: ImpressionEvent): Long =
+        storeEvent(impressionEvent.toJsonObject().toString())
 
     fun readImpression(recordId: Long): ImpressionEvent? {
         return ImpressionEvent.fromJson(readEvent(recordId))
     }
 
-    fun storeClick(
-        clickEvent: ClickEvent
-    ): Long {
-        val json = clickEvent.toJsonObject().toString()
-        preferences
-            .edit()
-            .putString(nextRecordKey(), json)
-            .apply()
-
-        return recentRecordId
-    }
+    fun storeClick(clickEvent: ClickEvent): Long =
+        storeEvent(clickEvent.toJsonObject().toString())
 
     fun readClick(recordId: Long): ClickEvent? {
         return ClickEvent.fromJson(readEvent(recordId))
     }
 
-    fun storePurchase(
-        purchaseEvent: PurchaseEvent
-    ): Long {
-        val json = purchaseEvent.toJsonObject().toString()
-        preferences
-            .edit()
-            .putString(nextRecordKey(), json)
-            .apply()
-
-        return recentRecordId
-    }
+    fun storePurchase(purchaseEvent: PurchaseEvent): Long =
+        storeEvent(purchaseEvent.toJsonObject().toString())
 
     fun readPurchase(recordId: Long): PurchaseEvent? {
         return PurchaseEvent.fromJson(readEvent(recordId))
     }
 
-    fun storePageView(
-        pageViewEvent: PageViewEvent
-    ): Long {
-        val json = pageViewEvent.toJsonObject().toString()
-        preferences
-            .edit()
-            .putString(nextRecordKey(), json)
-            .apply()
-
-        return recentRecordId
-    }
+    fun storePageView(pageViewEvent: PageViewEvent): Long =
+        storeEvent(pageViewEvent.toJsonObject().toString())
 
     fun readPageView(recordId: Long): PageViewEvent? {
         return PageViewEvent.fromJson(readEvent(recordId))
@@ -186,6 +228,7 @@ internal object Cache {
      * re-initialize, so the in-memory fields are reset too. Test-only.
      */
     @VisibleForTesting
+    @Synchronized
     fun clearForTests() {
         preferences.edit().clear().commit()
         recentRecordId = 0
@@ -193,11 +236,34 @@ internal object Cache {
         opaqueUserId = ""
     }
 
+    /**
+     * Record ids currently held in the cache. Test-only; the delivery tests assert on whether a
+     * record survived its send.
+     */
+    @VisibleForTesting
+    fun cachedRecordIds(): List<Long> =
+        preferences.all.keys.mapNotNull(::recordIdOrNull).sorted()
+
+    /**
+     * Parses a record id out of a preferences key, or null when the key is not a record. Note that
+     * KEY_RECORD_ID shares the record key prefix, so the suffix has to be numeric.
+     */
+    private fun recordIdOrNull(key: String): Long? {
+        if (!key.startsWith(KEY_RECORD_PREFIX)) return null
+        return key.removePrefix(KEY_RECORD_PREFIX).toLongOrNull()
+    }
+
+    /**
+     * Removes a delivered record. Written synchronously: this runs on a worker thread, and if the
+     * process dies before an async write lands the record survives and the next sweep delivers the
+     * same event again - which the events API would count twice, since it does not de-duplicate on
+     * event id.
+     */
     fun deleteEvent(recordId: Long) {
         preferences
             .edit()
             .remove(recordKey(recordId))
-            .apply()
+            .commit()
     }
 
     private fun readEvent(recordId: Long): String? {
@@ -215,18 +281,24 @@ internal object Cache {
         recordId
     )
 
+    /**
+     * Writes an event and the record counter in a single editor so the two cannot tear apart.
+     *
+     * The counter used to be committed synchronously before the event was applied asynchronously,
+     * so a process death in between left the counter advanced with no record behind it. The worker
+     * enqueued for that id then found nothing and dropped the event silently.
+     */
     @Synchronized
-    private fun nextRecordKey(): String {
-        recentRecordId = if (recentRecordId < Long.MAX_VALUE) {
-            recentRecordId + 1
-        } else {
-            0
-        }
+    private fun storeEvent(json: String): Long {
+        val recordId = if (recentRecordId < Long.MAX_VALUE) recentRecordId + 1 else 0
 
         preferences
             .edit()
-            .putLong(KEY_RECENT_RECORD_ID, recentRecordId)
-            .commit()
-        return recordKey(recentRecordId)
+            .putString(recordKey(recordId), json)
+            .putLong(KEY_RECENT_RECORD_ID, recordId)
+            .apply()
+
+        recentRecordId = recordId
+        return recordId
     }
 }
