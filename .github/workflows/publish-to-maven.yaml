@@ -72,10 +72,18 @@ jobs:
       # five months.
       - name: Verify VERSION_NAME matches the tag
         env:
-          TAG: ${{ inputs.ref || github.ref_name }}
+          # github.event.release.tag_name is the authoritative tag for a release event;
+          # github.ref_name is a fallback and is not guaranteed to be populated there. Getting
+          # this wrong would make $expected empty, so every automatic release would fail the
+          # comparison below and be blocked - on the path that is hardest to test beforehand.
+          TAG: ${{ inputs.ref || github.event.release.tag_name || github.ref_name }}
         run: |
           declared=$(grep '^VERSION_NAME=' gradle.properties | cut -d '=' -f2- | tr -d '[:space:]')
           expected="${TAG#v}"
+          if [ -z "$TAG" ]; then
+            echo "::error::Could not determine which tag is being published."
+            exit 1
+          fi
           if [ "$declared" != "$expected" ]; then
             echo "::error::Tag $TAG would publish as $declared."
             echo "::error::gradle.properties at this ref declares VERSION_NAME=$declared but the"
