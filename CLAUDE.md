@@ -97,6 +97,27 @@ Package layout:
 - Never approve or merge a PR that has unresolved review comments — address or explicitly dismiss each one first. Always check nested/threaded comments (e.g. replies under bot comments) as they may contain substantive issues not visible at the top level.
 - Before merging with `--admin`, wait at least **5 minutes** after the PR is opened. This gives Bugbot and other async bots time to post their comments. After the wait, check all PR comments (including nested/threaded replies) for unresolved issues before merging. Run the wait in the background and do **not** block on `TaskOutput` — let the completion notification come to you so the session stays responsive.
 - **Project-specific**: run `apiCheck` before pushing any PR that touches library source.
+- **After every rebase in a stack, assert before pushing.** A rebase that silently replays nothing
+  looks identical to one that succeeded, and the push that follows destroys work. Both of these
+  have happened here. Check two numbers against what you expect, and treat a mismatch as a stop:
+  ```bash
+  git rev-list --count <base-branch>..<branch>   # commits the PR should contribute
+  ./gradlew :TopsortAnalytics:connectedDebugAndroidTest   # test count should not drop
+  ```
+  - **Commit count.** `git rebase --onto <newbase> <upstream> <branch>` replays `<upstream>..<branch>`.
+    Passing the branch's *own* tip as `<upstream>` makes that range empty, so the branch is silently
+    reset onto the new base and every commit is dropped. `<upstream>` is the branch's **old base**,
+    never its own tip. `Rebasing (1/N)` in the output is the cheapest confirmation that N commits
+    were actually replayed.
+  - **Test count.** A dropped test file does not fail the build — it just stops being run. If the
+    instrumented count falls after a rebase, something was lost. Know the expected number before
+    you start.
+- **Never push from a dirty working tree.** `git push` sends committed state; a green test run
+  against uncommitted fixes proves nothing about what lands. Verify
+  `git status --porcelain` is clean, and that `git rev-parse <branch>` matches
+  `git rev-parse origin/<branch>` after pushing.
+- **Verify a scripted edit applied.** A `replace` that matches nothing is a no-op that reports
+  success. Assert the pattern was found, or grep the result — do not trust the script's own output.
 
 ## CI Pipeline
 
