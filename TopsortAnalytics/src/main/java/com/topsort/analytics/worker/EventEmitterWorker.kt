@@ -2,6 +2,12 @@ package com.topsort.analytics.worker
 
 import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
@@ -44,14 +50,11 @@ internal class EventEmitterWorker(
         }
 
         if (isPastAgeCap()) {
-            // Logged with the record id and type: this is silent data destruction from the
-            // marketplace's point of view, and a bare count cannot be reconciled against anything.
-            Log.e(
-                TAG,
-                "Discarding undelivered $eventType record $recordId: " +
-                    "age anchor ${DateTime(ageAnchorMillis)} is past the $MAX_EVENT_AGE_DAYS-day cap",
+            Cache.discard(
+                recordId,
+                Cache.DiscardReason.PAST_AGE_CAP,
+                "$eventType anchored at ${DateTime(ageAnchorMillis)}, cap is $MAX_EVENT_AGE_DAYS days",
             )
-            Cache.deleteEvent(recordId)
             return Result.success()
         }
 
@@ -60,8 +63,7 @@ internal class EventEmitterWorker(
         } catch (e: JSONException) {
             // The cached body cannot be turned back into an event, so it can never be sent. Left in
             // place it would be re-read by every sweep for the lifetime of the install.
-            Log.e(TAG, "Discarding unparseable cached record $recordId", e)
-            Cache.deleteEvent(recordId)
+            Cache.discard(recordId, Cache.DiscardReason.UNPARSEABLE_BODY, e.message)
             return Result.success()
         }
 
@@ -71,7 +73,7 @@ internal class EventEmitterWorker(
                 Result.success()
             }
             SendResult.PERMANENT_FAILURE -> {
-                Cache.deleteEvent(recordId)
+                Cache.discard(recordId, Cache.DiscardReason.PERMANENTLY_REJECTED, "$eventType")
                 Result.failure()
             }
             SendResult.TRANSIENT_FAILURE -> Result.retry()
@@ -186,5 +188,54 @@ internal class EventEmitterWorker(
          * idempotent and keeps one event's failure from touching any other.
          */
         fun workNameFor(recordId: Long): String = "$WORK_NAME-$recordId"
+
+        /**
+         * The single entry point for scheduling a record's delivery. Both the report path and the
+         * recovery sweep route through here, which is what makes KEEP meaningful: two schedulers
+         * naming the same work for the same record collapse to one unit rather than delivering
+         * twice, and the events API does not de-duplicate on event id.
+         *
+         * [ageAnchor] is when the clock starts for [MAX_EVENT_AGE_DAYS]. A freshly reported event
+         * anchors at now; a record the sweep recovered anchors at its own occurredAt, which is the
+         * more conservative of the two. Null means unknown age, which disables the cap.
+         */
+        fun enqueue(
+            workManager: WorkManager,
+            recordId: Long,
+            eventType: EventType,
+            ageAnchor: DateTime? = DateTime.now(),
+        ) {
+            val data = Data.Builder()
+                .putLong(EXTRA_RECORD_ID, recordId)
+                .putInt(EXTRA_EVENT_TYPE, eventType.ordinal)
+                .putLong(EXTRA_AGE_ANCHOR_MILLIS, ageAnchor?.millis ?: -1)
+                .build()
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(false)
+                .setRequiresDeviceIdle(false)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<EventEmitterWorker>()
+                .setInputData(data)
+                .setConstraints(constraints)
+                // Tagged so all event work stays queryable as a group, independently of how it is
+                // scheduled. This is now the only way to find the population - the unique-work name
+                // no longer identifies it - so it is load-bearing for diagnostics, not scaffolding.
+                .addTag(WORK_NAME)
+                .build()
+
+            // One unique work name per record, rather than one shared chain for every event. A
+            // chain couples unrelated events: work appended after a terminal failure is itself
+            // cancelled, so a single 4xx used to silence an install permanently, and one event in
+            // retry backoff held up everything behind it. KEEP makes re-enqueueing a record that
+            // already has work pending a no-op, so the record keeps one owner.
+            workManager.enqueueUniqueWork(
+                workNameFor(recordId),
+                ExistingWorkPolicy.KEEP,
+                request,
+            )
+        }
     }
 }

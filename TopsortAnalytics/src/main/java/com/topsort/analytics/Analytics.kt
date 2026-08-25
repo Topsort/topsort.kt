@@ -5,10 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
-import androidx.work.Constraints
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.topsort.analytics.core.randomId
@@ -36,9 +33,6 @@ import org.joda.time.format.ISODateTimeFormat
 
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
-
-/** Upper bound on how many cached records one sweep reads and re-enqueues. */
-private const val MAX_RESEND_PER_SETUP = 100
 
 object Analytics : TopsortAnalytics {
 
@@ -331,49 +325,6 @@ object Analytics : TopsortAnalytics {
     }
 
     /**
-     * Re-enqueues undelivered records so a stranded backlog gets another chance at delivery.
-     *
-     * Only called from [PendingEventSweepWorker], so never on the main thread. The [workManager] is
-     * supplied by that worker rather than read from the field: the field is only set by [setup],
-     * and WorkManager can run this worker in a process where setup has not been called (process
-     * death with pending work, or an integrator calling setup from an Activity).
-     *
-     * The sweep deliberately does NOT decide what is too old to send. It re-enqueues every record
-     * it reads, anchored to that record's own occurredAt, and [EventEmitterWorker] applies the age
-     * cap when the work runs. Two reasons:
-     *
-     * - It cannot tell "stranded for a week" from "reported a moment ago and already enqueued".
-     *   A caller may report an event with an explicit backdated occurredAt through the public API,
-     *   and a sweep that pruned on occurredAt alone would destroy it while its own work unit was
-     *   still pending - delivering the same event when no sweep happened to be in flight. Asking
-     *   WorkManager whether a record has live work is not an option here: the query blocks on the
-     *   executor the sweep is already running on.
-     * - KEEP makes the re-enqueue a no-op for any record that already has work pending, so the
-     *   record stays owned by whoever enqueued it first, and the age decision lands in one place.
-     */
-    internal fun sweepPendingEvents(workManager: WorkManager) {
-        // Installs upgrading from a version that enqueued onto one shared chain still have work
-        // pending under the bare WORK_NAME. KEEP cannot see it - that is a different unique name
-        // from the per-record WORK_NAME-<id> - so without this a record would have two owners: the
-        // surviving chain unit and the one enqueued below. Per-record units run in parallel, so
-        // both can read the record before either deletes it, and the events API does not
-        // de-duplicate: that is a duplicate counted event, and for CPM campaigns a billed one.
-        //
-        // Targets only the legacy chain. Note WORK_NAME is also the TAG on every per-record unit,
-        // so cancelAllWorkByTag(WORK_NAME) would destroy the entire pending queue - cancelling by
-        // unique name is what makes this safe. Idempotent, so it stays after the migration window.
-        workManager.cancelUniqueWork(EventEmitterWorker.WORK_NAME)
-
-        val candidates = Cache.pendingRecords(MAX_RESEND_PER_SETUP)
-        if (candidates.isEmpty()) return
-
-        Log.i(LOG_TAG, "Re-enqueueing ${candidates.size} undelivered cached event(s)")
-        candidates.forEach {
-            enqueueEventRequest(workManager, it.recordId, it.eventType, it.occurredAt)
-        }
-    }
-
-    /**
      * Enqueues delivery for an event the host app just reported.
      *
      * Separate from the sweep's path only in where the [WorkManager] comes from: here it is the one
@@ -385,53 +336,7 @@ object Analytics : TopsortAnalytics {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
             return
         }
-        enqueueEventRequest(wm, recordId, eventType)
-    }
-
-    /**
-     * Schedules a work and enqueues it, the work manager will execute this work based on the
-     * work configuration provided!
-     */
-    private fun enqueueEventRequest(
-        workManager: WorkManager,
-        recordId: Long,
-        eventType: EventType,
-        ageAnchor: DateTime? = DateTime.now(),
-    ) {
-        val data = Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, recordId)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, eventType.ordinal)
-            .putLong(EventEmitterWorker.EXTRA_AGE_ANCHOR_MILLIS, ageAnchor?.millis ?: -1)
-            .build()
-
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(false)
-            .setRequiresDeviceIdle(false)
-            .build()
-
-        val requestBuilder = OneTimeWorkRequestBuilder<EventEmitterWorker>()
-            .setInputData(data)
-            .setConstraints(constraints)
-            // Tagged so all event work stays queryable as a group, independently of how it is
-            // scheduled. Useful for diagnostics and for tests.
-            .addTag(EventEmitterWorker.WORK_NAME)
-
-        // One unique work name per record, rather than one shared chain for every event.
-        //
-        // A shared chain couples events that have nothing to do with each other: work appended
-        // after a chain has terminated is itself cancelled, so a single terminal failure used to
-        // silence an install permanently, and one event stuck in retry backoff held up every event
-        // behind it. Independent units also make enqueueing idempotent - KEEP means re-enqueueing a
-        // record that already has work pending is a no-op, so repeated setup() calls cannot deliver
-        // the same event twice.
-        //
-        // Events carry their own occurredAt, so delivery order does not matter.
-        workManager.enqueueUniqueWork(
-            EventEmitterWorker.workNameFor(recordId),
-            ExistingWorkPolicy.KEEP,
-            requestBuilder.build(),
-        )
+        EventEmitterWorker.enqueue(wm, recordId, eventType)
     }
 
     private fun assertSetup(): Boolean {

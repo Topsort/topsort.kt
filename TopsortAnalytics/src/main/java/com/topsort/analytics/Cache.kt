@@ -299,10 +299,7 @@ internal object Cache {
         // endpoint it belongs to. Skipping it without removing it would leave it to be re-read and
         // re-decrypted by every sweep for the lifetime of the install. This is the same call the
         // worker makes when a cached body will not parse back into an event.
-        if (uninterpretable.isNotEmpty()) {
-            Log.w(TAG, "Discarding ${uninterpretable.size} uninterpretable cached record(s)")
-            deleteEvents(uninterpretable)
-        }
+        discardAll(uninterpretable, DiscardReason.UNKNOWN_EVENT_TYPE)
 
         return records
     }
@@ -384,6 +381,47 @@ internal object Cache {
      * Removes several records in one editor, so pruning a backlog is one synchronous write rather
      * than one per record.
      */
+    /**
+     * Why a cached event was thrown away without being delivered.
+     *
+     * Every discard is data the marketplace will never see, so the reason travels with the record
+     * id rather than being buried in a log string. Delivery is deliberately not one of these -
+     * [deleteEvent] after a successful send is a completion, not a loss, and conflating the two
+     * would make the discard count useless.
+     */
+    internal enum class DiscardReason {
+        /** Past MAX_EVENT_AGE_DAYS, measured from the work's age anchor. */
+        PAST_AGE_CAP,
+
+        /** The cached body will not parse back into an event, so nothing can ever send it. */
+        UNPARSEABLE_BODY,
+
+        /** The API rejected it with a 4xx; retrying the same body would be rejected again. */
+        PERMANENTLY_REJECTED,
+
+        /** The record's event type cannot be determined, so nothing knows where to send it. */
+        UNKNOWN_EVENT_TYPE,
+    }
+
+    /**
+     * The single exit for an undelivered event.
+     *
+     * All discards route through here so that "what can destroy an event, and why" is answerable by
+     * reading one function, and so that adding a real signal later - a host-app callback, a counter
+     * piggybacked on the next successful send - is one change rather than four.
+     */
+    fun discard(recordId: Long, reason: DiscardReason, detail: String? = null) {
+        Log.e(TAG, "Discarding record $recordId: $reason${detail?.let { " ($it)" } ?: ""}")
+        deleteEvent(recordId)
+    }
+
+    /** [discard] for a batch, in one editor rather than one synchronous write per record. */
+    fun discardAll(recordIds: Collection<Long>, reason: DiscardReason) {
+        if (recordIds.isEmpty()) return
+        Log.e(TAG, "Discarding ${recordIds.size} record(s): $reason - ids=$recordIds")
+        deleteEvents(recordIds)
+    }
+
     fun deleteEvents(recordIds: Collection<Long>) {
         if (recordIds.isEmpty()) return
         val editor = preferences.edit()
