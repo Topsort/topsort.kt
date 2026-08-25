@@ -44,7 +44,13 @@ internal class EventEmitterWorker(
         }
 
         if (isPastAgeCap()) {
-            Log.w(TAG, "Discarding event older than $MAX_EVENT_AGE_DAYS days")
+            // Logged with the record id and type: this is silent data destruction from the
+            // marketplace's point of view, and a bare count cannot be reconciled against anything.
+            Log.e(
+                TAG,
+                "Discarding undelivered $eventType record $recordId: " +
+                    "age anchor ${DateTime(ageAnchorMillis)} is past the $MAX_EVENT_AGE_DAYS-day cap",
+            )
             Cache.deleteEvent(recordId)
             return Result.success()
         }

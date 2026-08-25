@@ -39,6 +39,7 @@ private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the app
 
 /** Upper bound on how many cached records one sweep reads, prunes and re-enqueues. */
 private const val MAX_RESEND_PER_SETUP = 100
+
 object Analytics : TopsortAnalytics {
 
     // Volatile: setup() writes these from the host's thread while WorkManager threads and any
@@ -250,7 +251,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storePurchase(purchaseEvent)
-        enqueueEventRequest(recordId, EventType.Purchase)
+        enqueueReportedEvent(recordId, EventType.Purchase)
     }
 
     override fun reportPageView(
@@ -280,7 +281,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storePageView(pageViewEvent)
-        enqueueEventRequest(recordId, EventType.PageView)
+        enqueueReportedEvent(recordId, EventType.PageView)
     }
 
     /**
@@ -330,33 +331,49 @@ object Analytics : TopsortAnalytics {
     }
 
     /**
-     * Prunes undelivered records too old to be worth sending, then re-enqueues the rest.
+     * Re-enqueues undelivered records so a stranded backlog gets another chance at delivery.
      *
-     * Only called from [PendingEventSweepWorker], so never on the main thread.
+     * Only called from [PendingEventSweepWorker], so never on the main thread. The [workManager] is
+     * supplied by that worker rather than read from the field: the field is only set by [setup],
+     * and WorkManager can run this worker in a process where setup has not been called (process
+     * death with pending work, or an integrator calling setup from an Activity).
      *
-     * A stranded record keeps its original occurredAt, so flushing a long backlog would deliver
-     * heavily backdated events - most likely outside their attribution window, and landing as a
-     * spike in the marketplace's reporting. Losing an event that was already lost is the better
-     * trade. Records whose age cannot be read are kept: dropping data on a parsing quirk is worse
-     * than sending it late.
+     * The sweep deliberately does NOT decide what is too old to send. It re-enqueues every record
+     * it reads, anchored to that record's own occurredAt, and [EventEmitterWorker] applies the age
+     * cap when the work runs. Two reasons:
+     *
+     * - It cannot tell "stranded for a week" from "reported a moment ago and already enqueued".
+     *   A caller may report an event with an explicit backdated occurredAt through the public API,
+     *   and a sweep that pruned on occurredAt alone would destroy it while its own work unit was
+     *   still pending - delivering the same event when no sweep happened to be in flight. Asking
+     *   WorkManager whether a record has live work is not an option here: the query blocks on the
+     *   executor the sweep is already running on.
+     * - KEEP makes the re-enqueue a no-op for any record that already has work pending, so the
+     *   record stays owned by whoever enqueued it first, and the age decision lands in one place.
      */
-    internal fun sweepPendingEvents() {
+    internal fun sweepPendingEvents(workManager: WorkManager) {
         val candidates = Cache.pendingRecords(MAX_RESEND_PER_SETUP)
         if (candidates.isEmpty()) return
 
-        val cutoff = DateTime.now().minusDays(EventEmitterWorker.MAX_EVENT_AGE_DAYS)
-        val (stale, fresh) = candidates.partition {
-            it.occurredAt != null && it.occurredAt.isBefore(cutoff)
+        Log.i(LOG_TAG, "Re-enqueueing ${candidates.size} undelivered cached event(s)")
+        candidates.forEach {
+            enqueueEventRequest(workManager, it.recordId, it.eventType, it.occurredAt)
         }
+    }
 
-        if (stale.isNotEmpty()) {
-            Log.w(LOG_TAG, "Discarding ${stale.size} undelivered event(s) past the age cap")
-            Cache.deleteEvents(stale.map { it.recordId })
+    /**
+     * Enqueues delivery for an event the host app just reported.
+     *
+     * Separate from the sweep's path only in where the [WorkManager] comes from: here it is the one
+     * [setup] resolved, and its absence means setup was never called, which is the documented
+     * "logged but not sent" degradation rather than an error worth retrying.
+     */
+    private fun enqueueReportedEvent(recordId: Long, eventType: EventType) {
+        val wm = workManager ?: run {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
         }
-
-        if (fresh.isEmpty()) return
-        Log.i(LOG_TAG, "Re-enqueueing ${fresh.size} undelivered cached event(s)")
-        fresh.forEach { enqueueEventRequest(it.recordId, it.eventType, it.occurredAt) }
+        enqueueEventRequest(wm, recordId, eventType)
     }
 
     /**
@@ -364,6 +381,7 @@ object Analytics : TopsortAnalytics {
      * work configuration provided!
      */
     private fun enqueueEventRequest(
+        workManager: WorkManager,
         recordId: Long,
         eventType: EventType,
         ageAnchor: DateTime? = DateTime.now(),
@@ -387,11 +405,6 @@ object Analytics : TopsortAnalytics {
             // scheduled. Useful for diagnostics and for tests.
             .addTag(EventEmitterWorker.WORK_NAME)
 
-        val wm = workManager ?: run {
-            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
-            return
-        }
-
         // One unique work name per record, rather than one shared chain for every event.
         //
         // A shared chain couples events that have nothing to do with each other: work appended
@@ -402,7 +415,7 @@ object Analytics : TopsortAnalytics {
         // the same event twice.
         //
         // Events carry their own occurredAt, so delivery order does not matter.
-        wm.enqueueUniqueWork(
+        workManager.enqueueUniqueWork(
             EventEmitterWorker.workNameFor(recordId),
             ExistingWorkPolicy.KEEP,
             requestBuilder.build(),
@@ -428,7 +441,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
-        enqueueEventRequest(recordId, EventType.Impression)
+        enqueueReportedEvent(recordId, EventType.Impression)
     }
 
     private fun reportClicks(
@@ -444,6 +457,6 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storeClick(clickEvent)
-        enqueueEventRequest(recordId, EventType.Click)
+        enqueueReportedEvent(recordId, EventType.Click)
     }
 }

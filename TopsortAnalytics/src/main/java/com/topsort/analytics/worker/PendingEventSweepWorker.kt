@@ -1,7 +1,9 @@
 package com.topsort.analytics.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Worker
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Analytics
 import com.topsort.analytics.Cache
@@ -24,12 +26,24 @@ internal class PendingEventSweepWorker(
         Cache.initialize(context)
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override fun doWork(): Result {
-        Analytics.sweepPendingEvents()
+        // Resolved here rather than read from Analytics: that field is only set by setup(), and
+        // WorkManager can run this worker in a process where setup() has not been called. The
+        // sweep deletes records, so it must never run on a path that cannot also deliver them.
+        val workManager = try {
+            WorkManager.getInstance(applicationContext)
+        } catch (e: Exception) {
+            Log.e(TAG, "WorkManager unavailable; leaving the cache untouched", e)
+            return Result.retry()
+        }
+
+        Analytics.sweepPendingEvents(workManager)
         return Result.success()
     }
 
     companion object {
+        private const val TAG = "TopsortSweepWorker"
         const val WORK_NAME = "TopsortAnalyticsPendingSweep"
     }
 }

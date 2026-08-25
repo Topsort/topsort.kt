@@ -42,9 +42,20 @@ TopsortAnalyticsHttpService   ◄── POST /v2/events
 
 A record is deleted only once a worker has actually run for it, so anything still in the cache is
 by definition undelivered. `Analytics.setup()` therefore enqueues `PendingEventSweepWorker`, which
-re-enqueues undelivered records and prunes any past `MAX_EVENT_AGE_DAYS`. The sweep runs on a
-WorkManager thread, never inline in `setup()`: reading the cache decrypts every record and pruning
-writes synchronously.
+re-enqueues undelivered records — at most `MAX_RESEND_PER_SETUP` per run, so a large backlog drains
+across several launches. The sweep runs on a WorkManager thread, never inline in `setup()`: reading
+the cache decrypts every record and pruning writes synchronously.
+
+`EventEmitterWorker` is the only place an age decision deletes a record. It prunes when the work's
+age anchor is past `MAX_EVENT_AGE_DAYS` — the anchor being enqueue time for a freshly reported
+event, and the record's own `occurredAt` for one the sweep recovered. The sweep does not prune by
+age itself: it cannot distinguish a record stranded for a week from one reported a moment ago with
+a deliberately backdated `occurredAt`, and pruning on that basis destroyed events that the delivery
+path would have sent. `KEEP` makes the sweep's re-enqueue a no-op for any record that already has
+work pending, so the record stays owned by whoever enqueued it first.
+
+The one record the sweep does delete is one whose event type cannot be determined — nothing knows
+which endpoint it belongs to, so it can never be sent by anyone.
 
 Events are never enqueued onto a shared work chain. A chain couples unrelated events — work
 appended after a terminal failure never runs, which used to silence an install permanently after a

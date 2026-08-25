@@ -9,6 +9,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.core.getStringOrNull
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
@@ -261,11 +262,17 @@ internal object Cache {
      * never delivered. Each record is read and parsed exactly once - the event type and the
      * timestamp both come out of that single pass, because reading a record decrypts it.
      *
-     * [limit] bounds the work, not just the caller's appetite: a silenced install can accumulate an
-     * unbounded backlog, and an unbounded scan of it is unbounded decryption.
+     * [limit] bounds how many records are parsed and re-enqueued per sweep. It does NOT bound
+     * decryption: enumeration goes through the preferences map, and an encrypted store decrypts
+     * every entry to build it, so the read cost is proportional to the whole backlog regardless of
+     * this value. Measured at ~73ms for 200 records on a mid-range device, and it scales with the
+     * backlog - which is worst on exactly the installs this sweep exists for. Fixing that needs an
+     * enumeration path that does not decrypt; tracked in INTE-2694.
      *
-     * A record that cannot be read is skipped on its own rather than aborting the enumeration - one
-     * corrupt entry must not be able to disable recovery for the whole install.
+     * A record whose JSON cannot be parsed is skipped on its own rather than aborting the
+     * enumeration. Note this does not extend to a record that cannot be DECRYPTED: that failure is
+     * raised while building the preferences map, before any per-record handling is reachable, and
+     * it disables recovery for the whole install. Tracked in INTE-2694 with the cost issue above.
      */
     @Suppress("TooGenericExceptionCaught")
     fun pendingRecords(limit: Int): List<PendingRecord> {
@@ -328,8 +335,7 @@ internal object Cache {
         val raw = obj.optJSONArray(key)
             ?.takeIf { it.length() > 0 }
             ?.optJSONObject(0)
-            ?.optString("occurredAt")
-            ?.takeIf { it.isNotEmpty() }
+            ?.getStringOrNull("occurredAt")
             ?: return null
 
         return try {
@@ -341,10 +347,14 @@ internal object Cache {
     }
 
     /**
-     * Record ids currently held in the cache. Test-only; the delivery tests assert on whether a
-     * record survived its send.
+     * Record ids currently held in the cache, oldest first.
+     *
+     * Production surface: [pendingRecords] enumerates through this, so the sweep depends on it. The
+     * delivery tests also assert on it to see whether a record survived its send.
+     *
+     * Note this reads [preferences] as a whole, which on an encrypted store decrypts every entry -
+     * see the cost note on [pendingRecords].
      */
-    @VisibleForTesting
     fun cachedRecordIds(): List<Long> =
         preferences.all.keys.mapNotNull(::recordIdOrNull).sorted()
 
@@ -363,6 +373,13 @@ internal object Cache {
      * same event again - which the events API would count twice, since it does not de-duplicate on
      * event id.
      */
+    fun deleteEvent(recordId: Long) {
+        preferences
+            .edit()
+            .remove(recordKey(recordId))
+            .commit()
+    }
+
     /**
      * Removes several records in one editor, so pruning a backlog is one synchronous write rather
      * than one per record.
@@ -372,13 +389,6 @@ internal object Cache {
         val editor = preferences.edit()
         recordIds.forEach { editor.remove(recordKey(it)) }
         editor.commit()
-    }
-
-    fun deleteEvent(recordId: Long) {
-        preferences
-            .edit()
-            .remove(recordKey(recordId))
-            .commit()
     }
 
     private fun readEvent(recordId: Long): String? {
