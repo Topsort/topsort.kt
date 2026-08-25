@@ -4,6 +4,18 @@ on:
   release:
     types: [published]
 
+  # Manual fallback. The release trigger above does not fire for releases created by
+  # release-please, because it authors them with the default GITHUB_TOKEN and GitHub
+  # suppresses workflow triggers from that token to prevent recursive runs. Every release
+  # so far has therefore tagged without publishing - v2.0.1 is tagged and absent from
+  # Maven Central. Until release-please is given a PAT, this is how a release ships.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag to publish, e.g. v3.0.0. Must be an existing tag."
+        required: true
+        type: string
+
 permissions:
   contents: read
 
@@ -17,6 +29,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # On a manual run, publish exactly the tag that was asked for rather than whatever
+          # the dispatch ref happens to be: workflow_dispatch reads the workflow definition
+          # from the selected ref, so it has to be dispatched from a branch that has this
+          # trigger, while the artifact must come from the tag.
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
