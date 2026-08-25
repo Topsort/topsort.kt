@@ -5,7 +5,20 @@
 
 ### ⚠ BREAKING CHANGES
 
-* deviceType, channel, clickType fields now use enums instead of String
+**No source migration is required to upgrade from 2.0.1.** This is a major release because
+public signatures changed shape, not because an API you were using behaves differently.
+
+* **A recompile is required.** The reporting methods (`reportImpressionPromoted`,
+  `reportClickPromoted`, `reportImpressionOrganic`, `reportClickOrganic`, `reportPurchase`)
+  and the `Click`, `Impression`, `Purchase` and `Auction` types gained new optional
+  parameters. They are *appended*, so existing Kotlin call sites compile unchanged, whether
+  they pass arguments positionally or by name. Binary compatibility is broken though: code
+  compiled against 2.0.1 and not rebuilt will fail with `NoSuchMethodError`.
+* **Java callers must pass the new arguments explicitly**, because Kotlin default arguments
+  do not generate Java overloads.
+* `deviceType`, `channel` and `clickType` are enums (`DeviceType`, `Channel`, `ClickType`)
+  rather than `String`. These fields were added after 2.0.1 and never shipped as `String` in
+  any release, so there is nothing to migrate.
 
 ### Features
 
