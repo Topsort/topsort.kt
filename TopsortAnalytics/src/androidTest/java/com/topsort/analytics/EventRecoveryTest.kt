@@ -5,6 +5,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
+import androidx.work.ExistingWorkPolicy
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import androidx.work.testing.TestWorkerBuilder
@@ -316,5 +321,44 @@ class EventRecoveryTest {
         assertThat(fake.impressionsSent).hasSize(1)
         assertThat(fake.impressionsSent.single().impressions.single().resolvedBidId)
             .isEqualTo("fresh")
+    }
+
+    /**
+     * Installs upgrading from the shared-chain version still have work pending under the bare
+     * WORK_NAME. That is a different unique name from the per-record WORK_NAME-<id>, so KEEP cannot
+     * collapse it, and the record would end up with two owners - the surviving chain unit and the
+     * one the sweep enqueues. Both can read it before either deletes it, and the events API does
+     * not de-duplicate, so that is a duplicate counted and billed event.
+     *
+     * The legacy request carries the same network constraint real event work does, so it stays
+     * ENQUEUED rather than running inline - otherwise it would already be SUCCEEDED by the time the
+     * sweep ran and the test would pass whether or not anything was cancelled.
+     */
+    @Test
+    fun the_legacy_shared_work_chain_is_cancelled_on_the_first_sweep() {
+        setUpWith()
+        val wm = WorkManager.getInstance(EventPipelineHarness.context)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        wm.enqueueUniqueWork(
+            EventEmitterWorker.WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<EventEmitterWorker>()
+                .setConstraints(constraints)
+                .build(),
+        )
+        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get())
+            .allMatch { it.state == WorkInfo.State.ENQUEUED }
+
+        Analytics.setup(
+            EventPipelineHarness.application,
+            EventPipelineHarness.OPAQUE_USER_ID,
+            EventPipelineHarness.TOKEN,
+        )
+
+        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get())
+            .allMatch { it.state == WorkInfo.State.CANCELLED }
     }
 }

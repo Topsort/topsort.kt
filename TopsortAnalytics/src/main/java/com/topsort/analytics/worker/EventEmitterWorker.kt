@@ -81,7 +81,7 @@ internal class EventEmitterWorker(
     /**
      * Whether this event is too old to be worth sending.
      *
-     * Checked here rather than only in the sweep, because a work unit can sit in retry backoff or
+     * Checked here rather than in the sweep, because a work unit can sit in retry backoff or
      * wait on connectivity for days. Without this, an event stranded that way still ships with its
      * original backdated timestamp - most likely outside its attribution window.
      *
@@ -170,8 +170,12 @@ internal class EventEmitterWorker(
         const val EXTRA_AGE_ANCHOR_MILLIS = "EXTRA_AGE_ANCHOR_MILLIS"
 
         /**
-         * How long delivery may keep being attempted, measured from the event's age anchor. Lives
-         * here rather than in Analytics because both the sweep and this worker enforce it.
+         * How long delivery may keep being attempted, measured from the event's age anchor.
+         *
+         * This worker is the only place an age decision deletes a record. The sweep deliberately
+         * does not prune by age - it cannot tell a record stranded for a week from one reported a
+         * moment ago with a backdated occurredAt, and doing so destroyed events the delivery path
+         * would have sent.
          */
         const val MAX_EVENT_AGE_DAYS = 7
 

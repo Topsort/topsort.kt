@@ -13,7 +13,7 @@ import com.topsort.analytics.Cache
  *
  * This runs the sweep off the caller's thread. It used to happen inline in [Analytics.setup], which
  * integrators are told to call from their Application class: reading the cache decrypts every
- * record and pruning aged-out ones writes synchronously, so a device with a large stranded backlog
+ * record and pruning the ones nothing can ever send writes synchronously, so a device with a large stranded backlog
  * risked an ANR at startup - and the backlog is largest on exactly the installs the sweep exists
  * for.
  */

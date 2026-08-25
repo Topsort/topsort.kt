@@ -37,7 +37,7 @@ import org.joda.time.format.ISODateTimeFormat
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
 
-/** Upper bound on how many cached records one sweep reads, prunes and re-enqueues. */
+/** Upper bound on how many cached records one sweep reads and re-enqueues. */
 private const val MAX_RESEND_PER_SETUP = 100
 
 object Analytics : TopsortAnalytics {
@@ -352,6 +352,18 @@ object Analytics : TopsortAnalytics {
      *   record stays owned by whoever enqueued it first, and the age decision lands in one place.
      */
     internal fun sweepPendingEvents(workManager: WorkManager) {
+        // Installs upgrading from a version that enqueued onto one shared chain still have work
+        // pending under the bare WORK_NAME. KEEP cannot see it - that is a different unique name
+        // from the per-record WORK_NAME-<id> - so without this a record would have two owners: the
+        // surviving chain unit and the one enqueued below. Per-record units run in parallel, so
+        // both can read the record before either deletes it, and the events API does not
+        // de-duplicate: that is a duplicate counted event, and for CPM campaigns a billed one.
+        //
+        // Targets only the legacy chain. Note WORK_NAME is also the TAG on every per-record unit,
+        // so cancelAllWorkByTag(WORK_NAME) would destroy the entire pending queue - cancelling by
+        // unique name is what makes this safe. Idempotent, so it stays after the migration window.
+        workManager.cancelUniqueWork(EventEmitterWorker.WORK_NAME)
+
         val candidates = Cache.pendingRecords(MAX_RESEND_PER_SETUP)
         if (candidates.isEmpty()) return
 
