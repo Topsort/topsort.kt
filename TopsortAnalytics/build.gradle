@@ -33,7 +33,22 @@ def generateLibraryVersion = tasks.register("generateLibraryVersion") {
     }
 }
 
+// Everything that reads the generated source has to wait for it, and the two mechanisms below
+// cover different consumers - verified by clean build, since dropping either one fails a different
+// task. The builtBy on the source set (see android.sourceSets, below) reaches consumers that
+// resolve the source set as a FileCollection, but not these two:
+//
+//  - Kotlin compilation reads the srcDir through AGP's variant wiring.
+//  - The publish plugin's source-jar tasks are validated by Gradle against the producing task
+//    directly, and builtBy on the source set does not satisfy that check.
+//
+// This is why the failure only ever appeared during publish: ordinary builds never run a source
+// jar, so the missing dependency sat undetected from the day the generator was added.
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(generateLibraryVersion)
+}
+
+tasks.matching { it.name ==~ /source(Release|Debug)Jar/ }.configureEach {
     dependsOn(generateLibraryVersion)
 }
 
@@ -42,7 +57,14 @@ android {
 
     sourceSets {
         main {
-            java.srcDir(libraryVersionSrcDir)
+            // builtBy, not a bare path. A bare path carries no producer, so only consumers wired
+            // by hand waited for the generator - which is how sourceReleaseJar came to read this
+            // directory before it was written, failing a Gradle validation check during publish
+            // while ordinary builds passed. This covers consumers that resolve the source set as a
+            // FileCollection: the source jar, dokka, lint. Kotlin compilation reads the srcDir
+            // through AGP's variant wiring and is still declared separately, below.
+            // (AGP's srcDir will not accept a task provider directly.)
+            java.srcDir(files(libraryVersionSrcDir).builtBy(generateLibraryVersion))
         }
     }
     compileSdk 36
