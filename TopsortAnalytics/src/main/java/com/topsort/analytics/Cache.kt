@@ -9,9 +9,12 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.core.getStringOrNull
+import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import org.json.JSONObject
 import java.util.Locale
 
 private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
@@ -23,7 +26,30 @@ private const val KEY_RECORD = "KEY_RECORD_%d"
 private const val KEY_RECORD_PREFIX = "KEY_RECORD_"
 private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
 
+/** Mirrors the top-level key each event model serialises itself under. */
+private val EVENT_TYPE_BY_JSON_KEY = mapOf(
+    "impressions" to EventType.Impression,
+    "clicks" to EventType.Click,
+    "purchases" to EventType.Purchase,
+    "pageviews" to EventType.PageView,
+)
+/**
+ * Upper bound on undelivered records held on disk.
+ *
+ * Sized from measurement rather than taste: enumerating the cache decrypts every record, at roughly
+ * 0.33ms per record on a mid-range device, so 5000 keeps a sweep's read under ~1.7s in the worst
+ * case while sitting far above any healthy install. See INTE-2694 for removing the decryption cost
+ * itself, after which this could go up.
+ */
+private const val MAX_CACHED_RECORDS = 5_000
+
 private const val TAG = "TopsortCache"
+
+/** An event sitting in the cache that has not been delivered. */
+internal data class PendingRecord(
+    val recordId: Long,
+    val eventType: EventType,
+)
 
 internal object Cache {
 
@@ -237,10 +263,99 @@ internal object Cache {
     }
 
     /**
-     * Record ids currently held in the cache. Test-only; the delivery tests assert on whether a
-     * record survived its send.
+     * Undelivered records, oldest first, at most [limit] of them.
+     *
+     * A record is only removed once a worker has actually run for it, so anything still here was
+     * never delivered. Each record is read and parsed exactly once - the event type and the
+     * timestamp both come out of that single pass, because reading a record decrypts it.
+     *
+     * [limit] bounds how many records are parsed and re-enqueued per sweep. It does NOT bound
+     * decryption: enumeration goes through the preferences map, and an encrypted store decrypts
+     * every entry to build it, so the read cost is proportional to the whole backlog regardless of
+     * this value. Measured at ~73ms for 200 records on a mid-range device, and it scales with the
+     * backlog - which is worst on exactly the installs this sweep exists for. Fixing that needs an
+     * enumeration path that does not decrypt; tracked in INTE-2694.
+     *
+     * A record whose JSON cannot be parsed is skipped on its own rather than aborting the
+     * enumeration. Note this does not extend to a record that cannot be DECRYPTED: that failure is
+     * raised while building the preferences map, before any per-record handling is reachable, and
+     * it disables recovery for the whole install. Tracked in INTE-2694 with the cost issue above.
      */
+    @Suppress("TooGenericExceptionCaught")
+    fun pendingRecords(limit: Int): List<PendingRecord> =
+        pendingRecords(limit, MAX_CACHED_RECORDS)
+
+    /** [pendingRecords] with the capacity bound injected, so tests need not write MAX records. */
     @VisibleForTesting
+    fun pendingRecordsForTest(limit: Int, capacity: Int): List<PendingRecord> =
+        pendingRecords(limit, capacity)
+
+    private fun pendingRecords(limit: Int, capacity: Int): List<PendingRecord> {
+        val all = try {
+            cachedRecordIds()
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not enumerate cached records", e)
+            return emptyList()
+        }
+
+        // Enforce the capacity bound off the enumeration we already paid for. Doing it as a
+        // separate call would double the cost of a sweep, and the enumeration - not the delete - is
+        // the expensive half: the delete is one editor and one commit however many records go.
+        //
+        // This is a resource bound, not a judgement about whether an event is still worth sending.
+        // The SDK cannot make that judgement: whether a late event still attributes depends on the
+        // marketplace's attribution window, and whether it is still billable depends on the
+        // campaign's charge type - a CPM impression is chargeable long after it can attribute.
+        // Both facts live server-side, so nothing is discarded here for being old.
+        val ids = if (all.size > capacity) {
+            val excess = all.take(all.size - capacity)
+            discardAll(excess, DiscardReason.CACHE_OVER_CAPACITY)
+            all.drop(excess.size).take(limit)
+        } else {
+            all.take(limit)
+        }
+
+        val records = mutableListOf<PendingRecord>()
+        val uninterpretable = mutableListOf<Long>()
+        ids.forEach { recordId ->
+            val record = try {
+                parseRecord(recordId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Cached record $recordId cannot be read", e)
+                null
+            }
+            if (record != null) records += record else uninterpretable += recordId
+        }
+
+        // A record whose event type cannot be determined can never be sent - nothing knows which
+        // endpoint it belongs to. Skipping it without removing it would leave it to be re-read and
+        // re-decrypted by every sweep for the lifetime of the install. This is the same call the
+        // worker makes when a cached body will not parse back into an event.
+        discardAll(uninterpretable, DiscardReason.UNKNOWN_EVENT_TYPE)
+
+        return records
+    }
+
+    /**
+     * Reads a record once and pulls out both the event type, from its top-level JSON key, and when
+     * its first event occurred. Null when the record is absent or its shape is unrecognised.
+     */
+    private fun parseRecord(recordId: Long): PendingRecord? {
+        val json = readEvent(recordId) ?: return null
+        val obj = JSONObject(json)
+        val key = EVENT_TYPE_BY_JSON_KEY.keys.firstOrNull { obj.has(it) } ?: return null
+        return PendingRecord(recordId, EVENT_TYPE_BY_JSON_KEY.getValue(key))
+    }
+
+    /**
+     * Record ids currently held in the cache, oldest first.
+     *
+     * Production surface: [pendingRecords] enumerates through this, so the sweep depends on it. The
+     * delivery tests also assert on it to see whether a record survived its send.
+     *
+     * Note this reads [preferences] as a whole, which on an encrypted store decrypts every entry -
+     * see the cost note on [pendingRecords].
+     */
     fun cachedRecordIds(): List<Long> =
         preferences.all.keys.mapNotNull(::recordIdOrNull).sorted()
 
@@ -264,6 +379,58 @@ internal object Cache {
             .edit()
             .remove(recordKey(recordId))
             .commit()
+    }
+
+    /**
+     * Removes several records in one editor, so pruning a backlog is one synchronous write rather
+     * than one per record.
+     */
+    /**
+     * Why a cached event was thrown away without being delivered.
+     *
+     * Every discard is data the marketplace will never see, so the reason travels with the record
+     * id rather than being buried in a log string. Delivery is deliberately not one of these -
+     * [deleteEvent] after a successful send is a completion, not a loss, and conflating the two
+     * would make the discard count useless.
+     */
+    internal enum class DiscardReason {
+        /** Evicted to keep the cache under MAX_CACHED_RECORDS. */
+        CACHE_OVER_CAPACITY,
+
+        /** The cached body will not parse back into an event, so nothing can ever send it. */
+        UNPARSEABLE_BODY,
+
+        /** The API rejected it with a 4xx; retrying the same body would be rejected again. */
+        PERMANENTLY_REJECTED,
+
+        /** The record's event type cannot be determined, so nothing knows where to send it. */
+        UNKNOWN_EVENT_TYPE,
+    }
+
+    /**
+     * The single exit for an undelivered event.
+     *
+     * All discards route through here so that "what can destroy an event, and why" is answerable by
+     * reading one function, and so that adding a real signal later - a host-app callback, a counter
+     * piggybacked on the next successful send - is one change rather than four.
+     */
+    fun discard(recordId: Long, reason: DiscardReason, detail: String? = null) {
+        Log.e(TAG, "Discarding record $recordId: $reason${detail?.let { " ($it)" } ?: ""}")
+        deleteEvent(recordId)
+    }
+
+    /** [discard] for a batch, in one editor rather than one synchronous write per record. */
+    fun discardAll(recordIds: Collection<Long>, reason: DiscardReason) {
+        if (recordIds.isEmpty()) return
+        Log.e(TAG, "Discarding ${recordIds.size} record(s): $reason - ids=$recordIds")
+        deleteEvents(recordIds)
+    }
+
+    fun deleteEvents(recordIds: Collection<Long>) {
+        if (recordIds.isEmpty()) return
+        val editor = preferences.edit()
+        recordIds.forEach { editor.remove(recordKey(it)) }
+        editor.commit()
     }
 
     private fun readEvent(recordId: Long): String? {

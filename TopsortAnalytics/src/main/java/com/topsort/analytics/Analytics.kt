@@ -5,10 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
-import androidx.work.Constraints
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.topsort.analytics.core.randomId
@@ -30,6 +27,7 @@ import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
 import com.topsort.analytics.model.Session
 import com.topsort.analytics.worker.EventEmitterWorker
+import com.topsort.analytics.worker.PendingEventSweepWorker
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
@@ -86,6 +84,8 @@ object Analytics : TopsortAnalytics {
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
         )
+
+        schedulePendingEventSweep()
     }
 
     override fun reportImpressionPromoted(
@@ -245,7 +245,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storePurchase(purchaseEvent)
-        enqueueEventRequest(recordId, EventType.Purchase)
+        enqueueReportedEvent(recordId, EventType.Purchase)
     }
 
     override fun reportPageView(
@@ -275,7 +275,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storePageView(pageViewEvent)
-        enqueueEventRequest(recordId, EventType.PageView)
+        enqueueReportedEvent(recordId, EventType.PageView)
     }
 
     /**
@@ -306,51 +306,37 @@ object Analytics : TopsortAnalytics {
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     /**
-     * Schedules a work and enqueues it, the work manager will execute this work based on the
-     * work configuration provided!
+     * Asks the sweep to run in the background.
+     *
+     * Deliberately not inline: [setup] is documented as something to call from the Application
+     * class, reading the cache decrypts every record, and pruning writes synchronously. Doing that
+     * on the caller's thread risked an ANR at startup - worst on exactly the installs with a large
+     * stranded backlog, which are the ones the sweep exists for.
+     *
+     * KEEP leaves an already-pending sweep alone rather than duplicating it.
      */
-    private fun enqueueEventRequest(
-        recordId: Long,
-        eventType: EventType
-    ) {
-        val data = Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, recordId)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, eventType.ordinal)
-            .build()
+    private fun schedulePendingEventSweep() {
+        val wm = workManager ?: return
+        wm.enqueueUniqueWork(
+            PendingEventSweepWorker.WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<PendingEventSweepWorker>().build(),
+        )
+    }
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(false)
-            .setRequiresDeviceIdle(false)
-            .build()
-
-        val requestBuilder = OneTimeWorkRequestBuilder<EventEmitterWorker>()
-            .setInputData(data)
-            .setConstraints(constraints)
-            // Tagged so all event work stays queryable as a group, independently of how it is
-            // scheduled. Useful for diagnostics and for tests.
-            .addTag(EventEmitterWorker.WORK_NAME)
-
+    /**
+     * Enqueues delivery for an event the host app just reported.
+     *
+     * Separate from the sweep's path only in where the [WorkManager] comes from: here it is the one
+     * [setup] resolved, and its absence means setup was never called, which is the documented
+     * "logged but not sent" degradation rather than an error worth retrying.
+     */
+    private fun enqueueReportedEvent(recordId: Long, eventType: EventType) {
         val wm = workManager ?: run {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
             return
         }
-
-        // One unique work name per record, rather than one shared chain for every event.
-        //
-        // A shared chain couples events that have nothing to do with each other: work appended
-        // after a chain has terminated is itself cancelled, so a single terminal failure used to
-        // silence an install permanently, and one event stuck in retry backoff held up every event
-        // behind it. Independent units also make enqueueing idempotent - KEEP means re-enqueueing a
-        // record that already has work pending is a no-op, so repeated setup() calls cannot deliver
-        // the same event twice.
-        //
-        // Events carry their own occurredAt, so delivery order does not matter.
-        wm.enqueueUniqueWork(
-            EventEmitterWorker.workNameFor(recordId),
-            ExistingWorkPolicy.KEEP,
-            requestBuilder.build(),
-        )
+        EventEmitterWorker.enqueue(wm, recordId, eventType)
     }
 
     private fun assertSetup(): Boolean {
@@ -372,7 +358,7 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
-        enqueueEventRequest(recordId, EventType.Impression)
+        enqueueReportedEvent(recordId, EventType.Impression)
     }
 
     private fun reportClicks(
@@ -388,6 +374,6 @@ object Analytics : TopsortAnalytics {
         )
 
         val recordId = Cache.storeClick(clickEvent)
-        enqueueEventRequest(recordId, EventType.Click)
+        enqueueReportedEvent(recordId, EventType.Click)
     }
 }

@@ -40,6 +40,22 @@ WorkManager                   ◄── one unique work unit per cached record,
 TopsortAnalyticsHttpService   ◄── POST /v2/events
 ```
 
+A record is deleted only once a worker has actually run for it, so anything still in the cache is
+by definition undelivered. `Analytics.setup()` therefore enqueues `PendingEventSweepWorker`, which
+re-enqueues undelivered records — at most `MAX_RESEND_PER_SWEEP` per run, so a large backlog drains
+across several launches. The sweep runs on a WorkManager thread, never inline in `setup()`: reading
+the cache decrypts every record and pruning writes synchronously.
+
+Nothing is discarded for being old. Whether a late event still attributes depends on the
+marketplace's attribution window, and whether it is still billable depends on the campaign's charge
+type — a CPM impression is chargeable long after it can attribute — and both facts live server-side.
+The client's only bound is `MAX_CACHED_RECORDS`: when the cache exceeds it the oldest records are
+evicted, enforced off the enumeration the sweep already performs so it costs nothing extra. That is
+a resource decision, which this side can make correctly, rather than a billing one, which it cannot.
+
+The sweep also deletes a record whose event type cannot be determined — nothing knows which
+endpoint it belongs to, so it can never be sent by anyone.
+
 Events are never enqueued onto a shared work chain. A chain couples unrelated events — work
 appended after a terminal failure never runs, which used to silence an install permanently after a
 single 4xx.
@@ -51,7 +67,7 @@ Package layout:
 - `com.topsort.analytics.banners/` — BannerView, BannerConfig (sealed), banner auction helpers
 - `com.topsort.analytics.service/` — HTTP services (AuctionsHttpService interface, implementations)
 - `com.topsort.analytics.core/` — HttpClient, JsonExtensions, RandomGenerator, EventTimestamp
-- `com.topsort.analytics.worker/` — EventEmitterWorker (one work unit per cached event)
+- `com.topsort.analytics.worker/` — EventEmitterWorker (one work unit per cached event), PendingEventSweepWorker (recovery of undelivered events)
 
 ## SDK Design Principles
 

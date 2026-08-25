@@ -2,7 +2,10 @@ package com.topsort.analytics
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Configuration
 import androidx.work.WorkInfo
@@ -18,6 +21,7 @@ import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import com.topsort.analytics.worker.EventEmitterWorker
 import java.util.UUID
+import org.json.JSONObject
 
 /**
  * Shared instrumentation for exercising the event pipeline: Analytics -> Cache -> WorkManager ->
@@ -83,6 +87,53 @@ internal object EventPipelineHarness {
             installed = false
         }
     }
+
+    /**
+     * Writes a record straight into the cache's own store, bypassing Analytics, so a test can set
+     * up a corrupt entry that the public reporting API cannot produce - it only ever serialises
+     * well-formed events.
+     *
+     * The preferences name, master key and encryption schemes are duplicated from [Cache] on
+     * purpose: the point is to write to the same file Cache reads. That coupling is silent if it
+     * ever breaks - Cache falls back to plaintext preferences when encryption is unavailable, and
+     * this would then be writing to a different file entirely - so the plant is verified through
+     * Cache itself before the test proceeds.
+     */
+    fun plantRawRecord(recordId: Long, json: String) {
+        rawPreferences().edit().putString(rawRecordKey(recordId), json).commit()
+        check(recordId in Cache.cachedRecordIds()) {
+            "planted record $recordId is not visible to Cache - the test is writing to a " +
+                "different store than the one under test"
+        }
+    }
+
+    /**
+     * Overwrites the `occurredAt` of the first event in an existing record, leaving the rest of the
+     * body exactly as the library wrote it.
+     *
+     * Corrupting a real record rather than hand-writing one matters: a hand-written body is missing
+     * fields that `fromJson` requires, so it fails to deserialise for reasons that have nothing to
+     * do with the timestamp, and the test would pass or fail for the wrong reason.
+     */
+    fun corruptOccurredAt(recordId: Long, replacement: String) {
+        val prefs = rawPreferences()
+        val key = rawRecordKey(recordId)
+        val body = JSONObject(requireNotNull(prefs.getString(key, null)) { "no record $recordId" })
+        val arrayKey = body.keys().asSequence().first()
+        body.getJSONArray(arrayKey).getJSONObject(0).put("occurredAt", replacement)
+        prefs.edit().putString(key, body.toString()).commit()
+    }
+
+    private fun rawRecordKey(recordId: Long) = "KEY_RECORD_$recordId"
+
+    private fun rawPreferences(): SharedPreferences =
+        EncryptedSharedPreferences.create(
+            "TOPSORT_EVENTS_CACHE_ENCRYPTED",
+            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
 
     private fun workManager(): WorkManager = WorkManager.getInstance(context)
 
