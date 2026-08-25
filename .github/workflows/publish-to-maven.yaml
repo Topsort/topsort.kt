@@ -40,6 +40,23 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # Fail before anything is built, signed or uploaded. Maven Central uploads cannot be
+      # withdrawn, so the cheap checks run first.
+      - name: Verify the dispatch ref is a tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.ref }}
+        run: |
+          if ! gh api "repos/${{ github.repository }}/git/ref/tags/$REF" >/dev/null 2>&1; then
+            echo "::error::'$REF' is not a tag in this repository."
+            echo "::error::Publishing a branch ships whatever is on it at that moment, under"
+            echo "::error::whatever version that commit declares, and the upload is permanent."
+            echo "::error::Tag the commit you mean to release, then dispatch with that tag."
+            exit 1
+          fi
+          echo "'$REF' is a tag."
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           # On a manual run, publish exactly the tag that was asked for rather than whatever
@@ -47,6 +64,27 @@ jobs:
           # from the selected ref, so it has to be dispatched from a branch that has this
           # trigger, while the artifact must come from the tag.
           ref: ${{ inputs.ref || github.ref }}
+
+      # The version actually published comes from gradle.properties at the checked-out ref, not
+      # from the tag name, and the two can disagree. Before #162 release-please tagged a new
+      # version without updating VERSION_NAME, so a v2.0.1 publish would have shipped as 2.0.0.
+      # Checked on both trigger paths, because that failure was silent and went unnoticed for
+      # five months.
+      - name: Verify VERSION_NAME matches the tag
+        env:
+          TAG: ${{ inputs.ref || github.ref_name }}
+        run: |
+          declared=$(grep '^VERSION_NAME=' gradle.properties | cut -d '=' -f2- | tr -d '[:space:]')
+          expected="${TAG#v}"
+          if [ "$declared" != "$expected" ]; then
+            echo "::error::Tag $TAG would publish as $declared."
+            echo "::error::gradle.properties at this ref declares VERSION_NAME=$declared but the"
+            echo "::error::tag says $expected. Publishing would put the wrong version on Maven"
+            echo "::error::Central permanently. Fix VERSION_NAME at this ref, or dispatch a tag"
+            echo "::error::whose VERSION_NAME already matches."
+            exit 1
+          fi
+          echo "Publishing $declared from $TAG."
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
