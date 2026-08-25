@@ -42,7 +42,7 @@ TopsortAnalyticsHttpService   ◄── POST /v2/events
 
 A record is deleted only once a worker has actually run for it, so anything still in the cache is
 by definition undelivered. `Analytics.setup()` therefore enqueues `PendingEventSweepWorker`, which
-re-enqueues undelivered records — at most `MAX_RESEND_PER_SETUP` per run, so a large backlog drains
+re-enqueues undelivered records — at most `MAX_RESEND_PER_SWEEP` per run, so a large backlog drains
 across several launches. The sweep runs on a WorkManager thread, never inline in `setup()`: reading
 the cache decrypts every record and pruning writes synchronously.
 
