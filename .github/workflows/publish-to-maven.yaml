@@ -21,6 +21,18 @@ on:
   # 3.0.0 was published from `main` as a one-off: the v3.0.0 tag predated the fix in #166 that
   # made the source jar buildable, so the tag itself could not be published. main and the tag
   # were otherwise identical. Do not treat that as the pattern - pass the tag.
+  # Called by the Release Please workflow the moment it creates a release. That is the automatic
+  # path: the release event above cannot be it, because release-please authors releases with the
+  # default GITHUB_TOKEN and GitHub will not raise workflow triggers from that token. Chaining from
+  # release-please's own run sidesteps the whole problem without a PAT, since that run is triggered
+  # by a push and fires normally.
+  workflow_call:
+    inputs:
+      ref:
+        description: "Release tag to publish, from release-please's tag_name output."
+        required: true
+        type: string
+
   workflow_dispatch:
     inputs:
       ref:
@@ -42,6 +54,12 @@ jobs:
     steps:
       # Fail before anything is built, signed or uploaded. Maven Central uploads cannot be
       # withdrawn, so the cheap checks run first.
+      #
+      # Only for manual runs. On the release and workflow_call paths the ref is a tag by
+      # construction - release-please passes the tag it just created - so there is nothing a
+      # human could have mistyped. Note github.event_name inside a called workflow is the
+      # caller's event (push), so this is skipped there as intended. The VERSION_NAME check
+      # below has no such guard and runs on every path.
       - name: Verify the dispatch ref is a tag
         if: github.event_name == 'workflow_dispatch'
         env:
