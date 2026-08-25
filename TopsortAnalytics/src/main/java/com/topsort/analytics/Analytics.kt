@@ -38,8 +38,19 @@ private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the app
 
 object Analytics : TopsortAnalytics {
 
+    // Volatile: setup() writes these from the host's thread while WorkManager threads and any
+    // caller of the public opaqueUserId getter read them. Without it a reader can miss the write
+    // and fall into the "setup was never called" path, or - worse - see session non-null in
+    // assertSetup() and null again at the session!! in resolveOpaqueUserId, which would throw out
+    // of public API. Same reason the cache's shared fields and the HTTP service instance are
+    // volatile; these were the ones left out.
+    @Volatile
     private var applicationContext: Context? = null
+
+    @Volatile
     private var workManager: WorkManager? = null
+
+    @Volatile
     private var session: Session? = null
 
     /**
