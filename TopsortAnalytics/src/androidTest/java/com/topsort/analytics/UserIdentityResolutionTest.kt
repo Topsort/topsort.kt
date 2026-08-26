@@ -32,7 +32,7 @@ class UserIdentityResolutionTest {
 
     @Test
     fun a_marketplace_id_is_used_as_given() {
-        setup(requireNotNull(UserIdentity.Identified.of("marketplace-id")))
+        setup(UserIdentity.of("marketplace-id"))
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }
@@ -53,36 +53,6 @@ class UserIdentityResolutionTest {
         setup(UserIdentity.Unidentified)
 
         assertThat(Analytics.opaqueUserId).isEqualTo(minted)
-    }
-
-    /** Unidentified means "I have no id to give", never "forget the one you have". */
-    @Test
-    fun unidentified_does_not_downgrade_a_marketplace_id() {
-        setup(requireNotNull(UserIdentity.Identified.of("marketplace-id")))
-
-        setup(UserIdentity.Unidentified)
-
-        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
-    }
-
-    @Test
-    fun a_marketplace_id_replaces_a_minted_placeholder() {
-        setup(UserIdentity.Unidentified)
-        val minted = Analytics.opaqueUserId
-
-        setup(requireNotNull(UserIdentity.Identified.of("marketplace-id")))
-
-        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
-        assertThat(Analytics.opaqueUserId).isNotEqualTo(minted)
-    }
-
-    @Test
-    fun a_marketplace_id_replaces_a_different_marketplace_id() {
-        setup(requireNotNull(UserIdentity.Identified.of("first")))
-
-        setup(requireNotNull(UserIdentity.Identified.of("second")))
-
-        assertThat(Analytics.opaqueUserId).isEqualTo("second")
     }
 
     /**

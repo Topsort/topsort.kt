@@ -72,26 +72,15 @@ object Analytics : TopsortAnalytics {
      * @param opaqueUserId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
      * @param token The bearer token
      */
-    // Stays at WARNING for the whole of 3.x and becomes an ERROR at 4.0.0. No removal is planned:
-    // this is three lines that delegate, while deleting it is a NoSuchMethodError for every
-    // consumer who compiled against it and has not rebuilt - and those consumers are third-party
-    // marketplaces on their own release cadences, not a codebase we can migrate ourselves. If it
-    // is ever removed, that is 5.0.0 at the earliest, one full major after it starts failing the
-    // build.
+    // WARNING through 3.x, ERROR at 4.0.0. Not removed: deleting it is a NoSuchMethodError for
+    // every consumer who compiled against it and has not rebuilt.
     //
-    // Deliberately no ReplaceWith, even though UserIdentity.of(opaqueUserId) would be an exactly
-    // behaviour-preserving one. That is the problem: it preserves the silent fallback this
-    // deprecation exists to eliminate. A caller who applies it mechanically - as IDEs do, often
-    // across a whole module at once - keeps a blank quietly becoming an unidentified session and
-    // learns nothing, which leaves them exactly where they started with a warning cleared.
-    // Migrating means looking at the value and deciding whether it can be blank and what that
-    // means, which is a judgement an IDE cannot make on their behalf.
+    // No ReplaceWith: the mechanical rewrite is behaviour-preserving, which means it preserves the
+    // silent fallback this deprecation exists to remove.
     @Deprecated(
-        "A blank opaqueUserId silently means \"mint an id for me\", which is easy to trigger by " +
-            "accident and produces events that never audience-match. Say which one you mean: " +
-            "setup(application, UserIdentity.Identified.of(id)!!, token) when the id is always " +
-            "present, or UserIdentity.Unidentified when you genuinely have none. If it might be " +
-            "blank and that should mean 'no identifier', UserIdentity.of(id) says so explicitly.",
+        "A blank opaqueUserId silently means \"mint an id for me\", producing events that never " +
+            "audience-match. Say which you mean: UserIdentity.of(id) if it might be blank, or " +
+            "UserIdentity.Unidentified if you genuinely have none.",
         level = DeprecationLevel.WARNING,
     )
     @SuppressLint("KotlinNullnessAnnotation")

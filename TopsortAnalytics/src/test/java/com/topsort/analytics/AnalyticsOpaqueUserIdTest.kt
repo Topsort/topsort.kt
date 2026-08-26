@@ -95,7 +95,7 @@ class AnalyticsOpaqueUserIdTest {
     fun `opaqueUserId reports the resolved id for a marketplace identity`() {
         every { Cache.setup(any(), any(), any()) } returns "marketplace-id"
 
-        Analytics.setup(application, requireNotNull(UserIdentity.Identified.of("marketplace-id")), "token")
+        Analytics.setup(application, UserIdentity.of("marketplace-id"), "token")
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }

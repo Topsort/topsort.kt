@@ -47,17 +47,7 @@ public final class com/topsort/analytics/UserIdentity$Companion {
 }
 
 public final class com/topsort/analytics/UserIdentity$Identified : com/topsort/analytics/UserIdentity {
-	public static final field Companion Lcom/topsort/analytics/UserIdentity$Identified$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun equals (Ljava/lang/Object;)Z
 	public final fun getId ()Ljava/lang/String;
-	public fun hashCode ()I
-	public static final fun of (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Identified;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class com/topsort/analytics/UserIdentity$Identified$Companion {
-	public final fun of (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Identified;
 }
 
 public final class com/topsort/analytics/UserIdentity$Unidentified : com/topsort/analytics/UserIdentity {

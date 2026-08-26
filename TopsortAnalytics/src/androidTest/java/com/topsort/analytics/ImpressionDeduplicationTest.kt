@@ -23,7 +23,7 @@ class ImpressionDeduplicationTest {
 
     private fun setUpWith(opaqueUserId: String = EventPipelineHarness.OPAQUE_USER_ID) {
         fake = EventPipelineHarness.install()
-        setup(requireNotNull(UserIdentity.Identified.of(opaqueUserId)), EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of(opaqueUserId), EventPipelineHarness.TOKEN)
     }
 
     private fun setup(identity: UserIdentity, token: String) =
@@ -170,7 +170,7 @@ class ImpressionDeduplicationTest {
         reportImpression("bid-repeat-setup")
         EventPipelineHarness.runPendingEventWork()
 
-        setup(requireNotNull(UserIdentity.Identified.of("marketplace-id")), EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of("marketplace-id"), EventPipelineHarness.TOKEN)
         reportImpression("bid-repeat-setup")
         EventPipelineHarness.runPendingEventWork()
 
@@ -188,7 +188,7 @@ class ImpressionDeduplicationTest {
         reportImpression("bid-shared")
         EventPipelineHarness.runPendingEventWork()
 
-        setup(requireNotNull(UserIdentity.Identified.of("second-user")), EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of("second-user"), EventPipelineHarness.TOKEN)
         reportImpression("bid-shared")
         EventPipelineHarness.runPendingEventWork()
 
