@@ -35,7 +35,7 @@ class EventRecoveryTest {
 
     private fun setUpWith(opaqueUserId: String = EventPipelineHarness.OPAQUE_USER_ID) {
         fake = EventPipelineHarness.install()
-        Analytics.setup(EventPipelineHarness.application, opaqueUserId, EventPipelineHarness.TOKEN)
+        Analytics.setup(EventPipelineHarness.application, UserIdentity.of(opaqueUserId), EventPipelineHarness.TOKEN)
     }
 
     @After
@@ -76,7 +76,7 @@ class EventRecoveryTest {
 
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
         EventPipelineHarness.runPendingEventWork()
@@ -96,7 +96,7 @@ class EventRecoveryTest {
 
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
         EventPipelineHarness.runPendingEventWork()
@@ -119,7 +119,7 @@ class EventRecoveryTest {
         loseScheduledWork()
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
         EventPipelineHarness.runPendingEventWork()
@@ -159,7 +159,7 @@ class EventRecoveryTest {
 
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
 
@@ -190,7 +190,7 @@ class EventRecoveryTest {
         loseScheduledWork()
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
         EventPipelineHarness.runPendingEventWork()

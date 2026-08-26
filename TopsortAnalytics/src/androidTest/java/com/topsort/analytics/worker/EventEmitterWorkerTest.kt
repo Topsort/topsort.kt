@@ -33,7 +33,7 @@ class EventEmitterWorkerTest {
 
     @Before
     fun setup() {
-        Cache.setup(context, requireNotNull(UserIdentity.Marketplace.of("test-user")), "test-token")
+        Cache.setup(context, requireNotNull(UserIdentity.Identified.of("test-user")), "test-token")
         mockService = MockAnalyticsService()
         TopsortAnalyticsHttpService.setMockService(mockService)
     }

@@ -14,7 +14,7 @@ class TestApplication : Application() {
 
         Analytics.setup(
             application = this,
-            identity = UserIdentity.Marketplace.of(sessionId) ?: UserIdentity.Unidentified,
+            identity = UserIdentity.of(sessionId),
             token = BuildConfig.TOKEN
         )
         

@@ -57,7 +57,7 @@ object Analytics : TopsortAnalytics {
      * This is not always the value passed to [setup]: [UserIdentity.Unidentified] falls back to
      * the id already in effect, or to a minted placeholder when there is nothing to fall back on.
      * Read this to reconcile reported events against your own records, and note that a placeholder
-     * will not audience-match - call [setup] again with [UserIdentity.Marketplace] once your own
+     * will not audience-match - call [setup] again with [UserIdentity.Identified] once your own
      * identifier is available.
      */
     val opaqueUserId: String?
@@ -79,20 +79,19 @@ object Analytics : TopsortAnalytics {
     // is ever removed, that is 5.0.0 at the earliest, one full major after it starts failing the
     // build.
     //
-    // Deliberately no ReplaceWith. The only expression it could name is
-    // UserIdentity.Marketplace(opaqueUserId), and that is wrong for the callers this deprecation
-    // exists to reach: applying it - mechanically, and often across a whole module at once -
-    // discards the blank check below and turns a tolerated blank into an IllegalArgumentException
-    // thrown out of Application.onCreate(). A caller passing a literal is fine either way; a caller
-    // passing runtime data that can be blank is exactly who gets hurt, and exactly who this is for.
-    // Migrating means deciding which identity you mean, which is a judgement an IDE cannot make.
+    // Deliberately no ReplaceWith, even though UserIdentity.of(opaqueUserId) would be an exactly
+    // behaviour-preserving one. That is the problem: it preserves the silent fallback this
+    // deprecation exists to eliminate. A caller who applies it mechanically - as IDEs do, often
+    // across a whole module at once - keeps a blank quietly becoming an unidentified session and
+    // learns nothing, which leaves them exactly where they started with a warning cleared.
+    // Migrating means looking at the value and deciding whether it can be blank and what that
+    // means, which is a judgement an IDE cannot make on their behalf.
     @Deprecated(
         "A blank opaqueUserId silently means \"mint an id for me\", which is easy to trigger by " +
             "accident and produces events that never audience-match. Say which one you mean: " +
-            "setup(application, UserIdentity.Marketplace(id), token) when you have the " +
-            "marketplace's own id, or UserIdentity.Unidentified when you genuinely have none. " +
-            "Do not translate a possibly-blank value straight into Marketplace - it rejects a " +
-            "blank id.",
+            "setup(application, UserIdentity.Identified.of(id)!!, token) when the id is always " +
+            "present, or UserIdentity.Unidentified when you genuinely have none. If it might be " +
+            "blank and that should mean 'no identifier', UserIdentity.of(id) says so explicitly.",
         level = DeprecationLevel.WARNING,
     )
     @SuppressLint("KotlinNullnessAnnotation")
@@ -101,11 +100,10 @@ object Analytics : TopsortAnalytics {
         @NonNull opaqueUserId: String,
         @NonNull token: String
     ) {
-        // Blank keeps mapping to Unidentified rather than throwing: this overload's whole
-        // contract was that blank is tolerated, and turning that into an exception would crash
-        // callers on upgrade. The deprecation is how they find out; UserIdentity.Marketplace is
-        // where it fails loudly instead.
-        val identity = UserIdentity.Marketplace.of(opaqueUserId) ?: UserIdentity.Unidentified
+        // Blank keeps mapping to Unidentified: this overload's whole contract was that blank is
+        // tolerated, and changing that would break callers on upgrade. The deprecation is how they
+        // find out; UserIdentity.of spells the same conversion out loud for anyone migrating.
+        val identity = UserIdentity.of(opaqueUserId)
 
         setup(application, identity, token)
     }
@@ -117,7 +115,7 @@ object Analytics : TopsortAnalytics {
      * identity or the bearer token changes.
      *
      * @param application The Application instance of the app.
-     * @param identity Who the reported events belong to. Pass [UserIdentity.Marketplace] with the
+     * @param identity Who the reported events belong to. Pass [UserIdentity.Identified] with the
      * marketplace's own identifier whenever one is available, logged in or not, because audience
      * matching resolves it against the marketplace's records. Pass [UserIdentity.Unidentified]
      * only when there is genuinely no identifier to give.

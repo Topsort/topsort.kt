@@ -196,7 +196,7 @@ internal object Cache {
     /**
      * Decides which opaque user id to use.
      *
-     * A [UserIdentity.Marketplace] id always wins, because audience matching requires the id to
+     * A [UserIdentity.Identified] id always wins, because audience matching requires the id to
      * correspond to the marketplace's records - an id minted here matches nothing. It is non-blank
      * by construction, so there is nothing to validate again at this point.
      *
@@ -204,23 +204,30 @@ internal object Cache {
      * marketplace-supplied or previously minted, so a caller who cannot name the user does not
      * cost us the id we already had. Only with nothing at all to fall back on do we mint one, so that events remain
      * reportable instead of being rejected by the API for a missing opaqueUserId. Calling setup
-     * again with a [UserIdentity.Marketplace] id replaces it.
+     * again with a [UserIdentity.Identified] id replaces it.
      */
     private fun resolveOpaqueUserId(identity: UserIdentity): ResolvedIdentity {
-        if (identity is UserIdentity.Marketplace) {
-            return ResolvedIdentity(identity.id, wasGenerated = false)
+        // Exhaustive, and used as an expression so the compiler enforces that. A third case - the
+        // logout/clear this type does not yet have - must not fall silently into the branch below,
+        // which keeps the previous user's id and would attribute one person's events to another.
+        when (identity) {
+            is UserIdentity.Identified -> return ResolvedIdentity(identity.id, wasGenerated = false)
+            UserIdentity.Unidentified -> Unit
         }
 
         val known = opaqueUserId
         if (known.isNotBlank()) {
-            Log.w(TAG, "No opaqueUserId supplied; keeping the id already in effect")
+            // Info, not a warning: Unidentified is a documented, deliberate choice, so an app that
+            // legitimately has no id would otherwise warn on every cold start for doing as it was
+            // told. The mint below stays at warning - that one is actionable.
+            Log.i(TAG, "No opaqueUserId supplied; keeping the id already in effect")
             return ResolvedIdentity(known, wasGenerated = false)
         }
 
         Log.w(
             TAG,
             "No opaqueUserId supplied; generating a placeholder so events remain reportable. " +
-                "Call setup again with UserIdentity.Marketplace once the marketplace's own id is " +
+                "Call setup again with UserIdentity.Identified once the marketplace's own id is " +
                 "available, otherwise audience matching will not work for these events.",
         )
         return ResolvedIdentity(randomId(), wasGenerated = true)
