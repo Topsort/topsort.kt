@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
  *
  * The behaviour is the one the blank-String contract used to have; what changed is that a caller
  * now has to say which of the two they mean, so a blank id produced by accident fails at the call
- * site instead of silently becoming an anonymous session.
+ * site instead of silently becoming an unidentified session.
  */
 @RunWith(AndroidJUnit4::class)
 class UserIdentityResolutionTest {
@@ -32,45 +32,45 @@ class UserIdentityResolutionTest {
 
     @Test
     fun a_marketplace_id_is_used_as_given() {
-        setup(UserIdentity.Marketplace("marketplace-id"))
+        setup(requireNotNull(UserIdentity.Marketplace.of("marketplace-id")))
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }
 
     @Test
-    fun anonymous_mints_an_id_when_there_is_nothing_to_fall_back_on() {
-        setup(UserIdentity.Anonymous)
+    fun unidentified_mints_an_id_when_there_is_nothing_to_fall_back_on() {
+        setup(UserIdentity.Unidentified)
 
         assertThat(Analytics.opaqueUserId).isNotBlank()
     }
 
     /** Minting once and keeping it is the whole reason the SDK should own this, not the caller. */
     @Test
-    fun anonymous_reuses_the_id_it_minted() {
-        setup(UserIdentity.Anonymous)
+    fun unidentified_reuses_the_id_it_minted() {
+        setup(UserIdentity.Unidentified)
         val minted = Analytics.opaqueUserId
 
-        setup(UserIdentity.Anonymous)
+        setup(UserIdentity.Unidentified)
 
         assertThat(Analytics.opaqueUserId).isEqualTo(minted)
     }
 
-    /** Anonymous means "I have no id to give", never "forget the one you have". */
+    /** Unidentified means "I have no id to give", never "forget the one you have". */
     @Test
-    fun anonymous_does_not_downgrade_a_marketplace_id() {
-        setup(UserIdentity.Marketplace("marketplace-id"))
+    fun unidentified_does_not_downgrade_a_marketplace_id() {
+        setup(requireNotNull(UserIdentity.Marketplace.of("marketplace-id")))
 
-        setup(UserIdentity.Anonymous)
+        setup(UserIdentity.Unidentified)
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }
 
     @Test
     fun a_marketplace_id_replaces_a_minted_placeholder() {
-        setup(UserIdentity.Anonymous)
+        setup(UserIdentity.Unidentified)
         val minted = Analytics.opaqueUserId
 
-        setup(UserIdentity.Marketplace("marketplace-id"))
+        setup(requireNotNull(UserIdentity.Marketplace.of("marketplace-id")))
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
         assertThat(Analytics.opaqueUserId).isNotEqualTo(minted)
@@ -78,9 +78,9 @@ class UserIdentityResolutionTest {
 
     @Test
     fun a_marketplace_id_replaces_a_different_marketplace_id() {
-        setup(UserIdentity.Marketplace("first"))
+        setup(requireNotNull(UserIdentity.Marketplace.of("first")))
 
-        setup(UserIdentity.Marketplace("second"))
+        setup(requireNotNull(UserIdentity.Marketplace.of("second")))
 
         assertThat(Analytics.opaqueUserId).isEqualTo("second")
     }
@@ -99,7 +99,7 @@ class UserIdentityResolutionTest {
 
     @Suppress("DEPRECATION")
     @Test
-    fun the_deprecated_overload_maps_blank_to_anonymous_rather_than_throwing() {
+    fun the_deprecated_overload_maps_blank_to_unidentified_rather_than_throwing() {
         Analytics.setup(EventPipelineHarness.application, "", EventPipelineHarness.TOKEN)
 
         assertThat(Analytics.opaqueUserId).isNotBlank()

@@ -86,6 +86,40 @@ class AnalyticsOpaqueUserIdTest {
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }
 
+    /**
+     * The identity overload is the supported entry point, so its contract is pinned here and not
+     * only in the instrumented tests - the deprecated String overload delegates to it, so without
+     * these the new public API would be exercised by no unit test at all.
+     */
+    @Test
+    fun `opaqueUserId reports the resolved id for a marketplace identity`() {
+        every { Cache.setup(any(), any(), any()) } returns "marketplace-id"
+
+        Analytics.setup(application, requireNotNull(UserIdentity.Marketplace.of("marketplace-id")), "token")
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+    }
+
+    @Test
+    fun `opaqueUserId reports the minted id for an unidentified user`() {
+        every { Cache.setup(any(), any(), any()) } returns "generated-placeholder"
+
+        Analytics.setup(application, UserIdentity.Unidentified, "token")
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("generated-placeholder")
+    }
+
+    /** The deprecated overload must reach the same place, so blank maps to Unidentified. */
+    @Test
+    fun `the deprecated overload routes a blank id through the identity overload`() {
+        every { Cache.setup(any(), UserIdentity.Unidentified, any()) } returns "generated-placeholder"
+
+        @Suppress("DEPRECATION")
+        Analytics.setup(application, "", "token")
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("generated-placeholder")
+    }
+
     @Test
     fun `calling setup again with a real id replaces a placeholder`() {
         every { Cache.setup(any(), any(), any()) } returns "generated-placeholder"

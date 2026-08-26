@@ -84,13 +84,16 @@ class MyApplication : Application() {
             application = this,
             // The marketplace's own id for this user. Audience matching resolves it against
             // your records, so pass it whenever you have one - logged in or not.
-            identity = UserIdentity.Marketplace("user-unique-id"),
+            // `of` returns null for a blank id rather than throwing, so an id you are not
+            // certain of has an explicit fallback instead of a silent one:
+            identity = UserIdentity.Marketplace.of(userId) ?: UserIdentity.Unidentified,
             token = "your-api-token"
         )
         // No identifier available for this user? Say so explicitly, and the SDK mints one
-        // and keeps it across launches:
+        // and keeps it across launches. Note a minted id is a persistent device-scoped
+        // pseudonymous identifier, not anonymisation:
         //
-        //     Analytics.setup(this, UserIdentity.Anonymous, "your-api-token")
+        //     Analytics.setup(this, UserIdentity.Unidentified, "your-api-token")
         //
         // Events reported under a minted id are billed normally but will not audience-match.
     }

@@ -54,11 +54,11 @@ object Analytics : TopsortAnalytics {
     /**
      * The opaque user id currently in effect for reported events, or null before [setup] has run.
      *
-     * This is not always the value passed to [setup]: [UserIdentity.Anonymous] falls back to the id
-     * already in effect, or to a minted placeholder when there is nothing to fall back on. Read this
-     * to reconcile reported events against your own records, and note that a placeholder will not
-     * audience-match - call [setup] again with [UserIdentity.Marketplace] once your own identifier
-     * is available.
+     * This is not always the value passed to [setup]: [UserIdentity.Unidentified] falls back to
+     * the id already in effect, or to a minted placeholder when there is nothing to fall back on.
+     * Read this to reconcile reported events against your own records, and note that a placeholder
+     * will not audience-match - call [setup] again with [UserIdentity.Marketplace] once your own
+     * identifier is available.
      */
     val opaqueUserId: String?
         get() = session?.opaqueUserId
@@ -80,11 +80,12 @@ object Analytics : TopsortAnalytics {
     // passing runtime data that can be blank is exactly who gets hurt, and exactly who this is for.
     // Migrating means deciding which identity you mean, which is a judgement an IDE cannot make.
     @Deprecated(
-        "A blank opaqueUserId silently means \"mint an anonymous id\", which is easy to trigger " +
-            "by accident and produces events that never audience-match. Say which one you mean: " +
+        "A blank opaqueUserId silently means \"mint an id for me\", which is easy to trigger by " +
+            "accident and produces events that never audience-match. Say which one you mean: " +
             "setup(application, UserIdentity.Marketplace(id), token) when you have the " +
-            "marketplace's own id, or UserIdentity.Anonymous when you genuinely have none. Do not " +
-            "translate a possibly-blank value straight into Marketplace - it rejects a blank id.",
+            "marketplace's own id, or UserIdentity.Unidentified when you genuinely have none. " +
+            "Do not translate a possibly-blank value straight into Marketplace - it rejects a " +
+            "blank id.",
         level = DeprecationLevel.WARNING,
     )
     @SuppressLint("KotlinNullnessAnnotation")
@@ -93,13 +94,11 @@ object Analytics : TopsortAnalytics {
         @NonNull opaqueUserId: String,
         @NonNull token: String
     ) {
-        // Blank keeps mapping to Anonymous rather than throwing: this overload's whole contract was
-        // that blank is tolerated, and turning that into an exception would crash callers on
-        // upgrade. The deprecation is how they find out; UserIdentity.Marketplace is where it fails
-        // loudly instead.
-        val identity =
-            if (opaqueUserId.isBlank()) UserIdentity.Anonymous
-            else UserIdentity.Marketplace(opaqueUserId)
+        // Blank keeps mapping to Unidentified rather than throwing: this overload's whole
+        // contract was that blank is tolerated, and turning that into an exception would crash
+        // callers on upgrade. The deprecation is how they find out; UserIdentity.Marketplace is
+        // where it fails loudly instead.
+        val identity = UserIdentity.Marketplace.of(opaqueUserId) ?: UserIdentity.Unidentified
 
         setup(application, identity, token)
     }
@@ -113,8 +112,8 @@ object Analytics : TopsortAnalytics {
      * @param application The Application instance of the app.
      * @param identity Who the reported events belong to. Pass [UserIdentity.Marketplace] with the
      * marketplace's own identifier whenever one is available, logged in or not, because audience
-     * matching resolves it against the marketplace's records. Pass [UserIdentity.Anonymous] only
-     * when there is genuinely no identifier to give.
+     * matching resolves it against the marketplace's records. Pass [UserIdentity.Unidentified]
+     * only when there is genuinely no identifier to give.
      * @param token The bearer token
      */
     @SuppressLint("KotlinNullnessAnnotation")
@@ -135,8 +134,9 @@ object Analytics : TopsortAnalytics {
         // A setup() that changes the user starts a fresh set of bids, because the new user's
         // impressions are their own and must not be dropped as duplicates of the previous
         // one's. One that resolves to the same user must keep the set: setup() is also how a
-        // caller refreshes an expired token, and UserIdentity.Anonymous deliberately keeps the id
-        // already in effect, so clearing here would reopen the duplicate it is meant to stop.
+        // caller refreshes an expired token, and UserIdentity.Unidentified deliberately keeps
+        // the id already in effect, so clearing here would reopen the duplicate it is meant to
+        // stop.
         if (previousOpaqueUserId != resolvedOpaqueUserId) {
             ReportedBids.clear()
         }

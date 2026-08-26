@@ -40,19 +40,22 @@ public final class com/topsort/analytics/TopsortAnalytics$DefaultImpls {
 public abstract class com/topsort/analytics/UserIdentity {
 }
 
-public final class com/topsort/analytics/UserIdentity$Anonymous : com/topsort/analytics/UserIdentity {
-	public static final field INSTANCE Lcom/topsort/analytics/UserIdentity$Anonymous;
-}
-
 public final class com/topsort/analytics/UserIdentity$Marketplace : com/topsort/analytics/UserIdentity {
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Marketplace;
-	public static synthetic fun copy$default (Lcom/topsort/analytics/UserIdentity$Marketplace;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/UserIdentity$Marketplace;
+	public static final field Companion Lcom/topsort/analytics/UserIdentity$Marketplace$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getId ()Ljava/lang/String;
 	public fun hashCode ()I
+	public static final fun of (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Marketplace;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/topsort/analytics/UserIdentity$Marketplace$Companion {
+	public final fun of (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Marketplace;
+}
+
+public final class com/topsort/analytics/UserIdentity$Unidentified : com/topsort/analytics/UserIdentity {
+	public static final field INSTANCE Lcom/topsort/analytics/UserIdentity$Unidentified;
 }
 
 public abstract class com/topsort/analytics/banners/BannerConfig {

@@ -154,8 +154,8 @@ internal object Cache {
 
     /**
      * Initialises the cache and stores the session identity. Returns the opaque user id actually
-     * in effect, which for [UserIdentity.Anonymous] is whatever was already persisted, or a newly
-     * minted id when there is nothing to fall back on.
+     * in effect, which for [UserIdentity.Unidentified] is whatever was already persisted, or a
+     * newly minted id when there is nothing to fall back on.
      */
     // Synchronized for the same reason storeEvent is: both write recentRecordId. Without it a
     // concurrent setup can roll the counter back to a stale on-disk value, after which storeEvent
@@ -200,9 +200,9 @@ internal object Cache {
      * correspond to the marketplace's records - an id minted here matches nothing. It is non-blank
      * by construction, so there is nothing to validate again at this point.
      *
-     * [UserIdentity.Anonymous] never downgrades an identity we already hold, marketplace-supplied
-     * or previously minted, so a caller who cannot name the user does not cost us the id we already
-     * had. Only with nothing at all to fall back on do we mint one, so that events remain
+     * [UserIdentity.Unidentified] never downgrades an identity we already hold,
+     * marketplace-supplied or previously minted, so a caller who cannot name the user does not
+     * cost us the id we already had. Only with nothing at all to fall back on do we mint one, so that events remain
      * reportable instead of being rejected by the API for a missing opaqueUserId. Calling setup
      * again with a [UserIdentity.Marketplace] id replaces it.
      */
@@ -213,6 +213,7 @@ internal object Cache {
 
         val known = opaqueUserId
         if (known.isNotBlank()) {
+            Log.w(TAG, "No opaqueUserId supplied; keeping the id already in effect")
             return ResolvedIdentity(known, wasGenerated = false)
         }
 
