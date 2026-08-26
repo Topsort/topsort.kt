@@ -29,7 +29,6 @@ class ImpressionDeduplicationTest {
     @After
     fun tearDown() {
         EventPipelineHarness.uninstall()
-        ReportedBids.clear()
     }
 
     private fun reportImpression(bidId: String) {
@@ -117,6 +116,42 @@ class ImpressionDeduplicationTest {
         EventPipelineHarness.runPendingEventWork()
 
         assertThat(fake.sent.filterIsInstance<com.topsort.analytics.model.ClickEvent>()).hasSize(3)
+    }
+
+    /**
+     * setup() is also how a caller refreshes an expired token, and a blank opaqueUserId keeps the
+     * id already in effect. That is the same user, so the tracked bids must survive - clearing
+     * them would reopen the duplicate this guards against.
+     */
+    @Test
+    fun a_token_refresh_for_the_same_user_still_deduplicates() {
+        setUpWith(opaqueUserId = "marketplace-id")
+
+        reportImpression("bid-across-refresh")
+        EventPipelineHarness.runPendingEventWork()
+
+        // A blank id deliberately keeps "marketplace-id" in effect.
+        Analytics.setup(EventPipelineHarness.application, "", "refreshed-token")
+        reportImpression("bid-across-refresh")
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+        assertThat(fake.impressionsSent).hasSize(1)
+    }
+
+    /** Re-supplying the same id is likewise the same user, so the tracked bids survive. */
+    @Test
+    fun repeating_setup_with_the_same_user_still_deduplicates() {
+        setUpWith(opaqueUserId = "marketplace-id")
+
+        reportImpression("bid-repeat-setup")
+        EventPipelineHarness.runPendingEventWork()
+
+        Analytics.setup(EventPipelineHarness.application, "marketplace-id", EventPipelineHarness.TOKEN)
+        reportImpression("bid-repeat-setup")
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.impressionsSent).hasSize(1)
     }
 
     /**

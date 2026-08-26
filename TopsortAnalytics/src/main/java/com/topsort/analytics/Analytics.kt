@@ -79,15 +79,21 @@ object Analytics : TopsortAnalytics {
     ) {
         applicationContext = application.applicationContext
         workManager = WorkManager.getInstance(applicationContext!!)
+        val previousOpaqueUserId = session?.opaqueUserId
         val resolvedOpaqueUserId = Cache.setup(application, opaqueUserId, token)
 
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
         )
 
-        // A second setup() may be a different user, whose impressions must not be dropped as
-        // duplicates of the previous one's.
-        ReportedBids.clear()
+        // A setup() that changes the user starts a fresh set of bids, because the new user's
+        // impressions are their own and must not be dropped as duplicates of the previous
+        // one's. One that resolves to the same user must keep the set: setup() is also how a
+        // caller refreshes an expired token, and a blank opaqueUserId deliberately keeps the id
+        // already in effect, so clearing here would reopen the duplicate it is meant to stop.
+        if (previousOpaqueUserId != resolvedOpaqueUserId) {
+            ReportedBids.clear()
+        }
 
         schedulePendingEventSweep()
     }
