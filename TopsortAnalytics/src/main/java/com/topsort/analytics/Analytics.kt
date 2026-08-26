@@ -72,6 +72,13 @@ object Analytics : TopsortAnalytics {
      * @param opaqueUserId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
      * @param token The bearer token
      */
+    // Stays at WARNING for the whole of 3.x and becomes an ERROR at 4.0.0. No removal is planned:
+    // this is three lines that delegate, while deleting it is a NoSuchMethodError for every
+    // consumer who compiled against it and has not rebuilt - and those consumers are third-party
+    // marketplaces on their own release cadences, not a codebase we can migrate ourselves. If it
+    // is ever removed, that is 5.0.0 at the earliest, one full major after it starts failing the
+    // build.
+    //
     // Deliberately no ReplaceWith. The only expression it could name is
     // UserIdentity.Marketplace(opaqueUserId), and that is wrong for the callers this deprecation
     // exists to reach: applying it - mechanically, and often across a whole module at once -

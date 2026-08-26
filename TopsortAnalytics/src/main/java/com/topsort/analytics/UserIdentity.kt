@@ -59,6 +59,12 @@ sealed class UserIdentity {
      * audience-match, because the id corresponds to nothing in the marketplace's records. Call
      * [Analytics.setup] again with a [Marketplace] id once one is available.
      *
+     * This is not a logout. Because it never downgrades, signing a user out and calling
+     * [Analytics.setup] with [Unidentified] leaves their marketplace id in effect, and subsequent
+     * events are still reported under it - which on a shared device attributes one person's
+     * activity to another. There is currently no way to clear an identity; to represent a new
+     * person, call [Analytics.setup] with their [Marketplace] id.
+     *
      * Named for what it says about your knowledge of the user, not about the data: a minted id is
      * a persistent, device-scoped pseudonymous identifier, which most privacy regimes treat as
      * personal data. It is not anonymisation, and choosing this case does not remove whatever
