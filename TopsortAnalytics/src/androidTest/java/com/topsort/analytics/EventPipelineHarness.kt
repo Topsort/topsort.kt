@@ -70,6 +70,10 @@ internal object EventPipelineHarness {
 
         Cache.initialize(context)
         Cache.clearForTests()
+        // Reported bids are process-wide and outlive a test, and Analytics.setup() only clears
+        // them when the user changes. Without this a bid id reused by another test is silently
+        // deduplicated away, and the test that reports it sees fewer records than it wrote.
+        ReportedBids.clear()
         installed = true
 
         return fake

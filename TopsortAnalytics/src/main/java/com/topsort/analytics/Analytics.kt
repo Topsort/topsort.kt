@@ -79,11 +79,21 @@ object Analytics : TopsortAnalytics {
     ) {
         applicationContext = application.applicationContext
         workManager = WorkManager.getInstance(applicationContext!!)
+        val previousOpaqueUserId = session?.opaqueUserId
         val resolvedOpaqueUserId = Cache.setup(application, opaqueUserId, token)
 
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
         )
+
+        // A setup() that changes the user starts a fresh set of bids, because the new user's
+        // impressions are their own and must not be dropped as duplicates of the previous
+        // one's. One that resolves to the same user must keep the set: setup() is also how a
+        // caller refreshes an expired token, and a blank opaqueUserId deliberately keeps the id
+        // already in effect, so clearing here would reopen the duplicate it is meant to stop.
+        if (previousOpaqueUserId != resolvedOpaqueUserId) {
+            ReportedBids.clear()
+        }
 
         schedulePendingEventSweep()
     }
@@ -306,6 +316,26 @@ object Analytics : TopsortAnalytics {
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     /**
+     * Whether this impression is the first report of its resolved bid, and so should be sent.
+     *
+     * Organic impressions carry no bid and always pass. See [ReportedBids] for why a promoted bid
+     * only ever earns one impression, and why clicks are not filtered the same way.
+     */
+    private fun Impression.keepAsFirstReportOfItsBid(): Boolean {
+        val bidId = resolvedBidId ?: return true
+        if (ReportedBids.markReported(bidId)) {
+            return true
+        }
+        Log.w(
+            LOG_TAG,
+            "Dropping a repeat impression for resolvedBidId $bidId. A resolved bid earns one " +
+                "impression; report it once, when the ad is shown, not on every redraw or " +
+                "recomposition."
+        )
+        return false
+    }
+
+    /**
      * Asks the sweep to run in the background.
      *
      * Deliberately not inline: [setup] is documented as something to call from the Application
@@ -353,8 +383,13 @@ object Analytics : TopsortAnalytics {
             return
         }
 
+        val unreported = impressions.filter { it.keepAsFirstReportOfItsBid() }
+        if (unreported.isEmpty()) {
+            return
+        }
+
         val impressionEvent = ImpressionEvent(
-            impressions = impressions.map { it.withResolvedOpaqueUserId() },
+            impressions = unreported.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
