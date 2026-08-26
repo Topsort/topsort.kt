@@ -82,9 +82,17 @@ class MyApplication : Application() {
 
         Analytics.setup(
             application = this,
-            opaqueUserId = "user-unique-id", // Consistent ID for the user
+            // The marketplace's own id for this user. Audience matching resolves it against
+            // your records, so pass it whenever you have one - logged in or not.
+            identity = UserIdentity.Marketplace("user-unique-id"),
             token = "your-api-token"
         )
+        // No identifier available for this user? Say so explicitly, and the SDK mints one
+        // and keeps it across launches:
+        //
+        //     Analytics.setup(this, UserIdentity.Anonymous, "your-api-token")
+        //
+        // Events reported under a minted id are billed normally but will not audience-match.
     }
 }
 ```

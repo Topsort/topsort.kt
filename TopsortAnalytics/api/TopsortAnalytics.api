@@ -8,6 +8,7 @@ public final class com/topsort/analytics/Analytics : com/topsort/analytics/Topso
 	public final fun reportImpressions (Ljava/util/List;)V
 	public fun reportPageView (Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;)V
 	public fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;)V
+	public final fun setup (Landroid/app/Application;Lcom/topsort/analytics/UserIdentity;Ljava/lang/String;)V
 	public final fun setup (Landroid/app/Application;Ljava/lang/String;Ljava/lang/String;)V
 }
 
@@ -34,6 +35,24 @@ public final class com/topsort/analytics/TopsortAnalytics$DefaultImpls {
 	public static fun reportPageView (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;)V
 	public static synthetic fun reportPageView$default (Lcom/topsort/analytics/TopsortAnalytics;Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;ILjava/lang/Object;)V
 	public static synthetic fun reportPurchase$default (Lcom/topsort/analytics/TopsortAnalytics;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;ILjava/lang/Object;)V
+}
+
+public abstract class com/topsort/analytics/UserIdentity {
+}
+
+public final class com/topsort/analytics/UserIdentity$Anonymous : com/topsort/analytics/UserIdentity {
+	public static final field INSTANCE Lcom/topsort/analytics/UserIdentity$Anonymous;
+}
+
+public final class com/topsort/analytics/UserIdentity$Marketplace : com/topsort/analytics/UserIdentity {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/topsort/analytics/UserIdentity$Marketplace;
+	public static synthetic fun copy$default (Lcom/topsort/analytics/UserIdentity$Marketplace;Ljava/lang/String;ILjava/lang/Object;)Lcom/topsort/analytics/UserIdentity$Marketplace;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/topsort/analytics/banners/BannerConfig {

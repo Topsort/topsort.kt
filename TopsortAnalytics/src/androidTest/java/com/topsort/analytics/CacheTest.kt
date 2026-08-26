@@ -20,7 +20,7 @@ class CacheTest {
         // Initialize cache with test credentials
         Cache.setup(
             context = context,
-            opaqueUserId = "test-user-id",
+            identity = UserIdentity.Marketplace("test-user-id"),
             token = "test-token"
         )
     }
@@ -34,15 +34,15 @@ class CacheTest {
 
     @Test
     fun setup_stores_token() {
-        Cache.setup(context, "user-123", "my-api-token")
+        Cache.setup(context, UserIdentity.Marketplace("user-123"), "my-api-token")
 
         assertThat(Cache.token).isEqualTo("my-api-token")
     }
 
     @Test
     fun setup_can_update_token() {
-        Cache.setup(context, "user-1", "token-1")
-        Cache.setup(context, "user-2", "token-2")
+        Cache.setup(context, UserIdentity.Marketplace("user-1"), "token-1")
+        Cache.setup(context, UserIdentity.Marketplace("user-2"), "token-2")
 
         assertThat(Cache.token).isEqualTo("token-2")
     }
@@ -268,7 +268,7 @@ class CacheTest {
         val recordId = Cache.storeImpression(event)
 
         // Call setup again (does not truly restart the process, but re-initializes credentials)
-        Cache.setup(context, "test-user-id", "test-token")
+        Cache.setup(context, UserIdentity.Marketplace("test-user-id"), "test-token")
 
         // Event should still be readable from SharedPreferences
         val retrieved = Cache.readImpression(recordId)

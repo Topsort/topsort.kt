@@ -6,6 +6,7 @@ import androidx.work.Data
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import com.topsort.analytics.Cache
+import com.topsort.analytics.UserIdentity
 import com.topsort.analytics.core.HttpResponse
 import com.topsort.analytics.getTestClickEvent
 import com.topsort.analytics.getTestImpressionEvent
@@ -32,7 +33,7 @@ class EventEmitterWorkerTest {
 
     @Before
     fun setup() {
-        Cache.setup(context, "test-user", "test-token")
+        Cache.setup(context, UserIdentity.Marketplace("test-user"), "test-token")
         mockService = MockAnalyticsService()
         TopsortAnalyticsHttpService.setMockService(mockService)
     }
