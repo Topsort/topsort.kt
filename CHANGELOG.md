@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.1.0](https://github.com/Topsort/topsort.kt/compare/v3.0.0...v3.1.0) (2026-08-26)
+
+
+### Features
+
+* publish automatically when release-please cuts a release ([#169](https://github.com/Topsort/topsort.kt/issues/169)) ([38c296d](https://github.com/Topsort/topsort.kt/commit/38c296dc2a96c6e50ce38b67668a65d08a647bcd))
+
+
+### Bug Fixes
+
+* let the Maven publish be triggered manually ([#164](https://github.com/Topsort/topsort.kt/issues/164)) ([8d98362](https://github.com/Topsort/topsort.kt/commit/8d983626aef4c8285d6d174b69756f14906f8cf2))
+* make the source jar wait for the generated version file ([#166](https://github.com/Topsort/topsort.kt/issues/166)) ([6c183f8](https://github.com/Topsort/topsort.kt/commit/6c183f8ec66bcb4886d891e47f6899a38d6b1c16))
+* refuse to publish a ref that is not a matching release tag ([#168](https://github.com/Topsort/topsort.kt/issues/168)) ([b9d203a](https://github.com/Topsort/topsort.kt/commit/b9d203a215be3e431608cc575cb8741f261287d9))
+* report a resolved bid's impression at most once per process ([#170](https://github.com/Topsort/topsort.kt/issues/170)) ([182397c](https://github.com/Topsort/topsort.kt/commit/182397cf188a93e2313522359c71a2e4a0044419))
+
 ## [3.0.0](https://github.com/Topsort/topsort.kt/compare/v2.0.1...v3.0.0) (2026-08-25)
 
 
