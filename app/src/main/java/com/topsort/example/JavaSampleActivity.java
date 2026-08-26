@@ -40,9 +40,12 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportImpressionPromoted(
                         resolvedBidId,
                         placement,
-                        null,
-                        null,
-                        null
+                        null,   // opaqueUserId - falls back to the one given to setup
+                        null,   // id           - generated when null
+                        null,   // occurredAt   - now when null
+                        null,   // deviceType
+                        null,   // channel
+                        null    // page
                 );
     }
 
@@ -57,9 +60,12 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportImpressionOrganic(
                         new Entity("p_SA0238", EntityType.PRODUCT),
                         placement,
-                        null,
-                        null,
-                        null
+                        null,   // opaqueUserId
+                        null,   // id
+                        null,   // occurredAt
+                        null,   // deviceType
+                        null,   // channel
+                        null    // page
                 );
     }
 
@@ -74,9 +80,13 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportClickOrganic(
                         new Entity("p_SA0238", EntityType.PRODUCT),
                         placement,
-                        null,
-                        null,
-                        null
+                        null,   // opaqueUserId
+                        null,   // id
+                        null,   // occurredAt
+                        null,   // deviceType
+                        null,   // channel
+                        null,   // page
+                        null    // clickType
                 );
     }
 
@@ -93,9 +103,13 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportClickPromoted(
                         resolvedBidId,
                         placement,
-                        null,
-                        null,
-                        null
+                        null,   // opaqueUserId
+                        null,   // id
+                        null,   // occurredAt
+                        null,   // deviceType
+                        null,   // channel
+                        null,   // page
+                        null    // clickType
                 );
     }
 
@@ -105,7 +119,8 @@ public class JavaSampleActivity extends ComponentActivity {
                 "p_SA0238",
                 20,
                 1295,
-                null
+                null,   // resolvedBidId - organic purchase
+                null    // vendorId
         );
 
         Analytics
@@ -113,8 +128,11 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportPurchase(
                         Collections.singletonList(item),
                         "o:567-123",
-                        null,
-                        null
+                        null,   // opaqueUserId
+                        null,   // occurredAt
+                        null,   // deviceType
+                        null,   // channel
+                        null    // page
                 );
     }
 
@@ -123,7 +141,8 @@ public class JavaSampleActivity extends ComponentActivity {
                 "p_SA0238",
                 20,
                 1295,
-                "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0="
+                "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
+                null    // vendorId
         );
 
         Analytics
@@ -131,8 +150,11 @@ public class JavaSampleActivity extends ComponentActivity {
                 .reportPurchase(
                         Collections.singletonList(item),
                         "o:567-123",
-                        null,
-                        null
+                        null,   // opaqueUserId
+                        null,   // occurredAt
+                        null,   // deviceType
+                        null,   // channel
+                        null    // page
                 );
     }
 }

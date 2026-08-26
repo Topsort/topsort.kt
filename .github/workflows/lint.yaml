@@ -32,3 +32,11 @@ jobs:
 
       - name: Check binary compatibility
         run: ./gradlew :TopsortAnalytics:apiCheck
+
+      # The Java sample is the only Java consumer of the SDK we control, which makes it the
+      # canary for Java interop: Kotlin default arguments generate no Java overloads, so every
+      # optional parameter added to a report* method is a source break for Java callers. Nothing
+      # built this file until now, so it broke silently in 3.0.0 and stayed broken across two
+      # releases. compileDebugKotlin does not cover it - Java is a separate compilation task.
+      - name: Compile the Java sample
+        run: ./gradlew :app:compileDebugJavaWithJavac
