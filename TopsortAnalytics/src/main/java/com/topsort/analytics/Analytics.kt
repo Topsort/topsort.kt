@@ -72,11 +72,20 @@ object Analytics : TopsortAnalytics {
      * @param opaqueUserId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
      * @param token The bearer token
      */
+    // Deliberately no ReplaceWith. The only expression it could name is
+    // UserIdentity.Marketplace(opaqueUserId), and that is wrong for the callers this deprecation
+    // exists to reach: applying it - mechanically, and often across a whole module at once -
+    // discards the blank check below and turns a tolerated blank into an IllegalArgumentException
+    // thrown out of Application.onCreate(). A caller passing a literal is fine either way; a caller
+    // passing runtime data that can be blank is exactly who gets hurt, and exactly who this is for.
+    // Migrating means deciding which identity you mean, which is a judgement an IDE cannot make.
     @Deprecated(
         "A blank opaqueUserId silently means \"mint an anonymous id\", which is easy to trigger " +
-            "by accident and produces events that never audience-match. Say which one you mean.",
-        ReplaceWith("setup(application, UserIdentity.Marketplace(opaqueUserId), token)"),
-        DeprecationLevel.WARNING,
+            "by accident and produces events that never audience-match. Say which one you mean: " +
+            "setup(application, UserIdentity.Marketplace(id), token) when you have the " +
+            "marketplace's own id, or UserIdentity.Anonymous when you genuinely have none. Do not " +
+            "translate a possibly-blank value straight into Marketplace - it rejects a blank id.",
+        level = DeprecationLevel.WARNING,
     )
     @SuppressLint("KotlinNullnessAnnotation")
     fun setup(
