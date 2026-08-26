@@ -85,6 +85,10 @@ object Analytics : TopsortAnalytics {
             opaqueUserId = resolvedOpaqueUserId
         )
 
+        // A second setup() may be a different user, whose impressions must not be dropped as
+        // duplicates of the previous one's.
+        ReportedBids.clear()
+
         schedulePendingEventSweep()
     }
 
@@ -306,6 +310,26 @@ object Analytics : TopsortAnalytics {
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     /**
+     * Whether this impression is the first report of its resolved bid, and so should be sent.
+     *
+     * Organic impressions carry no bid and always pass. See [ReportedBids] for why a promoted bid
+     * only ever earns one impression, and why clicks are not filtered the same way.
+     */
+    private fun Impression.keepAsFirstReportOfItsBid(): Boolean {
+        val bidId = resolvedBidId ?: return true
+        if (ReportedBids.markReported(bidId)) {
+            return true
+        }
+        Log.w(
+            LOG_TAG,
+            "Dropping a repeat impression for resolvedBidId $bidId. A resolved bid earns one " +
+                "impression; report it once, when the ad is shown, not on every redraw or " +
+                "recomposition."
+        )
+        return false
+    }
+
+    /**
      * Asks the sweep to run in the background.
      *
      * Deliberately not inline: [setup] is documented as something to call from the Application
@@ -353,8 +377,13 @@ object Analytics : TopsortAnalytics {
             return
         }
 
+        val unreported = impressions.filter { it.keepAsFirstReportOfItsBid() }
+        if (unreported.isEmpty()) {
+            return
+        }
+
         val impressionEvent = ImpressionEvent(
-            impressions = impressions.map { it.withResolvedOpaqueUserId() },
+            impressions = unreported.map { it.withResolvedOpaqueUserId() },
         )
 
         val recordId = Cache.storeImpression(impressionEvent)
