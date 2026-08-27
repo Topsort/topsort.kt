@@ -29,6 +29,18 @@ class BannerView(
     attrs: AttributeSet
 ) : ImageView(context, attrs) {
 
+    /**
+     * The impression listener waiting for the next layout pass, if one is.
+     *
+     * Held so that a second setup() can take it off the observer before adding its own. Each
+     * listener removes itself when it fires, which stops one setup reporting twice - but nothing
+     * stopped two setups leaving two listeners for the same view, and both would then fire on the
+     * same layout pass. That matters most for the winner overload, which is cheap and synchronous
+     * and therefore called exactly where views get reused: pools, RecyclerView, an AndroidView
+     * update block.
+     */
+    private var pendingImpressionListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     private var onNoWinnersCallback: (() -> Unit)? = null
     private var onErrorCallback: ((Throwable) -> Unit)? = null
     private var onImageLoadCallback: (() -> Unit)? = null
@@ -96,34 +108,7 @@ class BannerView(
         try {
             val result = runBannerAuction(config)
             if (result != null) {
-                this.load(result.url) {
-                    listener(
-                        onSuccess = { _, _ ->
-                            onImageLoadCallback?.invoke()
-                        },
-                        onError = { _: ImageRequest, error: ErrorResult ->
-                            onErrorCallback?.invoke(error.throwable)
-                        }
-                    )
-                }
-                this.viewTreeObserver.addOnGlobalLayoutListener(
-                    object : ViewTreeObserver.OnGlobalLayoutListener {
-                        override fun onGlobalLayout() {
-                            viewTreeObserver.removeOnGlobalLayoutListener(this)
-                            Analytics.reportImpressionPromoted(
-                                resolvedBidId = result.resolvedBidId,
-                                placement = Placement(path = path, location = location)
-                            )
-                        }
-                    }
-                )
-                this.setOnClickListener {
-                    Analytics.reportClickPromoted(
-                        resolvedBidId = result.resolvedBidId,
-                        placement = Placement(path = path, location = location)
-                    )
-                    onClick(result.id, result.type)
-                }
+                setup(result, path, location, onClick)
             } else {
                 onNoWinnersCallback?.invoke()
             }
@@ -144,6 +129,75 @@ class BannerView(
             onErrorCallback?.invoke(e)
         } catch (e: Throwable) {
             onErrorCallback?.invoke(e)
+        }
+    }
+
+    /**
+     * Display a banner you have already won, and report its impression and clicks.
+     *
+     * Use this when the auction is yours to run - your own HTTP stack, your own auth, retries or
+     * telemetry, or a winner you resolved earlier and cached. Map whatever your auction returned
+     * onto [BannerResponse] and this view does the rest: loads the creative, reports the
+     * impression once the banner has actually been laid out, and reports a click when it is
+     * tapped.
+     *
+     * The point of this overload is that reporting stays here. The impression must fire once per
+     * resolved bid, when the ad is really on screen - not on every redraw, recomposition or view
+     * rebind - and getting that wrong is billable on a CPM campaign. Owning your auction should
+     * not mean owning that too.
+     *
+     * No [AuctionError] is thrown or reported here, because no auction is run: you handled that
+     * before calling. [onNoWinners] is likewise never invoked - an absent winner means there is
+     * nothing to show, so do not call this at all.
+     *
+     * @param winner the winning bid to display, from [runBannerAuction] or from your own auction.
+     * @param path identifier for the screen where the banner is displayed. Prefer the real route
+     * or deeplink - a constant here makes every per-page report collapse into one bucket.
+     * @param location optional name for the location within the screen where the banner is shown.
+     * @param onClick callback for when the banner is clicked, receiving the winner's entity id and
+     * type. Usually this navigates to whatever the banner advertises.
+     */
+    fun setup(
+        winner: BannerResponse,
+        path: String,
+        location: String?,
+        onClick: (String, EntityType) -> Unit
+    ) {
+        val placement = Placement(path = path, location = location)
+
+        this.load(winner.url) {
+            listener(
+                onSuccess = { _, _ ->
+                    onImageLoadCallback?.invoke()
+                },
+                onError = { _: ImageRequest, error: ErrorResult ->
+                    onErrorCallback?.invoke(error.throwable)
+                }
+            )
+        }
+        // On layout rather than on load: the impression is owed when the banner occupies the
+        // screen. A listener still waiting from an earlier setup is dropped first - that banner
+        // never reached the screen, so it is owed nothing, and leaving it registered would report
+        // it alongside this one on the same layout pass.
+        pendingImpressionListener?.let { viewTreeObserver.removeOnGlobalLayoutListener(it) }
+        val listener = object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                viewTreeObserver.removeOnGlobalLayoutListener(this)
+                pendingImpressionListener = null
+                Analytics.reportImpressionPromoted(
+                    resolvedBidId = winner.resolvedBidId,
+                    placement = placement
+                )
+            }
+        }
+        pendingImpressionListener = listener
+        this.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        this.setOnClickListener {
+            Analytics.reportClickPromoted(
+                resolvedBidId = winner.resolvedBidId,
+                placement = placement
+            )
+            onClick(winner.id, winner.type)
         }
     }
 }
