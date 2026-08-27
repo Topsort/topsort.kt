@@ -2,10 +2,12 @@ package com.topsort.analytics
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.work.WorkManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -39,6 +41,11 @@ class AnalyticsOpaqueUserIdTest {
         // A strict mock would make these tests fail whenever setup() gains another enqueue.
         every { WorkManager.getInstance(any<Context>()) } returns mockk(relaxed = true)
         mockkObject(Cache)
+        // setup() warns on a blank id, and android.util.Log is a stub that throws under JVM unit
+        // tests. Mocked here rather than switching the module to returnDefaultValues, which would
+        // silently no-op every android API for every test in the module.
+        mockkStatic(Log::class)
+        every { Log.w(any<String>(), any<String>()) } returns 0
         resetAnalytics()
     }
 

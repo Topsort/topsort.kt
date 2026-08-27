@@ -56,6 +56,29 @@ class UserIdentityResolutionTest {
     }
 
     /**
+     * Identified.of rejects a blank id, but the constructor behind it is internal - and Kotlin
+     * emits internal constructors as public JVM methods, so Java can reach one directly. The
+     * cache must not trust the invariant it cannot enforce: a blank must never reach the wire,
+     * because the API rejects it and the event is lost.
+     */
+    @Test
+    fun a_blank_identified_id_is_treated_as_unidentified() {
+        setup(UserIdentity.Identified(""))
+
+        assertThat(Analytics.opaqueUserId).isNotBlank()
+    }
+
+    /** And it must not clobber an identity we already hold. */
+    @Test
+    fun a_blank_identified_id_does_not_replace_a_real_one() {
+        setup(UserIdentity.of("marketplace-id"))
+
+        setup(UserIdentity.Identified(""))
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+    }
+
+    /**
      * The deprecated String overload has to keep behaving exactly as it did, or upgrading to this
      * release would change identity handling under callers who have not migrated.
      */

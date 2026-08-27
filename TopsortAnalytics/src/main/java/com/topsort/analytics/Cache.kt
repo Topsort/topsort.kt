@@ -207,11 +207,21 @@ internal object Cache {
      * again with a [UserIdentity.Identified] id replaces it.
      */
     private fun resolveOpaqueUserId(identity: UserIdentity): ResolvedIdentity {
-        // Exhaustive, and used as an expression so the compiler enforces that. A third case - the
+        // Exhaustive over a sealed subject, which the compiler enforces. A third case - the
         // logout/clear this type does not yet have - must not fall silently into the branch below,
         // which keeps the previous user's id and would attribute one person's events to another.
         when (identity) {
-            is UserIdentity.Identified -> return ResolvedIdentity(identity.id, wasGenerated = false)
+            is UserIdentity.Identified -> {
+                // Identified.of rejects a blank id, but its constructor is internal, and Kotlin
+                // emits internal constructors as public JVM methods - so Java can reach it, and so
+                // can any future call site in this module that bypasses the factory. Falling
+                // through rather than trusting the invariant keeps the one this cache actually
+                // owes the wire: no event leaves with a blank opaqueUserId, which the API rejects.
+                if (identity.id.isNotBlank()) {
+                    return ResolvedIdentity(identity.id, wasGenerated = false)
+                }
+                Log.w(TAG, "Blank UserIdentity.Identified id; treating it as Unidentified")
+            }
             UserIdentity.Unidentified -> Unit
         }
 

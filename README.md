@@ -76,9 +76,14 @@ android {
 Initialize the SDK in your Application class:
 
 ```kotlin
+import com.topsort.analytics.Analytics
+import com.topsort.analytics.UserIdentity
+
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        val userId = "user-unique-id" // your own id for this user, if you have one
 
         Analytics.setup(
             application = this,

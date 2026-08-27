@@ -92,9 +92,18 @@ object Analytics : TopsortAnalytics {
         // Blank keeps mapping to Unidentified: this overload's whole contract was that blank is
         // tolerated, and changing that would break callers on upgrade. The deprecation is how they
         // find out; UserIdentity.of spells the same conversion out loud for anyone migrating.
-        val identity = UserIdentity.of(opaqueUserId)
+        // Warn here, not in the cache: by the time Cache sees it this is indistinguishable from a
+        // deliberate Unidentified, and a caller who passed a blank by accident is exactly who the
+        // deprecation is for - and exactly who is least likely to be reading compiler warnings.
+        if (opaqueUserId.isBlank()) {
+            Log.w(
+                LOG_TAG,
+                "Blank opaqueUserId; reporting as UserIdentity.Unidentified. If that is what you " +
+                    "meant, say so explicitly - events under a minted id do not audience-match.",
+            )
+        }
 
-        setup(application, identity, token)
+        setup(application, UserIdentity.of(opaqueUserId), token)
     }
 
     /**
