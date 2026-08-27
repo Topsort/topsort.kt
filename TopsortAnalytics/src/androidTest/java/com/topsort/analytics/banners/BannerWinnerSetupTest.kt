@@ -100,6 +100,28 @@ class BannerWinnerSetupTest {
     }
 
     /**
+     * Two setups before a layout pass must leave one listener, not two.
+     *
+     * Different winners on purpose: with the same bid the per-bid deduplication would mask a
+     * second report, and this is testing the view, not that guard. The first banner never
+     * reached the screen, so it is owed no impression.
+     */
+    @Test
+    fun a_second_setup_replaces_the_pending_impression_of_the_first() {
+        runBlocking(Dispatchers.Main) {
+            val superseded = winner.copy(resolvedBidId = "bid-that-never-reached-the-screen")
+
+            bannerView.setup(superseded, path = "/search", location = null) { _, _ -> }
+            bannerView.setup(winner, path = "/search", location = null) { _, _ -> }
+            bannerView.viewTreeObserver.dispatchOnGlobalLayout()
+            EventPipelineHarness.runPendingEventWork()
+
+            assertThat(fake.impressionsSent.flatMap { it.impressions }.map { it.resolvedBidId })
+                .containsExactly(winner.resolvedBidId)
+        }
+    }
+
+    /**
      * No auction is run, so onNoWinners has nothing to describe - an absent winner means the
      * caller should not have called this at all.
      */

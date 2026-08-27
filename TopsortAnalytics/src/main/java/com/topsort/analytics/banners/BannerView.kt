@@ -29,6 +29,18 @@ class BannerView(
     attrs: AttributeSet
 ) : ImageView(context, attrs) {
 
+    /**
+     * The impression listener waiting for the next layout pass, if one is.
+     *
+     * Held so that a second setup() can take it off the observer before adding its own. Each
+     * listener removes itself when it fires, which stops one setup reporting twice - but nothing
+     * stopped two setups leaving two listeners for the same view, and both would then fire on the
+     * same layout pass. That matters most for the winner overload, which is cheap and synchronous
+     * and therefore called exactly where views get reused: pools, RecyclerView, an AndroidView
+     * update block.
+     */
+    private var pendingImpressionListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     private var onNoWinnersCallback: (() -> Unit)? = null
     private var onErrorCallback: ((Throwable) -> Unit)? = null
     private var onImageLoadCallback: (() -> Unit)? = null
@@ -164,18 +176,22 @@ class BannerView(
             )
         }
         // On layout rather than on load: the impression is owed when the banner occupies the
-        // screen, and the listener removes itself so a later layout pass cannot report it twice.
-        this.viewTreeObserver.addOnGlobalLayoutListener(
-            object : ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    Analytics.reportImpressionPromoted(
-                        resolvedBidId = winner.resolvedBidId,
-                        placement = placement
-                    )
-                }
+        // screen. A listener still waiting from an earlier setup is dropped first - that banner
+        // never reached the screen, so it is owed nothing, and leaving it registered would report
+        // it alongside this one on the same layout pass.
+        pendingImpressionListener?.let { viewTreeObserver.removeOnGlobalLayoutListener(it) }
+        val listener = object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                viewTreeObserver.removeOnGlobalLayoutListener(this)
+                pendingImpressionListener = null
+                Analytics.reportImpressionPromoted(
+                    resolvedBidId = winner.resolvedBidId,
+                    placement = placement
+                )
             }
-        )
+        }
+        pendingImpressionListener = listener
+        this.viewTreeObserver.addOnGlobalLayoutListener(listener)
         this.setOnClickListener {
             Analytics.reportClickPromoted(
                 resolvedBidId = winner.resolvedBidId,
