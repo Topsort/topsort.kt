@@ -106,4 +106,11 @@ jobs:
           disable-animations: true
           script: |
             adb uninstall com.topsort.analytics.test 2>/dev/null || true
+            adb uninstall com.topsort.example 2>/dev/null || true
+            adb uninstall com.topsort.example.test 2>/dev/null || true
             ./gradlew :TopsortAnalytics:connectedCheck
+            # The sample app's banner tests exercise BannerView end to end - inflation, layout,
+            # click dispatch - which the library's own suite cannot, since it has no app to run
+            # in. They had stopped running entirely: :app's androidTest classpath did not
+            # resolve, and no job built or ran it, so the failure was invisible.
+            ./gradlew :app:connectedCheck
