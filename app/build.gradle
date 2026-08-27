@@ -61,6 +61,15 @@ dependencies {
     implementation libs.material
     implementation project(':TopsortAnalytics')
 
+    // Declared on the main classpath, not just androidTest, so the two agree on a version.
+    // AGP resolves androidTest consistently with runtime: whatever debugRuntimeClasspath picks
+    // becomes a `strictly` constraint on debugAndroidTestRuntimeClasspath. Without this, main
+    // inherited coroutines 1.9.0 transitively from androidx.lifecycle while androidTest asked
+    // the catalog for 1.10.2, and the two could not be reconciled - the androidTest classpath
+    // failed to resolve at all, so :app's instrumented tests could not even be compiled.
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.android
+
     testImplementation libs.junit4
 
     androidTestImplementation libs.androidx.test.ext.junit
