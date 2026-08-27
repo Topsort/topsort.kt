@@ -171,6 +171,7 @@ public final class com/topsort/analytics/banners/BannerView : android/widget/Ima
 	public final fun onImageLoad (Lkotlin/jvm/functions/Function0;)Lcom/topsort/analytics/banners/BannerView;
 	public final fun onNoWinners (Lkotlin/jvm/functions/Function0;)Lcom/topsort/analytics/banners/BannerView;
 	public final fun setup (Lcom/topsort/analytics/banners/BannerConfig;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setup (Lcom/topsort/analytics/banners/BannerResponse;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 }
 
 public final class com/topsort/analytics/banners/RunKt {
