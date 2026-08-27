@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0](https://github.com/Topsort/topsort.kt/compare/v3.1.0...v3.2.0) (2026-08-27)
+
+
+### Features
+
+* make an absent user identity something a caller has to state ([#171](https://github.com/Topsort/topsort.kt/issues/171)) ([ab6b81d](https://github.com/Topsort/topsort.kt/commit/ab6b81ddef699acf9c4d4550100478ddd06aff8a))
+
+
+### Bug Fixes
+
+* make the Java sample compile again, and build it in CI ([#172](https://github.com/Topsort/topsort.kt/issues/172)) ([cfcc274](https://github.com/Topsort/topsort.kt/commit/cfcc274de096519586454cfacb8108dfd098b786))
+
 ## [3.1.0](https://github.com/Topsort/topsort.kt/compare/v3.0.0...v3.1.0) (2026-08-26)
 
 
