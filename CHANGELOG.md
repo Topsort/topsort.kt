@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/Topsort/topsort.kt/compare/v3.2.0...v3.3.0) (2026-08-27)
+
+
+### Features
+
+* let BannerView display a winner you resolved yourself ([#174](https://github.com/Topsort/topsort.kt/issues/174)) ([3f382b9](https://github.com/Topsort/topsort.kt/commit/3f382b9af63e055e85e632c3ae661f6d2793afe4))
+
 ## [3.2.0](https://github.com/Topsort/topsort.kt/compare/v3.1.0...v3.2.0) (2026-08-27)
 
 

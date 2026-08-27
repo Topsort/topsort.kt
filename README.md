@@ -53,7 +53,7 @@ Add the dependency to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'com.topsort:topsort-kt:3.2.0' // x-release-please-version
+    implementation 'com.topsort:topsort-kt:3.3.0' // x-release-please-version
 }
 ```
 
