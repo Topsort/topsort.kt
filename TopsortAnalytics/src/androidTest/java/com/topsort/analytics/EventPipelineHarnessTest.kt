@@ -24,7 +24,7 @@ class EventPipelineHarnessTest {
         fake = EventPipelineHarness.install()
         Analytics.setup(
             EventPipelineHarness.application,
-            EventPipelineHarness.OPAQUE_USER_ID,
+            UserIdentity.of(EventPipelineHarness.OPAQUE_USER_ID),
             EventPipelineHarness.TOKEN,
         )
     }

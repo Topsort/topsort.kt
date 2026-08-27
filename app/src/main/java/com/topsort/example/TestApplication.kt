@@ -2,6 +2,7 @@ package com.topsort.example
 
 import android.app.Application
 import com.topsort.analytics.Analytics
+import com.topsort.analytics.UserIdentity
 import com.topsort.analytics.banners.BannerConfig
 
 class TestApplication : Application() {
@@ -13,7 +14,7 @@ class TestApplication : Application() {
 
         Analytics.setup(
             application = this,
-            opaqueUserId = sessionId,
+            identity = UserIdentity.of(sessionId),
             token = BuildConfig.TOKEN
         )
         

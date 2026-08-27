@@ -54,10 +54,11 @@ object Analytics : TopsortAnalytics {
     /**
      * The opaque user id currently in effect for reported events, or null before [setup] has run.
      *
-     * This is not always the value passed to [setup]: a blank argument falls back to the last
-     * non-blank id, or to a generated placeholder when there is nothing to fall back on. Read this
-     * to reconcile reported events against your own records, and note that a placeholder will not
-     * audience-match - call [setup] again with your own identifier once it is available.
+     * This is not always the value passed to [setup]: [UserIdentity.Unidentified] falls back to
+     * the id already in effect, or to a minted placeholder when there is nothing to fall back on.
+     * Read this to reconcile reported events against your own records, and note that a placeholder
+     * will not audience-match - call [setup] again with [UserIdentity.Identified] once your own
+     * identifier is available.
      */
     val opaqueUserId: String?
         get() = session?.opaqueUserId
@@ -71,16 +72,63 @@ object Analytics : TopsortAnalytics {
      * @param opaqueUserId The SessionId allows correlating user activity during a session whether or not they are actually logged in.
      * @param token The bearer token
      */
+    // WARNING through 3.x, ERROR at 4.0.0. Not removed: deleting it is a NoSuchMethodError for
+    // every consumer who compiled against it and has not rebuilt.
+    //
+    // No ReplaceWith: the mechanical rewrite is behaviour-preserving, which means it preserves the
+    // silent fallback this deprecation exists to remove.
+    @Deprecated(
+        "A blank opaqueUserId silently means \"mint an id for me\", producing events that never " +
+            "audience-match. Say which you mean: UserIdentity.of(id) if it might be blank, or " +
+            "UserIdentity.Unidentified if you genuinely have none.",
+        level = DeprecationLevel.WARNING,
+    )
     @SuppressLint("KotlinNullnessAnnotation")
     fun setup(
         @NonNull application: Application,
         @NonNull opaqueUserId: String,
         @NonNull token: String
     ) {
+        // Blank keeps mapping to Unidentified: this overload's whole contract was that blank is
+        // tolerated, and changing that would break callers on upgrade. The deprecation is how they
+        // find out; UserIdentity.of spells the same conversion out loud for anyone migrating.
+        // Warn here, not in the cache: by the time Cache sees it this is indistinguishable from a
+        // deliberate Unidentified, and a caller who passed a blank by accident is exactly who the
+        // deprecation is for - and exactly who is least likely to be reading compiler warnings.
+        if (opaqueUserId.isBlank()) {
+            Log.w(
+                LOG_TAG,
+                "Blank opaqueUserId; reporting as UserIdentity.Unidentified. If that is what you " +
+                    "meant, say so explicitly - events under a minted id do not audience-match.",
+            )
+        }
+
+        setup(application, UserIdentity.of(opaqueUserId), token)
+    }
+
+    /**
+     * Setup initial properties required for the analytics library.
+     *
+     * Call this from the Application class before reporting any event, and again whenever the
+     * identity or the bearer token changes.
+     *
+     * @param application The Application instance of the app.
+     * @param identity Who the reported events belong to. Pass [UserIdentity.Identified] with the
+     * marketplace's own identifier whenever one is available, logged in or not, because audience
+     * matching resolves it against the marketplace's records. Pass [UserIdentity.Unidentified]
+     * only when there is genuinely no identifier to give.
+     * @param token The bearer token
+     */
+    @SuppressLint("KotlinNullnessAnnotation")
+    fun setup(
+        @NonNull application: Application,
+        @NonNull identity: UserIdentity,
+        @NonNull token: String
+    ) {
         applicationContext = application.applicationContext
         workManager = WorkManager.getInstance(applicationContext!!)
         val previousOpaqueUserId = session?.opaqueUserId
-        val resolvedOpaqueUserId = Cache.setup(application, opaqueUserId, token)
+        val resolvedOpaqueUserId = Cache.setup(application, identity, token)
 
         session = Session(
             opaqueUserId = resolvedOpaqueUserId
@@ -89,8 +137,9 @@ object Analytics : TopsortAnalytics {
         // A setup() that changes the user starts a fresh set of bids, because the new user's
         // impressions are their own and must not be dropped as duplicates of the previous
         // one's. One that resolves to the same user must keep the set: setup() is also how a
-        // caller refreshes an expired token, and a blank opaqueUserId deliberately keeps the id
-        // already in effect, so clearing here would reopen the duplicate it is meant to stop.
+        // caller refreshes an expired token, and UserIdentity.Unidentified deliberately keeps
+        // the id already in effect, so clearing here would reopen the duplicate it is meant to
+        // stop.
         if (previousOpaqueUserId != resolvedOpaqueUserId) {
             ReportedBids.clear()
         }

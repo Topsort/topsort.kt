@@ -76,15 +76,28 @@ android {
 Initialize the SDK in your Application class:
 
 ```kotlin
+import com.topsort.analytics.Analytics
+import com.topsort.analytics.UserIdentity
+
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        val userId = "user-unique-id" // your own id for this user, if you have one
+
         Analytics.setup(
             application = this,
-            opaqueUserId = "user-unique-id", // Consistent ID for the user
+            // Your own id for this user. Audience matching resolves it against your records,
+            // so pass it whenever you have one - logged in or not. `of` turns a null or blank
+            // id into UserIdentity.Unidentified, so the fallback is named rather than silent.
+            identity = UserIdentity.of(userId),
             token = "your-api-token"
         )
+        // Never have an id? Say so directly with UserIdentity.Unidentified. The SDK mints one
+        // and keeps it across launches. A minted id is a persistent device-scoped pseudonymous
+        // identifier, not anonymisation, and events under it will not audience-match:
+        //
+        //     Analytics.setup(this, UserIdentity.Unidentified, "your-api-token")
     }
 }
 ```

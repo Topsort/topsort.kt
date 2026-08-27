@@ -20,7 +20,7 @@ class EventDeliveryTest {
 
     private fun setUpWith(opaqueUserId: String = EventPipelineHarness.OPAQUE_USER_ID) {
         fake = EventPipelineHarness.install()
-        Analytics.setup(EventPipelineHarness.application, opaqueUserId, EventPipelineHarness.TOKEN)
+        Analytics.setup(EventPipelineHarness.application, UserIdentity.of(opaqueUserId), EventPipelineHarness.TOKEN)
     }
 
     @After
@@ -95,7 +95,7 @@ class EventDeliveryTest {
     fun a_blank_never_replaces_an_already_supplied_opaque_user_id() {
         setUpWith(opaqueUserId = "marketplace-id")
 
-        Analytics.setup(EventPipelineHarness.application, "", EventPipelineHarness.TOKEN)
+        Analytics.setup(EventPipelineHarness.application, UserIdentity.Unidentified, EventPipelineHarness.TOKEN)
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
     }
@@ -109,7 +109,7 @@ class EventDeliveryTest {
 
         Analytics.setup(
             EventPipelineHarness.application,
-            "marketplace-id",
+            UserIdentity.of("marketplace-id"),
             EventPipelineHarness.TOKEN,
         )
 

@@ -154,7 +154,8 @@ internal object Cache {
 
     /**
      * Initialises the cache and stores the session identity. Returns the opaque user id actually
-     * in effect, which may differ from [opaqueUserId] when that value is blank.
+     * in effect, which for [UserIdentity.Unidentified] is whatever was already persisted, or a
+     * newly minted id when there is nothing to fall back on.
      */
     // Synchronized for the same reason storeEvent is: both write recentRecordId. Without it a
     // concurrent setup can roll the counter back to a stale on-disk value, after which storeEvent
@@ -162,15 +163,15 @@ internal object Cache {
     @Synchronized
     fun setup(
         context: Context,
-        opaqueUserId: String,
+        identity: UserIdentity,
         token: String
     ): String {
         initialize(context)
 
         recentRecordId = preferences.getLong(KEY_RECENT_RECORD_ID, 0)
 
-        val identity = resolveOpaqueUserId(opaqueUserId)
-        this.opaqueUserId = identity.opaqueUserId
+        val resolved = resolveOpaqueUserId(identity)
+        this.opaqueUserId = resolved.opaqueUserId
         this.token = token
 
         // One editor, so the two identity values cannot tear apart. Committed synchronously only
@@ -179,15 +180,15 @@ internal object Cache {
         // The common path - an id supplied by the integrator - stays asynchronous.
         val editor = preferences
             .edit()
-            .putString(KEY_SESSION_ID, identity.opaqueUserId)
+            .putString(KEY_SESSION_ID, resolved.opaqueUserId)
             .putString(KEY_TOKEN, token)
-        if (identity.wasGenerated) {
+        if (resolved.wasGenerated) {
             editor.commit()
         } else {
             editor.apply()
         }
 
-        return identity.opaqueUserId
+        return resolved.opaqueUserId
     }
 
     private data class ResolvedIdentity(val opaqueUserId: String, val wasGenerated: Boolean)
@@ -195,27 +196,49 @@ internal object Cache {
     /**
      * Decides which opaque user id to use.
      *
-     * The marketplace's own identifier always wins when one is supplied, because audience matching
-     * requires the id to correspond to the marketplace's records - an id minted here matches
-     * nothing. A blank value therefore never overwrites an id we already hold, and only when there
-     * is nothing at all to fall back on do we generate a placeholder, so that events remain
+     * A [UserIdentity.Identified] id always wins, because audience matching requires the id to
+     * correspond to the marketplace's records - an id minted here matches nothing. It is non-blank
+     * by construction, so there is nothing to validate again at this point.
+     *
+     * [UserIdentity.Unidentified] never downgrades an identity we already hold,
+     * marketplace-supplied or previously minted, so a caller who cannot name the user does not
+     * cost us the id we already had. Only with nothing at all to fall back on do we mint one, so that events remain
      * reportable instead of being rejected by the API for a missing opaqueUserId. Calling setup
-     * again with a real id replaces the placeholder.
+     * again with a [UserIdentity.Identified] id replaces it.
      */
-    private fun resolveOpaqueUserId(supplied: String): ResolvedIdentity {
-        if (supplied.isNotBlank()) return ResolvedIdentity(supplied, wasGenerated = false)
+    private fun resolveOpaqueUserId(identity: UserIdentity): ResolvedIdentity {
+        // Exhaustive over a sealed subject, which the compiler enforces. A third case - the
+        // logout/clear this type does not yet have - must not fall silently into the branch below,
+        // which keeps the previous user's id and would attribute one person's events to another.
+        when (identity) {
+            is UserIdentity.Identified -> {
+                // Identified.of rejects a blank id, but its constructor is internal, and Kotlin
+                // emits internal constructors as public JVM methods - so Java can reach it, and so
+                // can any future call site in this module that bypasses the factory. Falling
+                // through rather than trusting the invariant keeps the one this cache actually
+                // owes the wire: no event leaves with a blank opaqueUserId, which the API rejects.
+                if (identity.id.isNotBlank()) {
+                    return ResolvedIdentity(identity.id, wasGenerated = false)
+                }
+                Log.w(TAG, "Blank UserIdentity.Identified id; treating it as Unidentified")
+            }
+            UserIdentity.Unidentified -> Unit
+        }
 
         val known = opaqueUserId
         if (known.isNotBlank()) {
-            Log.w(TAG, "Blank opaqueUserId supplied; keeping the previously supplied one")
+            // Info, not a warning: Unidentified is a documented, deliberate choice, so an app that
+            // legitimately has no id would otherwise warn on every cold start for doing as it was
+            // told. The mint below stays at warning - that one is actionable.
+            Log.i(TAG, "No opaqueUserId supplied; keeping the id already in effect")
             return ResolvedIdentity(known, wasGenerated = false)
         }
 
         Log.w(
             TAG,
             "No opaqueUserId supplied; generating a placeholder so events remain reportable. " +
-                "Call setup again with the marketplace's own id once it is available, " +
-                "otherwise audience matching will not work for these events.",
+                "Call setup again with UserIdentity.Identified once the marketplace's own id is " +
+                "available, otherwise audience matching will not work for these events.",
         )
         return ResolvedIdentity(randomId(), wasGenerated = true)
     }

@@ -23,8 +23,11 @@ class ImpressionDeduplicationTest {
 
     private fun setUpWith(opaqueUserId: String = EventPipelineHarness.OPAQUE_USER_ID) {
         fake = EventPipelineHarness.install()
-        Analytics.setup(EventPipelineHarness.application, opaqueUserId, EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of(opaqueUserId), EventPipelineHarness.TOKEN)
     }
+
+    private fun setup(identity: UserIdentity, token: String) =
+        Analytics.setup(EventPipelineHarness.application, identity, token)
 
     @After
     fun tearDown() {
@@ -119,9 +122,9 @@ class ImpressionDeduplicationTest {
     }
 
     /**
-     * setup() is also how a caller refreshes an expired token, and a blank opaqueUserId keeps the
-     * id already in effect. That is the same user, so the tracked bids must survive - clearing
-     * them would reopen the duplicate this guards against.
+     * setup() is also how a caller refreshes an expired token, and [UserIdentity.Unidentified]
+     * keeps the id already in effect. That is the same user, so the tracked bids must survive -
+     * clearing them would reopen the duplicate this guards against.
      */
     @Test
     fun a_token_refresh_for_the_same_user_still_deduplicates() {
@@ -130,9 +133,29 @@ class ImpressionDeduplicationTest {
         reportImpression("bid-across-refresh")
         EventPipelineHarness.runPendingEventWork()
 
-        // A blank id deliberately keeps "marketplace-id" in effect.
-        Analytics.setup(EventPipelineHarness.application, "", "refreshed-token")
+        // Unidentified deliberately keeps "marketplace-id" in effect.
+        setup(UserIdentity.Unidentified, "refreshed-token")
         reportImpression("bid-across-refresh")
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+        assertThat(fake.impressionsSent).hasSize(1)
+    }
+
+    /**
+     * The same invariant through the deprecated overload, whose blank maps to
+     * [UserIdentity.Unidentified]. Kept so the legacy path cannot regress while callers migrate.
+     */
+    @Suppress("DEPRECATION")
+    @Test
+    fun a_token_refresh_through_the_deprecated_overload_still_deduplicates() {
+        setUpWith(opaqueUserId = "marketplace-id")
+
+        reportImpression("bid-legacy-refresh")
+        EventPipelineHarness.runPendingEventWork()
+
+        Analytics.setup(EventPipelineHarness.application, "", "refreshed-token")
+        reportImpression("bid-legacy-refresh")
         EventPipelineHarness.runPendingEventWork()
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
@@ -147,7 +170,7 @@ class ImpressionDeduplicationTest {
         reportImpression("bid-repeat-setup")
         EventPipelineHarness.runPendingEventWork()
 
-        Analytics.setup(EventPipelineHarness.application, "marketplace-id", EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of("marketplace-id"), EventPipelineHarness.TOKEN)
         reportImpression("bid-repeat-setup")
         EventPipelineHarness.runPendingEventWork()
 
@@ -165,7 +188,7 @@ class ImpressionDeduplicationTest {
         reportImpression("bid-shared")
         EventPipelineHarness.runPendingEventWork()
 
-        Analytics.setup(EventPipelineHarness.application, "second-user", EventPipelineHarness.TOKEN)
+        setup(UserIdentity.of("second-user"), EventPipelineHarness.TOKEN)
         reportImpression("bid-shared")
         EventPipelineHarness.runPendingEventWork()
 
