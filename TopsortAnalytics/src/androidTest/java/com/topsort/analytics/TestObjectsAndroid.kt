@@ -24,7 +24,7 @@ internal fun getClickPromoted(): Click {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
     )
 }
 
@@ -38,7 +38,7 @@ internal fun getClickOrganic(): Click {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
     )
 }
 
@@ -49,7 +49,7 @@ internal fun getImpressionPromoted(): Impression {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
     )
 }
 
@@ -63,7 +63,7 @@ internal fun getImpressionOrganic(): Impression {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
     )
 }
 

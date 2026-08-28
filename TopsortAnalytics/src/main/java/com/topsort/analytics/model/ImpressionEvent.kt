@@ -42,10 +42,13 @@ data class Impression private constructor(
     val entity: Entity? = null,
 
     /**
-     * Extra attribution if desired by the marketplace.
-     * When using this field, the resolvedBidId must also exist in the event body.
+     * Extra attribution if desired by the marketplace, as the entity the interaction should also
+     * be attributed to. When using this field, the resolvedBidId must also exist in the event body.
+     *
+     * The API models this as an object with an id and a type, not a string - see EventEntity in
+     * the v2 spec - so a bare id cannot be attributed to anything.
      */
-    val additionalAttribution: String? = null,
+    val additionalAttribution: Entity? = null,
 
     val placement: Placement,
 
@@ -90,7 +93,7 @@ data class Impression private constructor(
             }
             .apply {
                 // Consistent null handling: omit keys when value is null
-                additionalAttribution?.let { put("additionalAttribution", it) }
+                additionalAttribution?.let { put("additionalAttribution", it.toJsonObject()) }
             }
             .put("placement", placement.toJsonObject())
             .put("occurredAt", occurredAt)
@@ -112,7 +115,7 @@ data class Impression private constructor(
             occurredAt: String,
             opaqueUserId: String,
             id: String,
-            additionalAttribution: String? = null,
+            additionalAttribution: Entity? = null,
             deviceType: Device? = null,
             channel: Channel? = null,
             page: Page? = null,
@@ -137,7 +140,7 @@ data class Impression private constructor(
             occurredAt: String,
             opaqueUserId: String,
             id: String,
-            additionalAttribution: String? = null,
+            additionalAttribution: Entity? = null,
             deviceType: Device? = null,
             channel: Channel? = null,
             page: Page? = null,
@@ -162,7 +165,8 @@ data class Impression private constructor(
                 entity = if (resolvedBidId == null) {
                     Entity.fromJsonObject(json.getJSONObject("entity"))
                 } else null,
-                additionalAttribution = json.getStringOrNull("additionalAttribution"),
+                additionalAttribution = json.optJSONObject("additionalAttribution")
+                    ?.let { Entity.fromJsonObject(it) },
                 placement = Placement.fromJsonObject(json.getJSONObject("placement")),
                 occurredAt = json.getString("occurredAt"),
                 opaqueUserId = json.getString("opaqueUserId"),
