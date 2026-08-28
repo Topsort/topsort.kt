@@ -86,7 +86,7 @@ internal class ClickEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-1",
             id = "click-1",
-            additionalAttribution = """{"key": "value"}""",
+            additionalAttribution = Entity(id = "attr-entity", type = EntityType.VENDOR),
             deviceType = Device.MOBILE,
             channel = Channel.ONSITE,
             page = Page.Factory.build(type = PageType.SEARCH),

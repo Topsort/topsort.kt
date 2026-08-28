@@ -86,7 +86,7 @@ internal class ImpressionEventTest {
             occurredAt = "2024-01-15T10:30:00Z",
             opaqueUserId = "user-1",
             id = "imp-1",
-            additionalAttribution = """{"key": "value"}""",
+            additionalAttribution = Entity(id = "attr-entity", type = EntityType.PRODUCT),
             deviceType = Device.MOBILE,
             channel = Channel.ONSITE,
             page = Page.Factory.build(type = PageType.CATEGORY)

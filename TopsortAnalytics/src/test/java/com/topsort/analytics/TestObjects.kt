@@ -22,7 +22,7 @@ fun getClickPromoted() : Click {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
     )
 }
 
@@ -36,7 +36,7 @@ fun getClickOrganic() : Click {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
     )
 }
 
@@ -47,7 +47,7 @@ fun getImpressionPromoted() : Impression {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
     )
 }
 
@@ -61,7 +61,7 @@ fun getImpressionOrganic() : Impression {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
     )
 }
 
@@ -103,7 +103,7 @@ fun getClickPromotedWithContext() : Click {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
         deviceType = Device.MOBILE,
         channel = Channel.ONSITE,
         page = Page.Factory.build(type = PageType.SEARCH),
@@ -121,7 +121,7 @@ fun getClickOrganicWithContext() : Click {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution click\"}",
+        additionalAttribution = Entity(id = randomId("attrVendor_"), type = EntityType.VENDOR),
         deviceType = Device.DESKTOP,
         channel = Channel.OFFSITE,
         page = Page.Factory.buildWithId(type = PageType.PDP, pageId = "product-123"),
@@ -136,7 +136,7 @@ fun getImpressionPromotedWithContext() : Impression {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         resolvedBidId = randomId("resolvedBid_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
         deviceType = Device.MOBILE,
         channel = Channel.INSTORE,
         page = Page.Factory.build(type = PageType.CATEGORY),
@@ -153,7 +153,7 @@ fun getImpressionOrganicWithContext() : Impression {
         occurredAt = eventNow(),
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
-        additionalAttribution = "{\"additional\":\"attribution impression\"}",
+        additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
         deviceType = Device.DESKTOP,
         channel = Channel.ONSITE,
         page = Page.Factory.buildWithValues(type = PageType.HOME, values = listOf("home-1", "home-2")),
