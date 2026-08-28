@@ -3,7 +3,6 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.topsort/topsort-kt)](https://central.sonatype.com/artifact/com.topsort/topsort-kt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Topsort/topsort.kt/blob/main/LICENSE)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg)](https://android-arsenal.com/api?level=24)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
 [![CI](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml/badge.svg)](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Ftopsort.github.io%2Ftopsort.kt%2Fcoverage.json)](https://topsort.github.io/topsort.kt/)
 
@@ -24,11 +23,13 @@ The official Android SDK for the [Topsort](https://www.topsort.com) retail media
   - [Sponsored Listings](#sponsored-listings)
   - [Banner Auctions](#banner-auctions)
   - [Displaying a Banner You Resolved Yourself](#displaying-a-banner-you-resolved-yourself)
+  - [Jetpack Compose](#jetpack-compose)
 - [Advanced Features](#advanced-features)
   - [Event Context](#event-context)
   - [A/B Testing](#ab-testing)
   - [Quality Scores](#quality-scores)
 - [Java](#java)
+- [How Events Are Delivered](#how-events-are-delivered)
 - [Error Handling](#error-handling)
 - [Testing](#testing)
 - [License](#license)
@@ -146,9 +147,12 @@ Analytics.reportImpressionPromoted(
 )
 ```
 
-A promoted impression is reported at most once per `resolvedBidId` per session; repeats are
-dropped with a warning. To report several impressions in one event - a list screen, say - build
-them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
+A promoted impression is reported once per `resolvedBidId` per process; repeats are dropped
+with a warning. That rule applies to your own `reportImpressionPromoted` calls as much as
+to `BannerView`, so report when the ad is actually on screen - not on every layout, redraw or
+recomposition. `BannerView` handles that itself: it reports only once the banner is shown, in a
+visible window and not clipped away. To report several impressions in one event - a list screen,
+say - build them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
 
 **Organic impression** (non-promoted content):
 
@@ -334,8 +338,8 @@ failure.
 ### Displaying a Banner You Resolved Yourself
 
 If you run the auction with your own HTTP stack, map the winner onto `BannerResponse` and let the
-view do the rest - load the creative, report the impression once the banner is laid out, report the
-click:
+view do the rest - load the creative, report the impression once the banner is on screen, report
+the click:
 
 ```kotlin
 val winner = BannerResponse(
@@ -349,6 +353,36 @@ bannerView.setup(winner, path = "/home", location = "hero-banner") { id, type ->
 
 No auction runs, so `onAuctionError` and `onNoWinners` are never invoked from this overload;
 `onImageLoad` and `onError` still report the creative load.
+
+### Jetpack Compose
+
+`BannerView` is a `View`, so wrap it in `AndroidView`. Run the auction once per config, and call
+`setup` once per winner - not on every recomposition, which is what `update` gives you:
+
+```kotlin
+@Composable
+fun SponsoredBanner(config: BannerConfig, onClick: (String, EntityType) -> Unit) {
+    val winner by produceState<BannerResponse?>(initialValue = null, config) {
+        value = try { runBannerAuction(config) } catch (e: AuctionError) { null }
+    }
+    val latestOnClick by rememberUpdatedState(onClick)
+    val current = winner ?: return
+    AndroidView(
+        modifier = Modifier.fillMaxWidth().height(120.dp),
+        factory = { context -> BannerView(context) },
+        update = { view ->
+            if (view.tag != current.resolvedBidId) {
+                view.tag = current.resolvedBidId
+                view.setup(current, path = "/home", location = "hero") { id, type -> latestOnClick(id, type) }
+            }
+        },
+    )
+}
+```
+
+Catch `AuctionError` rather than everything: cancellation must propagate when the composable
+leaves. The tag check keeps a recomposition from reloading the creative; the impression itself is
+safe either way, since the view reports it once per resolved bid.
 
 ## Advanced Features
 
@@ -418,10 +452,19 @@ Analytics.INSTANCE.reportClickPromoted(
 
 The sample app's `JavaSampleActivity.java` reports impressions, clicks and purchases from Java.
 
+## How Events Are Delivered
+
+A `report*` call hands the event to a persistent cache and returns; the network send happens
+later, off the main thread, and is retried on failure - across being offline, and on the next
+launch if it keeps failing. Events are never dropped for being old. The only drops are the ones
+[Error Handling](#error-handling) describes, and each is reported to
+`Analytics.eventDiscardListener`.
+
 ## Error Handling
 
-Events the SDK gives up on - rejected by the API with a 4xx, evicted from a full cache, or
-unreadable - are logged and dropped. To count that loss yourself, register a listener; it runs on
+Events the SDK gives up on are logged and dropped: rejected by the API with a 4xx (429 and 408
+are retried instead), evicted as the oldest once the cache passes 5,000 records, or stored in a
+form it can no longer read. To count that loss yourself, register a listener; it runs on
 the SDK's worker thread, so keep it quick and capture no `Context`:
 
 ```kotlin
