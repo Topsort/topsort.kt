@@ -119,7 +119,9 @@ internal class EventEmitterWorker(
     private fun toSendResult(code: Int, message: String, eventType: String): SendResult {
         return when {
             code in 200..299 -> SendResult.SUCCESS
-            code in 400..499 -> {
+            // 429 and 408 say nothing about the body - the API is asking for the same request
+            // later. Discarding either deletes a billable event because the server was busy.
+            code in 400..499 && code != 408 && code != 429 -> {
                 Log.e(TAG, "Permanent failure reporting $eventType: $code $message")
                 SendResult.PERMANENT_FAILURE
             }
