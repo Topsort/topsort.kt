@@ -18,8 +18,6 @@ import com.topsort.analytics.model.EventType
 import com.topsort.analytics.worker.EventEmitterWorker
 import java.util.concurrent.Executors
 import org.assertj.core.api.Assertions.assertThat
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -179,7 +177,7 @@ class EventRecoveryTest {
     @Test
     fun a_long_backdated_event_is_still_delivered() {
         setUpWith()
-        val longAgo = ISODateTimeFormat.dateTime().print(DateTime.now().minusDays(90))
+        val longAgo = "2020-01-01T00:00:00.000Z"
 
         Analytics.reportImpressionPromoted(
             resolvedBidId = "bid-backdated",

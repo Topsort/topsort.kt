@@ -9,7 +9,6 @@ work                   = "2.11.2"
 security-crypto        = "1.1.0"
 lifecycle              = "2.10.0"
 material               = "1.14.0"
-jodatime               = "2.14.2"
 coil                   = "2.7.0"
 junit4                 = "4.13.2"
 assertj                = "3.27.7"
@@ -32,7 +31,6 @@ androidx-work-runtime          = { module = "androidx.work:work-runtime-ktx",   
 androidx-security-crypto       = { module = "androidx.security:security-crypto",                version.ref = "security-crypto" }
 androidx-lifecycle-runtime     = { module = "androidx.lifecycle:lifecycle-runtime-ktx",         version.ref = "lifecycle" }
 material                       = { module = "com.google.android.material:material",              version.ref = "material" }
-jodatime                       = { module = "joda-time:joda-time",                              version.ref = "jodatime" }
 coil                           = { module = "io.coil-kt:coil",                                  version.ref = "coil" }
 junit4                         = { module = "junit:junit",                                       version.ref = "junit4" }
 assertj-core                   = { module = "org.assertj:assertj-core",                          version.ref = "assertj" }
