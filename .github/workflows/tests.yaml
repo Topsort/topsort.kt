@@ -17,6 +17,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
 
     steps:
       - name: Checkout sources
@@ -53,9 +54,15 @@ jobs:
           check_name: Unit Test Results
 
   instrumented-tests:
-    name: Instrumented Tests (API 34)
+    name: Instrumented Tests (API ${{ matrix.api-level }})
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     needs: unit-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        # minSdk, plus the level integrators actually ship on.
+        api-level: [24, 34]
 
     steps:
       - name: Checkout sources
@@ -83,13 +90,13 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34
+          key: avd-${{ matrix.api-level }}-x86_64-default
 
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d  # v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -99,7 +106,7 @@ jobs:
       - name: Run Android connected tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d  # v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none

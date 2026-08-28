@@ -17,6 +17,7 @@ jobs:
   build-docs:
     name: Build Docs
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
@@ -38,6 +39,7 @@ jobs:
     name: Deploy Docs to GitHub Pages
     needs: build-docs
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
