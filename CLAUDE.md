@@ -96,7 +96,7 @@ Package layout:
 
 - Kotlin, Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
 - Detekt enforces style (config: `detekt.yaml`). Run before pushing.
-- RFC3339 timestamps via Joda-Time (`eventNow()` helper in `EventTimestamp.kt`).
+- RFC3339 timestamps via `SimpleDateFormat` (`eventNow()` helper in `EventTimestamp.kt`); no date library.
 - `JsonSerializable` interface for all models that go over the wire.
 - Null-safe JSON via extensions in `JsonExtensions.kt` (`getStringOrNull`, `getIntOrNull`, `getStringListOrNull`).
 - Test naming: backtick descriptive names (`` `json click serialization`() ``) or snake_case.

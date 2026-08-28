@@ -8,6 +8,7 @@ import androidx.annotation.NonNull
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.topsort.analytics.core.eventNow
 import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Channel
 import com.topsort.analytics.model.Click
@@ -28,8 +29,6 @@ import com.topsort.analytics.model.PurchasedItem
 import com.topsort.analytics.model.Session
 import com.topsort.analytics.worker.EventEmitterWorker
 import com.topsort.analytics.worker.PendingEventSweepWorker
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
@@ -187,7 +186,7 @@ object Analytics : TopsortAnalytics {
                 placement = placement,
                 opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
-                occurredAt = occurredAt ?: eventTime(),
+                occurredAt = occurredAt ?: eventNow(),
                 deviceType = deviceType,
                 channel = channel,
                 page = page,
@@ -218,7 +217,7 @@ object Analytics : TopsortAnalytics {
                 placement = placement,
                 opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
-                occurredAt = occurredAt ?: eventTime(),
+                occurredAt = occurredAt ?: eventNow(),
                 deviceType = deviceType,
                 channel = channel,
                 page = page,
@@ -250,7 +249,7 @@ object Analytics : TopsortAnalytics {
                 placement = placement,
                 opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
-                occurredAt = occurredAt ?: eventTime(),
+                occurredAt = occurredAt ?: eventNow(),
                 deviceType = deviceType,
                 channel = channel,
                 page = page,
@@ -283,7 +282,7 @@ object Analytics : TopsortAnalytics {
                 placement = placement,
                 opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                 id = id ?: randomId(),
-                occurredAt = occurredAt ?: eventTime(),
+                occurredAt = occurredAt ?: eventNow(),
                 deviceType = deviceType,
                 channel = channel,
                 page = page,
@@ -313,7 +312,7 @@ object Analytics : TopsortAnalytics {
                 Purchase(
                     id = id,
                     items = items,
-                    occurredAt = occurredAt ?: eventTime(),
+                    occurredAt = occurredAt ?: eventNow(),
                     opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                     deviceType = deviceType,
                     channel = channel,
@@ -343,7 +342,7 @@ object Analytics : TopsortAnalytics {
             pageviews = listOf(
                 PageView.Factory.build(
                     page = page,
-                    occurredAt = occurredAt ?: eventTime(),
+                    occurredAt = occurredAt ?: eventNow(),
                     opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                     id = id ?: randomId(),
                     deviceType = deviceType,
@@ -355,11 +354,6 @@ object Analytics : TopsortAnalytics {
         val recordId = Cache.storePageView(pageViewEvent)
         enqueueReportedEvent(recordId, EventType.PageView)
     }
-
-    /**
-     * Returns ISO8601/RFC3339 formatted timestamp
-     */
-    private fun eventTime() = ISODateTimeFormat.dateTime().print(DateTime())
 
     /**
      * The opaque user id for a single reported event. A per-call value only overrides the session
