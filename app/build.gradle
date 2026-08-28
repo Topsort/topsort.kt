@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
@@ -39,9 +40,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = '11'
-    }
     buildFeatures {
         buildConfig = true
     }
@@ -49,6 +47,9 @@ android {
 
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_11
+    }
 }
 
 tasks.withType(Detekt).configureEach {
