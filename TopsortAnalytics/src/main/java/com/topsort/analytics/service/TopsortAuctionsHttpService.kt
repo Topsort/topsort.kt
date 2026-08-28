@@ -9,6 +9,8 @@ import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.annotation.VisibleForTesting
 
 /**
@@ -58,11 +60,10 @@ object TopsortAuctionsHttpService : AuctionsHttpService {
     }
 
     /**
-     * Executes an auction request asynchronously, delegating to the current service instance
+     * Executes an auction request on [Dispatchers.IO], delegating to the current service instance.
      */
     override suspend fun runAuctions(request: AuctionRequest): AuctionResponse {
-        // For compatibility with the old method signature
-        val response = serviceInstance.runAuctionsSync(request)
+        val response = withContext(Dispatchers.IO) { serviceInstance.runAuctionsSync(request) }
         return response ?: throw AuctionError.EmptyResponse
     }
     

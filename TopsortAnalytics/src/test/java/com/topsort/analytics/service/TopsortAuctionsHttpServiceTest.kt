@@ -47,6 +47,19 @@ class TopsortAuctionsHttpServiceTest {
     }
 
     @Test
+    fun `runAuctions runs the blocking call off the caller's thread`() = runBlocking {
+        var callingThread: Thread? = null
+        every { mockService.runAuctionsSync(any()) } answers {
+            callingThread = Thread.currentThread()
+            mockk<AuctionResponse>()
+        }
+
+        TopsortAuctionsHttpService.runAuctions(minimalRequest)
+
+        assertTrue("Expected the blocking call on another thread", callingThread !== Thread.currentThread())
+    }
+
+    @Test
     fun `runAuctions throws EmptyResponse when service returns null`() = runBlocking<Unit> {
         every { mockService.runAuctionsSync(any()) } returns null
 

@@ -7,8 +7,6 @@ import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.IOException
 
 /**
@@ -29,9 +27,7 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
         }
 
         val request = AuctionRequest(listOf(auction))
-        val response = withContext(Dispatchers.IO) {
-            TopsortAuctionsHttpService.runAuctions(request)
-        }
+        val response = TopsortAuctionsHttpService.runAuctions(request)
 
         // Check if there are any results with winners
         if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
