@@ -9,8 +9,10 @@ permissions:
   contents: read
   checks: write
 
+# Superseded PR pushes are cancelled. Main runs each get their own group, so they neither cancel
+# each other nor queue: a cancelled main run reads as failing on the README badge.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
