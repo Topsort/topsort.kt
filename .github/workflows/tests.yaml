@@ -65,6 +65,14 @@ jobs:
       matrix:
         # minSdk, plus the level integrators actually ship on.
         api-level: [24, 34]
+        include:
+          # The API 24 image comes back "device offline" after restoring its cached snapshot
+          # (twice on 2026-08-28, never on 34). Cold-boot it; the cached AVD still saves the
+          # system-image download.
+          - api-level: 24
+            snapshot-options: -no-snapshot-load
+          - api-level: 34
+            snapshot-options: ''
 
     steps:
       - name: Checkout sources
@@ -111,7 +119,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save ${{ matrix.snapshot-options }} -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
             set -e
