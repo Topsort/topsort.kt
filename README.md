@@ -5,6 +5,7 @@
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg)](https://android-arsenal.com/api?level=24)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
 [![CI](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml/badge.svg)](https://github.com/Topsort/topsort.kt/actions/workflows/tests.yaml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Ftopsort.github.io%2Ftopsort.kt%2Fcoverage.json)](https://topsort.github.io/topsort.kt/)
 
 The official Android SDK for the [Topsort](https://www.topsort.com) retail media platform. Track impressions, clicks, purchases, and page views with full support for promoted and organic content attribution.
 
