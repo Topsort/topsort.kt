@@ -116,6 +116,7 @@ Package layout:
 - **Admin override** (`gh pr merge --admin`) is only appropriate to bypass the review requirement when all CI checks pass. Never use it to force-merge a PR with failing CI — fix the failures first.
 - Keep branches up to date with `main` before merging — rebase or merge `main` into your branch to resolve conflicts locally, not in the merge commit.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages (e.g., `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
+- Commit messages carry the bare Jira key (`INTE-1234`), not a link: release-please copies commit subjects into `CHANGELOG.md`, where a link is noise. PR bodies link it.
 - Never approve or merge a PR that has unresolved review comments — address or explicitly dismiss each one first. Always check nested/threaded comments (e.g. replies under bot comments) as they may contain substantive issues not visible at the top level.
 - Before merging with `--admin`, wait at least **5 minutes** after the PR is opened. This gives Bugbot and other async bots time to post their comments. After the wait, check all PR comments (including nested/threaded replies) for unresolved issues before merging. Run the wait in the background and do **not** block on `TaskOutput` — let the completion notification come to you so the session stays responsive.
 - **Project-specific**: run `apiCheck` before pushing any PR that touches library source.
