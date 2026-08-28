@@ -6,7 +6,7 @@ import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.AuctionRequest
 import com.topsort.analytics.model.auctions.AuctionResponse
 import com.topsort.analytics.service.TopsortAuctionsHttpService
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -29,30 +29,28 @@ suspend fun runBannerAuction(config: BannerConfig): BannerResponse? {
         }
 
         val request = AuctionRequest(listOf(auction))
-        
-        try {
-            val response = withContext(Dispatchers.IO) {
-                TopsortAuctionsHttpService.runAuctions(request)
-            }
-            
-            // Check if there are any results with winners
-            if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
-                val winner = response.results[0].winners[0]
-                val assetUrl = winner.asset?.firstOrNull()?.url ?: return null
-                return BannerResponse(
-                    id = winner.id,
-                    url = assetUrl,
-                    type = winner.type,
-                    resolvedBidId = winner.resolvedBidId
-                )
-            }
-            // No error, but no winners either
-            return null
-        } catch (e: Exception) {
-            throw AuctionError.HttpError(e)
+        val response = withContext(Dispatchers.IO) {
+            TopsortAuctionsHttpService.runAuctions(request)
         }
+
+        // Check if there are any results with winners
+        if (response.results.isNotEmpty() && response.results[0].winners.isNotEmpty()) {
+            val winner = response.results[0].winners[0]
+            val assetUrl = winner.asset?.firstOrNull()?.url ?: return null
+            return BannerResponse(
+                id = winner.id,
+                url = assetUrl,
+                type = winner.type,
+                resolvedBidId = winner.resolvedBidId
+            )
+        }
+        // No error, but no winners either
+        return null
     } catch (e: AuctionError) {
         // Re-throw AuctionError exceptions
+        throw e
+    } catch (e: CancellationException) {
+        // The caller's scope went away; not an auction failure, so not an HttpError.
         throw e
     } catch (e: Exception) {
         // Wrap other exceptions

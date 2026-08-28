@@ -1,8 +1,6 @@
 package com.topsort.analytics.banners
 
 import android.content.Context
-import android.util.AttributeSet
-import android.util.Xml
 import android.widget.FrameLayout
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -19,7 +17,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.xmlpull.v1.XmlPullParser
 
 /**
  * The overload that takes a winner someone else resolved.
@@ -136,19 +133,5 @@ class BannerWinnerSetupTest {
 
         assertThat(sawNoWinners).isFalse()
         }
-    }
-
-    /**
-     * BannerView's constructor takes an AttributeSet because it is meant to be inflated from XML.
-     * Any real one will do here; this parses a stock platform layout and advances to its first
-     * tag, which is where the attributes live.
-     */
-    private fun attributeSet(context: Context): AttributeSet {
-        val parser = context.resources.getXml(android.R.layout.simple_list_item_1)
-        var eventType = parser.eventType
-        while (eventType != XmlPullParser.START_TAG && eventType != XmlPullParser.END_DOCUMENT) {
-            eventType = parser.next()
-        }
-        return Xml.asAttributeSet(parser)
     }
 }
