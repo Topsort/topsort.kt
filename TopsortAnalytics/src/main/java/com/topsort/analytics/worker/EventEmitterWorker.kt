@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
+import com.topsort.analytics.DiscardReason
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
@@ -51,7 +52,7 @@ internal class EventEmitterWorker(
         } catch (e: JSONException) {
             // The cached body cannot be turned back into an event, so it can never be sent. Left in
             // place it would be re-read by every sweep for the lifetime of the install.
-            Cache.discard(recordId, Cache.DiscardReason.UNPARSEABLE_BODY, e.message)
+            Cache.discard(recordId, DiscardReason.UNPARSEABLE_BODY, e.message)
             return Result.success()
         }
 
@@ -61,7 +62,7 @@ internal class EventEmitterWorker(
                 Result.success()
             }
             SendResult.PERMANENT_FAILURE -> {
-                Cache.discard(recordId, Cache.DiscardReason.PERMANENTLY_REJECTED, "$eventType")
+                Cache.discard(recordId, DiscardReason.PERMANENTLY_REJECTED, "$eventType")
                 Result.failure()
             }
             SendResult.TRANSIENT_FAILURE -> {

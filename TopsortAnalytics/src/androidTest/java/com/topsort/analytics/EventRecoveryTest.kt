@@ -40,6 +40,7 @@ class EventRecoveryTest {
 
     @After
     fun tearDown() {
+        Analytics.eventDiscardListener = null
         EventPipelineHarness.uninstall()
     }
 
@@ -215,11 +216,14 @@ class EventRecoveryTest {
         }
         val all = Cache.cachedRecordIds()
         assertThat(all).hasSize(12)
+        val discards = mutableListOf<Pair<DiscardReason, Int>>()
+        Analytics.eventDiscardListener = EventDiscardListener { reason, count -> discards += reason to count }
 
         val kept = Cache.pendingRecordsForTest(limit = 100, capacity = 5)
 
-        // The five newest survive; the seven oldest are gone.
+        // The five newest survive; the seven oldest are gone, and the host hears it as one batch.
         assertThat(Cache.cachedRecordIds()).isEqualTo(all.takeLast(5))
         assertThat(kept.map { it.recordId }).isEqualTo(all.takeLast(5))
+        assertThat(discards).containsExactly(DiscardReason.CACHE_OVER_CAPACITY to 7)
     }
 }

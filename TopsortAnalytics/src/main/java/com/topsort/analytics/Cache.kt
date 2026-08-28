@@ -75,6 +75,10 @@ internal object Cache {
     @Volatile
     private var opaqueUserId: String = ""
 
+    /** See [Analytics.eventDiscardListener]. Read on worker threads. */
+    @Volatile
+    var discardListener: EventDiscardListener? = null
+
     /**
      * Synchronized for the same reason [setup] and [storeEvent] are, and it matters more than it
      * looks: this is the one mutator reached from WorkManager threads, via EventEmitterWorker's
@@ -405,41 +409,17 @@ internal object Cache {
     }
 
     /**
-     * Removes several records in one editor, so pruning a backlog is one synchronous write rather
-     * than one per record.
-     */
-    /**
-     * Why a cached event was thrown away without being delivered.
-     *
-     * Every discard is data the marketplace will never see, so the reason travels with the record
-     * id rather than being buried in a log string. Delivery is deliberately not one of these -
-     * [deleteEvent] after a successful send is a completion, not a loss, and conflating the two
-     * would make the discard count useless.
-     */
-    internal enum class DiscardReason {
-        /** Evicted to keep the cache under MAX_CACHED_RECORDS. */
-        CACHE_OVER_CAPACITY,
-
-        /** The cached body will not parse back into an event, so nothing can ever send it. */
-        UNPARSEABLE_BODY,
-
-        /** The API rejected it with a 4xx; retrying the same body would be rejected again. */
-        PERMANENTLY_REJECTED,
-
-        /** The record's event type cannot be determined, so nothing knows where to send it. */
-        UNKNOWN_EVENT_TYPE,
-    }
-
-    /**
      * The single exit for an undelivered event.
      *
      * All discards route through here so that "what can destroy an event, and why" is answerable by
-     * reading one function, and so that adding a real signal later - a host-app callback, a counter
-     * piggybacked on the next successful send - is one change rather than four.
+     * reading one function, and the host's [EventDiscardListener] hears about every one of them.
+     * Delivery is deliberately not a discard: [deleteEvent] after a successful send is a completion,
+     * not a loss, and conflating the two would make the count useless.
      */
     fun discard(recordId: Long, reason: DiscardReason, detail: String? = null) {
         Log.e(TAG, "Discarding record $recordId: $reason${detail?.let { " ($it)" } ?: ""}")
         deleteEvent(recordId)
+        notifyDiscarded(reason, 1)
     }
 
     /** [discard] for a batch, in one editor rather than one synchronous write per record. */
@@ -447,8 +427,20 @@ internal object Cache {
         if (recordIds.isEmpty()) return
         Log.e(TAG, "Discarding ${recordIds.size} record(s): $reason - ids=$recordIds")
         deleteEvents(recordIds)
+        notifyDiscarded(reason, recordIds.size)
     }
 
+    @Suppress("TooGenericExceptionCaught")
+    private fun notifyDiscarded(reason: DiscardReason, count: Int) {
+        val listener = discardListener ?: return
+        try {
+            listener.onEventsDiscarded(reason, count)
+        } catch (e: Exception) {
+            Log.e(TAG, "EventDiscardListener threw", e)
+        }
+    }
+
+    /** Removes several records in one editor, so pruning a backlog is one synchronous write. */
     fun deleteEvents(recordIds: Collection<Long>) {
         if (recordIds.isEmpty()) return
         val editor = preferences.edit()

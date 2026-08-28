@@ -5,7 +5,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.Data
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
+import com.topsort.analytics.Analytics
 import com.topsort.analytics.Cache
+import com.topsort.analytics.DiscardReason
+import com.topsort.analytics.EventDiscardListener
 import com.topsort.analytics.UserIdentity
 import com.topsort.analytics.core.HttpResponse
 import com.topsort.analytics.getTestClickEvent
@@ -40,6 +43,7 @@ class EventEmitterWorkerTest {
 
     @After
     fun teardown() {
+        Analytics.eventDiscardListener = null
         TopsortAnalyticsHttpService.resetToDefaultService()
         // The 5xx and exception tests deliberately leave their record cached - that is the
         // assertion. Without this the class finishes having written undelivered records and an
@@ -199,6 +203,35 @@ class EventEmitterWorkerTest {
         assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         // Left for the next sweep, not discarded.
         assertThat(Cache.readImpression(recordId)).isNotNull
+    }
+
+    @Test
+    fun a_4xx_discard_notifies_the_listener_with_its_reason() {
+        val discards = mutableListOf<Pair<DiscardReason, Int>>()
+        Analytics.eventDiscardListener = EventDiscardListener { reason, count -> discards += reason to count }
+        val recordId = Cache.storeImpression(getTestImpressionEvent())
+        mockService.responseCode = 400
+
+        buildWorker(buildInputData(recordId, EventType.Impression)).doWork()
+
+        assertThat(discards).containsExactly(DiscardReason.PERMANENTLY_REJECTED to 1)
+    }
+
+    @Test
+    fun a_throwing_listener_does_not_stop_the_discard() {
+        var notified = false
+        Analytics.eventDiscardListener = EventDiscardListener { _, _ ->
+            notified = true
+            error("host bug")
+        }
+        val recordId = Cache.storeImpression(getTestImpressionEvent())
+        mockService.responseCode = 400
+
+        val result = buildWorker(buildInputData(recordId, EventType.Impression)).doWork()
+
+        assertThat(notified).isTrue()
+        assertThat(result).isEqualTo(ListenableWorker.Result.failure())
+        assertThat(Cache.readImpression(recordId)).isNull()
     }
 
     @Test
