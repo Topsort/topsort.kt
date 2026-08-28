@@ -147,6 +147,22 @@ class BannerVisibilityInWindowTest {
         assertThat(reportedBids()).containsExactly("bid-reattached")
     }
 
+    /** A banner created from code, as inside Compose's AndroidView, works like an inflated one. */
+    @Test
+    fun a_banner_created_from_code_reports_once_on_screen() {
+        lateinit var fromCode: BannerView
+        scenario.onActivity { activity ->
+            fromCode = BannerView(activity)
+            activity.column.addView(fromCode, MATCH_PARENT, BANNER_HEIGHT_PX)
+            fromCode.setup(bannerWinner("bid-from-code"), "/home", null) { _, _ -> }
+        }
+        settle()
+        scenario.onActivity { it.scrollView.scrollTo(0, BannerHostActivity.SPACER_HEIGHT_PX + BANNER_HEIGHT_PX) }
+        settle()
+
+        assertThat(reportedBids()).containsExactly("bid-from-code")
+    }
+
     /** A banner already on screen when setup() runs reports on the posted check, before any frame. */
     @Test
     fun a_banner_already_on_screen_reports_without_waiting() {

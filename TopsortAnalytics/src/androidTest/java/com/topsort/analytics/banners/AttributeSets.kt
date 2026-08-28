@@ -7,9 +7,9 @@ import com.topsort.analytics.model.auctions.EntityType
 import org.xmlpull.v1.XmlPullParser
 
 /**
- * BannerView's constructor takes an AttributeSet because it is meant to be inflated from XML.
- * Any real one will do here; this parses a stock platform layout and advances to its first
- * tag, which is where the attributes live.
+ * Constructs BannerView the way XML inflation does, with a real AttributeSet. Any real one will do;
+ * this parses a stock platform layout and advances to its first tag, which is where the
+ * attributes live. The code-created shape, BannerView(context), is covered separately.
  */
 internal fun attributeSet(context: Context): AttributeSet {
     val parser = context.resources.getXml(android.R.layout.simple_list_item_1)
