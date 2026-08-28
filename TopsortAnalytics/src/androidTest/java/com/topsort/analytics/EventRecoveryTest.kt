@@ -154,8 +154,8 @@ class EventRecoveryTest {
                 .setConstraints(constraints)
                 .build(),
         )
-        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get())
-            .allMatch { it.state == WorkInfo.State.ENQUEUED }
+        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get().map { it.state })
+            .containsOnly(WorkInfo.State.ENQUEUED)
 
         Analytics.setup(
             EventPipelineHarness.application,
@@ -163,8 +163,8 @@ class EventRecoveryTest {
             EventPipelineHarness.TOKEN,
         )
 
-        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get())
-            .allMatch { it.state == WorkInfo.State.CANCELLED }
+        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get().map { it.state })
+            .containsOnly(WorkInfo.State.CANCELLED)
     }
 
     /**
