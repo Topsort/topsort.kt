@@ -64,7 +64,16 @@ internal class EventEmitterWorker(
                 Cache.discard(recordId, Cache.DiscardReason.PERMANENTLY_REJECTED, "$eventType")
                 Result.failure()
             }
-            SendResult.TRANSIENT_FAILURE -> Result.retry()
+            SendResult.TRANSIENT_FAILURE -> {
+                // Past the cap the record stays cached; the sweep run by the next setup()
+                // re-enqueues it with a fresh attempt count.
+                if (runAttemptCount + 1 < MAX_DELIVERY_ATTEMPTS) {
+                    Result.retry()
+                } else {
+                    Log.w(TAG, "Giving up on record $recordId after $MAX_DELIVERY_ATTEMPTS attempts")
+                    Result.failure()
+                }
+            }
         }
     }
 
@@ -140,6 +149,12 @@ internal class EventEmitterWorker(
 
     companion object {
         private const val TAG = "TopsortEventEmitter"
+
+        /**
+         * Attempts per enqueue, so a lasting failure does not retry for the life of the process.
+         * With the default backoff the last one is about eight minutes in.
+         */
+        private const val MAX_DELIVERY_ATTEMPTS = 5
 
         const val EXTRA_RECORD_ID = "EXTRA_RECORD_ID"
         const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
