@@ -1,5 +1,6 @@
 public final class com/topsort/analytics/Analytics : com/topsort/analytics/TopsortAnalytics {
 	public static final field INSTANCE Lcom/topsort/analytics/Analytics;
+	public final fun getEventDiscardListener ()Lcom/topsort/analytics/EventDiscardListener;
 	public final fun getOpaqueUserId ()Ljava/lang/String;
 	public fun reportClickOrganic (Lcom/topsort/analytics/model/Entity;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;Lcom/topsort/analytics/model/ClickType;)V
 	public fun reportClickPromoted (Ljava/lang/String;Lcom/topsort/analytics/model/Placement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;Lcom/topsort/analytics/model/ClickType;)V
@@ -8,8 +9,23 @@ public final class com/topsort/analytics/Analytics : com/topsort/analytics/Topso
 	public final fun reportImpressions (Ljava/util/List;)V
 	public fun reportPageView (Lcom/topsort/analytics/model/Page;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;)V
 	public fun reportPurchase (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/topsort/analytics/model/auctions/Device;Lcom/topsort/analytics/model/Channel;Lcom/topsort/analytics/model/Page;)V
+	public final fun setEventDiscardListener (Lcom/topsort/analytics/EventDiscardListener;)V
 	public final fun setup (Landroid/app/Application;Lcom/topsort/analytics/UserIdentity;Ljava/lang/String;)V
 	public final fun setup (Landroid/app/Application;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/topsort/analytics/DiscardReason : java/lang/Enum {
+	public static final field CACHE_OVER_CAPACITY Lcom/topsort/analytics/DiscardReason;
+	public static final field PERMANENTLY_REJECTED Lcom/topsort/analytics/DiscardReason;
+	public static final field UNKNOWN_EVENT_TYPE Lcom/topsort/analytics/DiscardReason;
+	public static final field UNPARSEABLE_BODY Lcom/topsort/analytics/DiscardReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/topsort/analytics/DiscardReason;
+	public static fun values ()[Lcom/topsort/analytics/DiscardReason;
+}
+
+public abstract interface class com/topsort/analytics/EventDiscardListener {
+	public abstract fun onEventsDiscarded (Lcom/topsort/analytics/DiscardReason;I)V
 }
 
 public abstract interface class com/topsort/analytics/TopsortAnalytics {

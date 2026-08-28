@@ -64,6 +64,16 @@ object Analytics : TopsortAnalytics {
         get() = session?.opaqueUserId
 
     /**
+     * Notified whenever cached events are discarded undelivered. Null by default: discards are
+     * then only logged. May be set before or after [setup].
+     */
+    var eventDiscardListener: EventDiscardListener?
+        get() = Cache.discardListener
+        set(value) {
+            Cache.discardListener = value
+        }
+
+    /**
      * Setup initial properties required for the analytics library,
      * Call this from the Application class, before submitting any event,
      * Or when a new opaqueUserId or bearer token has to be used.

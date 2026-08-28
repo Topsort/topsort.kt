@@ -63,6 +63,7 @@ single 4xx.
 Package layout:
 - `com.topsort.analytics.Analytics` — main singleton, implements `TopsortAnalytics` interface
 - `com.topsort.analytics.UserIdentity` — sealed identity passed to `setup` (`UserIdentity.of(id)` → `Identified` / `Unidentified`)
+- `com.topsort.analytics.EventDiscardListener` / `DiscardReason` — optional host callback for every undelivered event the SDK drops; `Cache.discard` is the single exit
 - `com.topsort.analytics.model/` — event data models (Impression, Click, Purchase, Placement, Entity)
 - `com.topsort.analytics.model.auctions/` — auction models (Auction, AuctionRequest/Response, AuctionError, ApiConstants)
 - `com.topsort.analytics.banners/` — BannerView, BannerConfig (sealed), banner auction helpers

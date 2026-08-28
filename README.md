@@ -418,6 +418,16 @@ The sample app's `JavaSampleActivity.java` reports impressions, clicks and purch
 
 ## Error Handling
 
+Events the SDK gives up on - rejected by the API with a 4xx, evicted from a full cache, or
+unreadable - are logged and dropped. To count that loss yourself, register a listener; it runs on
+the SDK's worker thread, so keep it quick and capture no `Context`:
+
+```kotlin
+Analytics.eventDiscardListener = EventDiscardListener { reason, count ->
+    metrics.increment("topsort.events.discarded", count, "reason" to reason.name)
+}
+```
+
 The SDK uses `AuctionError` sealed class for auction errors:
 
 ```kotlin
