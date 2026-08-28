@@ -9,6 +9,8 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.verify
+import com.topsort.analytics.model.Placement
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -46,6 +48,8 @@ class AnalyticsOpaqueUserIdTest {
         // silently no-op every android API for every test in the module.
         mockkStatic(Log::class)
         every { Log.w(any<String>(), any<String>()) } returns 0
+        every { Log.e(any<String>(), any<String>()) } returns 0
+        every { Log.e(any<String>(), any<String>(), any()) } returns 0
         resetAnalytics()
     }
 
@@ -136,5 +140,21 @@ class AnalyticsOpaqueUserIdTest {
         Analytics.setup(application, "marketplace-id", "token")
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+    }
+
+    /**
+     * A host that disabled WorkManager's default initializer and has not initialized it yet makes
+     * getInstance throw. setup() must degrade to "logged, not sent" rather than crash the host.
+     */
+    @Test
+    fun `setup survives an uninitialized WorkManager and reporting becomes a logged no-op`() {
+        every { WorkManager.getInstance(any<Context>()) } throws IllegalStateException("not initialized")
+        every { Cache.setup(any(), any(), any()) } returns "marketplace-id"
+
+        Analytics.setup(application, UserIdentity.of("marketplace-id"), "token")
+        Analytics.reportClickPromoted(resolvedBidId = "bid", placement = Placement(path = "/"))
+
+        assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
+        verify { Log.e(any<String>(), match { it.contains("setup") }) }
     }
 }

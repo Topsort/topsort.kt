@@ -126,7 +126,16 @@ object Analytics : TopsortAnalytics {
         @NonNull token: String
     ) {
         applicationContext = application.applicationContext
-        workManager = WorkManager.getInstance(applicationContext!!)
+        // Same guard as PendingEventSweepWorker: getInstance throws when the host disabled the
+        // default initializer and has not initialized WorkManager yet, and a host's own
+        // Configuration.Provider can throw anything. Neither may crash the host.
+        @Suppress("TooGenericExceptionCaught")
+        workManager = try {
+            WorkManager.getInstance(applicationContext!!)
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "WorkManager unavailable; events will be logged, not sent", e)
+            null
+        }
         val previousOpaqueUserId = session?.opaqueUserId
         val resolvedOpaqueUserId = Cache.setup(application, identity, token)
 
