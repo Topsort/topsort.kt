@@ -112,6 +112,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
+            set -e
             adb uninstall com.topsort.analytics.test 2>/dev/null || true
             adb uninstall com.topsort.example 2>/dev/null || true
             adb uninstall com.topsort.example.test 2>/dev/null || true
@@ -121,3 +122,15 @@ jobs:
             # in. They had stopped running entirely: :app's androidTest classpath did not
             # resolve, and no job built or ran it, so the failure was invisible.
             ./gradlew :app:connectedCheck
+            # Merged coverage: the report task runs the unit tests itself; connectedCheck above
+            # produced the instrumented half.
+            ./gradlew :TopsortAnalytics:jacocoMergedReport :TopsortAnalytics:jacocoMergedVerification
+
+      - name: Upload merged coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        if: always()
+        with:
+          name: coverage-merged-api${{ matrix.api-level }}
+          path: |
+            TopsortAnalytics/build/reports/jacoco/jacocoMergedReport/
+          retention-days: 14
