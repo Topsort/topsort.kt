@@ -9,7 +9,6 @@ import com.topsort.analytics.EventPipelineHarness
 import com.topsort.analytics.FakeAnalyticsHttpService
 import com.topsort.analytics.ReportedBids
 import com.topsort.analytics.UserIdentity
-import com.topsort.analytics.model.auctions.EntityType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -31,12 +30,7 @@ class BannerVisibilityGateTest {
     private lateinit var fake: FakeAnalyticsHttpService
     private var onScreen = false
 
-    private val winner = BannerResponse(
-        id = "p_SA0238",
-        type = EntityType.PRODUCT,
-        url = "https://example.invalid/creative.png",
-        resolvedBidId = "resolved-bid-visibility",
-    )
+    private val winner = bannerWinner("resolved-bid-visibility")
 
     @Before
     fun setUp() {
@@ -55,10 +49,7 @@ class BannerVisibilityGateTest {
         EventPipelineHarness.uninstall()
     }
 
-    private fun reportedBids(): List<String?> {
-        EventPipelineHarness.runPendingEventWork()
-        return fake.impressionsSent.flatMap { it.impressions }.map { it.resolvedBidId }
-    }
+    private fun reportedBids() = fake.reportedImpressionBids()
 
     @Test
     fun a_layout_pass_off_screen_reports_nothing() {

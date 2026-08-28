@@ -3,6 +3,7 @@ package com.topsort.analytics.banners
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Xml
+import com.topsort.analytics.model.auctions.EntityType
 import org.xmlpull.v1.XmlPullParser
 
 /**
@@ -18,3 +19,11 @@ internal fun attributeSet(context: Context): AttributeSet {
     }
     return Xml.asAttributeSet(parser)
 }
+
+/** A winner with a stand-in creative; the URL never loads, which none of these tests need. */
+internal fun bannerWinner(resolvedBidId: String) = BannerResponse(
+    id = "p_SA0238",
+    type = EntityType.PRODUCT,
+    url = "https://example.invalid/creative.png",
+    resolvedBidId = resolvedBidId,
+)

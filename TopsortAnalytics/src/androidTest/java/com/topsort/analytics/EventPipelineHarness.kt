@@ -211,6 +211,12 @@ internal class FakeAnalyticsHttpService : TopsortAnalyticsHttpService.Service {
 
     val impressionsSent: List<ImpressionEvent> get() = sent.filterIsInstance<ImpressionEvent>()
 
+    /** Bids of every impression delivered so far, after draining the pending work. */
+    fun reportedImpressionBids(): List<String?> {
+        EventPipelineHarness.runPendingEventWork()
+        return impressionsSent.flatMap { it.impressions }.map { it.resolvedBidId }
+    }
+
     override fun reportImpression(impressionEvent: ImpressionEvent): HttpResponse =
         record(impressionEvent)
 
