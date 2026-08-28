@@ -1,10 +1,12 @@
 package com.topsort.analytics.banners
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import androidx.annotation.VisibleForTesting
 import coil.load
 import coil.request.ErrorResult
 import coil.request.ImageRequest
@@ -30,17 +32,56 @@ class BannerView(
     attrs: AttributeSet
 ) : ImageView(context, attrs) {
 
+    /** The impression owed to the current winner, reported once the view is on screen. */
+    private var pendingImpression: (() -> Unit)? = null
+
+    private val onLayout = ViewTreeObserver.OnGlobalLayoutListener { reportIfOnScreen() }
+    private val onScroll = ViewTreeObserver.OnScrollChangedListener { reportIfOnScreen() }
+
+    private val visibleRect = Rect()
+
     /**
-     * The impression listener waiting for the next layout pass, if one is.
-     *
-     * Held so that a second setup() can take it off the observer before adding its own. Each
-     * listener removes itself when it fires, which stops one setup reporting twice - but nothing
-     * stopped two setups leaving two listeners for the same view, and both would then fire on the
-     * same layout pass. That matters most for the winner overload, which is cheap and synchronous
-     * and therefore called exactly where views get reused: pools, RecyclerView, an AndroidView
-     * update block.
+     * Whether the banner is on screen: shown with every ancestor, in a visible window, and not
+     * clipped away by an ancestor. Occlusion by a sibling or another window is not detected, and
+     * there is no duration - the IAB viewable standard is tracked separately. Replaceable in
+     * tests, where views have no window.
      */
-    private var pendingImpressionListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+    @VisibleForTesting
+    internal var isOnScreen: () -> Boolean = {
+        isShown && windowVisibility == VISIBLE && getGlobalVisibleRect(visibleRect)
+    }
+
+    private fun reportIfOnScreen() {
+        val report = pendingImpression ?: return
+        if (!isOnScreen()) return
+        pendingImpression = null
+        stopWatching()
+        report()
+    }
+
+    private fun startWatching() {
+        // Idempotent: attaching merges a floating observer's listeners into the window's before
+        // onAttachedToWindow runs, and remove() only takes the first copy.
+        stopWatching()
+        viewTreeObserver.addOnGlobalLayoutListener(onLayout)
+        viewTreeObserver.addOnScrollChangedListener(onScroll)
+    }
+
+    private fun stopWatching() {
+        viewTreeObserver.removeOnGlobalLayoutListener(onLayout)
+        viewTreeObserver.removeOnScrollChangedListener(onScroll)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // Detached and re-attached without a new setup - an off-screen pager page - still owes it.
+        if (pendingImpression != null) startWatching()
+    }
+
+    override fun onDetachedFromWindow() {
+        stopWatching()
+        super.onDetachedFromWindow()
+    }
 
     private var onNoWinnersCallback: (() -> Unit)? = null
     private var onErrorCallback: ((Throwable) -> Unit)? = null
@@ -143,8 +184,8 @@ class BannerView(
      * Use this when the auction is yours to run - your own HTTP stack, your own auth, retries or
      * telemetry, or a winner you resolved earlier and cached. Map whatever your auction returned
      * onto [BannerResponse] and this view does the rest: loads the creative, reports the
-     * impression once the banner has actually been laid out, and reports a click when it is
-     * tapped.
+     * impression once the banner is on screen - not on layout, which happens below the fold too -
+     * and reports a click when it is tapped. Call from the main thread.
      *
      * The point of this overload is that reporting stays here. The impression must fire once per
      * resolved bid, when the ad is really on screen - not on every redraw, recomposition or view
@@ -180,23 +221,16 @@ class BannerView(
                 }
             )
         }
-        // On layout rather than on load: the impression is owed when the banner occupies the
-        // screen. A listener still waiting from an earlier setup is dropped first - that banner
-        // never reached the screen, so it is owed nothing, and leaving it registered would report
-        // it alongside this one on the same layout pass.
-        pendingImpressionListener?.let { viewTreeObserver.removeOnGlobalLayoutListener(it) }
-        val listener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-                pendingImpressionListener = null
-                Analytics.reportImpressionPromoted(
-                    resolvedBidId = winner.resolvedBidId,
-                    placement = placement
-                )
-            }
+        // A second setup replaces the pending impression: that banner never reached the screen.
+        pendingImpression = {
+            Analytics.reportImpressionPromoted(
+                resolvedBidId = winner.resolvedBidId,
+                placement = placement
+            )
         }
-        pendingImpressionListener = listener
-        this.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        stopWatching()
+        startWatching()
+        post { reportIfOnScreen() }
         this.setOnClickListener {
             Analytics.reportClickPromoted(
                 resolvedBidId = winner.resolvedBidId,

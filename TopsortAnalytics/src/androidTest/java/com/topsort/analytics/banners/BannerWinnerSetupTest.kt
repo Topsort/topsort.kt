@@ -51,6 +51,9 @@ class BannerWinnerSetupTest {
         )
         parent = FrameLayout(context)
         bannerView = BannerView(context, attributeSet(context))
+        // Test views have no window, so the real on-screen check is always false. These tests are
+        // about what setup() does once the banner is showing; BannerVisibilityGateTest covers the gate.
+        bannerView.isOnScreen = { true }
         parent.addView(bannerView)
     }
 
