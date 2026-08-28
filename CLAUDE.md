@@ -11,7 +11,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup, release process, and cont
   ```
   JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
   ```
-- Always use `./gradlew` (wrapper 9.4.1), never system Gradle.
+- Always use `./gradlew` (wrapper 9.6.0), never system Gradle.
 
 ## Essential Commands
 
@@ -74,7 +74,7 @@ Package layout:
 ## SDK Design Principles
 
 - **`internal` by default** — all new classes/functions must be `internal` unless explicitly part of the public API.
-- **Binary compatibility enforced** — BCV tracks the public API in `TopsortAnalytics/api/TopsortAnalytics.api`. Run `apiCheck` before every PR. Run `apiDump` only after a deliberate public API decision.
+- **Binary compatibility enforced** — BCV tracks the public API in `TopsortAnalytics/api/TopsortAnalytics.api`. Run `apiCheck` before every PR. Run `apiDump` only after a deliberate public API decision. BCV does not self-register under AGP 9's built-in Kotlin; the tasks are hand-registered in `TopsortAnalytics/build.gradle`.
 - **Minimal dependency footprint** — do not add dependencies without strong justification. Each dep is transitive to every consumer.
 - **Manual JSON serialization** — use `org.json` + `JsonSerializable` interface. No reflection-based libraries (Gson, Moshi, kotlinx.serialization) to keep APK size small and avoid proguard complexity.
 - **Factory companion objects** — deserialization via `fromJsonObject()` / `fromJsonArray()` on companion.
@@ -94,7 +94,7 @@ Package layout:
 
 ## Code Conventions
 
-- Kotlin, Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
+- Kotlin (AGP 9 built-in, currently 2.2.x — no standalone Kotlin Gradle plugin), Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
 - Detekt enforces style (config: `detekt.yaml`). Run before pushing.
 - RFC3339 timestamps via `SimpleDateFormat` (`eventNow()` helper in `EventTimestamp.kt`); no date library.
 - `JsonSerializable` interface for all models that go over the wire.

@@ -1,11 +1,12 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
+import kotlinx.validation.KotlinApiBuildTask
+import kotlinx.validation.KotlinApiCompareTask
 
 plugins {
     id 'jacoco'
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.bcv)
@@ -46,11 +47,12 @@ def generateLibraryVersion = tasks.register("generateLibraryVersion") {
 //
 // This is why the failure only ever appeared during publish: ordinary builds never run a source
 // jar, so the missing dependency sat undetected from the day the generator was added.
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+// Matched by name: under AGP 9's built-in Kotlin the compile task is not KGP's KotlinCompile class.
+tasks.matching { it.name ==~ /compile(Release|Debug)(UnitTest|AndroidTest)?Kotlin/ }.configureEach {
     dependsOn(generateLibraryVersion)
 }
 
-tasks.matching { it.name ==~ /source(Release|Debug)Jar/ }.configureEach {
+tasks.matching { it.name ==~ /source(Release|Debug)Jar|extract(Release|Debug)Annotations/ }.configureEach {
     dependsOn(generateLibraryVersion)
 }
 
@@ -64,9 +66,11 @@ android {
             // directory before it was written, failing a Gradle validation check during publish
             // while ordinary builds passed. This covers consumers that resolve the source set as a
             // FileCollection: the source jar, dokka, lint. Kotlin compilation reads the srcDir
-            // through AGP's variant wiring and is still declared separately, below.
+            // through AGP's variant wiring and is still declared separately, above.
             // (AGP's srcDir will not accept a task provider directly.)
             java.srcDir(files(libraryVersionSrcDir).builtBy(generateLibraryVersion))
+            // AGP 9's built-in Kotlin compiles the kotlin source dirs, not java's.
+            kotlin.srcDir(files(libraryVersionSrcDir).builtBy(generateLibraryVersion))
         }
     }
     compileSdk 36
@@ -137,7 +141,10 @@ dokka {
     dokkaPublications.html {
         outputDirectory.set(layout.buildDirectory.dir('dokka/html'))
     }
-    dokkaSourceSets.main {
+    // Under AGP 9 Dokka registers one source set per variant over the same roots and refuses the
+    // overlap; document release only.
+    dokkaSourceSets.configureEach {
+        suppress.set(it.name != 'release')
         skipEmptyPackages.set(true)
         documentedVisibilities.set([VisibilityModifier.Public] as Set)
         sourceLink {
@@ -180,7 +187,14 @@ def mergedExecutionData = fileTree(layout.buildDirectory) {
     include 'outputs/unit_test_code_coverage/debugUnitTest/*.exec'
     include 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'
 }
-def mergedClassDirectories = fileTree(layout.buildDirectory.dir('tmp/kotlin-classes/debug')) {
+// A variant's compiled classes, from the compile task's own outputs so the path is never named
+// here and the task dependency comes for free.
+// Resolved lazily: AGP registers the compile tasks after this script is evaluated.
+def kotlinClasses = { String variant ->
+    files({ tasks.getByName("compile${variant.capitalize()}Kotlin").outputs.files })
+}
+
+def mergedClassDirectories = kotlinClasses('debug').asFileTree.matching {
     exclude '**/LibraryVersion*'
 }
 def mergedSourceDirectories = files('src/main/java')
@@ -221,3 +235,39 @@ tasks.register('jacocoMergedVerification', JacocoCoverageVerification) {
         rule { limit { counter = 'LINE'; minimum = MERGED_COVERAGE_MINIMUM } }
     }
 }
+
+// binary-compatibility-validator registers its tasks only from the standalone Kotlin plugin's
+// hook, which AGP 9's built-in Kotlin never applies (Kotlin/binary-compatibility-validator#312).
+// Its task classes do not care, so they are registered here by hand: same dump file, same names.
+dependencies {
+    // The one piece the plugin adds only from that hook, at the Kotlin version AGP bundles.
+    'bcv-rt-jvm-cp' "org.jetbrains.kotlin:kotlin-metadata-jvm:${org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapperKt.getKotlinPluginVersion(project)}"
+}
+
+def apiBuild = tasks.register('apiBuild', KotlinApiBuildTask) {
+    description = 'Builds the public API dump from the release classes.'
+    inputClassesDirs.from(kotlinClasses('release'))
+    outputApiFile.set(layout.buildDirectory.file('api/TopsortAnalytics.api'))
+    runtimeClasspath.from(configurations.named('bcv-rt-jvm-cp-resolver'))
+}
+
+tasks.register('apiCheck', KotlinApiCompareTask) {
+    group = 'verification'
+    mustRunAfter 'apiDump'
+    description = 'Checks signatures of public API against the golden value in the api folder.'
+    projectApiFile.set(layout.projectDirectory.file('api/TopsortAnalytics.api'))
+    generatedApiFile.set(apiBuild.flatMap { it.outputApiFile })
+}
+
+// Not a Copy task: that would declare the api/ directory as an output while apiCheck reads a file
+// in it, and Gradle rejects the undeclared ordering.
+tasks.register('apiDump') {
+    description = 'Syncs the API file after a deliberate public API change.'
+    def from = apiBuild.flatMap { it.outputApiFile }
+    def to = layout.projectDirectory.file('api/TopsortAnalytics.api')
+    inputs.file(from)
+    outputs.file(to)
+    doLast { to.asFile.text = from.get().asFile.text }
+}
+
+tasks.named('check') { dependsOn 'apiCheck' }
