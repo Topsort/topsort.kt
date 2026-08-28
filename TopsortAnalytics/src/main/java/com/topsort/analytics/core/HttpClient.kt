@@ -38,20 +38,18 @@ internal class HttpClient (
             writeStream.flush()
             postConnection.outputStream.close()
 
+            // On a non-2xx the body is on errorStream. Read it so the API's rejection reason
+            // reaches the caller's log, but never let that read turn a definite rejection into an
+            // exception - the code is the decision, the body is a courtesy.
+            val code = connection.responseCode
             @Suppress("detekt:MagicNumber")
-            if (connection.responseCode !in 200..299) {
-                return HttpResponse(connection.responseCode, connection.responseMessage)
+            val responseBody = if (code in 200..299) {
+                connection.inputStream.bufferedReader().use(BufferedReader::readText)
+            } else {
+                runCatching { connection.errorStream?.bufferedReader()?.use(BufferedReader::readText) }
+                    .getOrNull()
             }
-
-            val inputStream =
-                try {
-                    connection.inputStream
-                } catch (ignored: IOException) {
-                    connection.errorStream
-                }
-
-            val responseBody = inputStream?.bufferedReader()?.use(BufferedReader::readText)
-            return HttpResponse(connection.responseCode, connection.responseMessage, responseBody)
+            return HttpResponse(code, connection.responseMessage, responseBody)
         } finally {
             postConnection.close()
         }
