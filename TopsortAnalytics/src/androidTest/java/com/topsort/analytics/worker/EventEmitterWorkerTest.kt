@@ -180,6 +180,28 @@ class EventEmitterWorkerTest {
     }
 
     @Test
+    fun doWork_5xx_before_the_last_attempt_still_retries() {
+        val recordId = Cache.storeImpression(getTestImpressionEvent())
+        mockService.responseCode = 500
+
+        val result = buildWorker(buildInputData(recordId, EventType.Impression), attempt = 3).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.retry())
+    }
+
+    @Test
+    fun doWork_5xx_on_the_last_attempt_returns_failure_and_keeps_event() {
+        val recordId = Cache.storeImpression(getTestImpressionEvent())
+        mockService.responseCode = 500
+
+        val result = buildWorker(buildInputData(recordId, EventType.Impression), attempt = 4).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.failure())
+        // Left for the next sweep, not discarded.
+        assertThat(Cache.readImpression(recordId)).isNotNull
+    }
+
+    @Test
     fun doWork_impression_nonexistent_returns_success() {
         val inputData = buildInputData(999999L, EventType.Impression)
         val worker = buildWorker(inputData)
@@ -391,9 +413,10 @@ class EventEmitterWorkerTest {
 
     // ==================== Helper methods ====================
 
-    private fun buildWorker(inputData: Data): EventEmitterWorker {
+    private fun buildWorker(inputData: Data, attempt: Int = 0): EventEmitterWorker {
         return TestListenableWorkerBuilder<EventEmitterWorker>(context)
             .setInputData(inputData)
+            .setRunAttemptCount(attempt)
             .build()
     }
 
