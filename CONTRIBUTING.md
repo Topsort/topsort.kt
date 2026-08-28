@@ -25,7 +25,8 @@ Thank you for your interest in contributing! This guide covers setup, local deve
 | `./gradlew :TopsortAnalytics:connectedCheck` | Run instrumented tests (requires a connected device or emulator) |
 | `./gradlew :TopsortAnalytics:apiCheck` | Verify public API has not changed unexpectedly |
 | `./gradlew :TopsortAnalytics:apiDump` | Regenerate the API dump after an intentional public API change |
-| `./gradlew :TopsortAnalytics:koverHtmlReport` | Generate an HTML code coverage report |
+| `./gradlew :TopsortAnalytics:koverHtmlReport` | Coverage from the JVM unit tests only |
+| `./gradlew :TopsortAnalytics:connectedCheck :TopsortAnalytics:jacocoMergedReport` | Coverage from unit and instrumented tests together (needs a device) |
 | `./gradlew :TopsortAnalytics:dokkaHtml` | Generate API documentation |
 
 ## Public API changes

@@ -103,7 +103,7 @@ Package layout:
 - Test data builders: `TestObjects.kt` (unit) / `TestObjectsAndroid.kt` (instrumented).
 - Test frameworks: JUnit 4 + AssertJ assertions + MockK mocking + kotlinx-coroutines-test.
 - Service mocking: `TopsortAuctionsHttpService.setMockService()` / `.resetToDefaultService()`.
-- Kover coverage threshold: 35% minimum. All new public API must have unit tests.
+- Coverage: `jacocoMergedReport` merges unit + instrumented execution data (the gate, 78% lines, runs in the instrumented CI job); Kover reports the JVM-only slice with a 35% floor in the unit-test job. All new public API must have unit tests.
 
 ## Git Workflow
 
@@ -143,6 +143,6 @@ Package layout:
 
 ## CI Pipeline
 
-- **PRs**: `detekt` + `apiCheck` (lint.yaml), unit tests + kover + instrumented tests (tests.yaml)
+- **PRs**: `detekt` + `apiCheck` (lint.yaml), unit tests + kover, then instrumented tests + merged coverage gate (tests.yaml)
 - **Push to main**: Dokka → GitHub Pages (docs.yaml), release-please PR (release-please.yaml)
 - **GitHub Release**: publish to Maven Central (publish-to-maven.yaml)

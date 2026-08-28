@@ -3,6 +3,7 @@ import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 plugins {
+    id 'jacoco'
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
@@ -82,6 +83,9 @@ android {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // JaCoCo execution data from both test kinds, merged by jacocoMergedReport below.
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
         }
         release {
             minifyEnabled false
@@ -162,4 +166,58 @@ dependencies {
     androidTestImplementation libs.androidx.test.core
     androidTestImplementation libs.androidx.test.espresso.core
     androidTestImplementation libs.androidx.work.testing
+}
+
+// One coverage number for the whole library: Kover sees only the JVM unit tests, so the event
+// pipeline looked uncovered when its tests are instrumented. AGP writes JaCoCo execution data for
+// both test kinds (debug only; the release AAR is untouched) and this merges them.
+jacoco { toolVersion = '0.8.13' }
+
+// The release unit-test task is instrumented by the jacoco plugin too, for nothing.
+tasks.matching { it.name == 'testReleaseUnitTest' }.configureEach { jacoco.enabled = false }
+
+def mergedExecutionData = fileTree(layout.buildDirectory) {
+    include 'outputs/unit_test_code_coverage/debugUnitTest/*.exec'
+    include 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'
+}
+def mergedClassDirectories = fileTree(layout.buildDirectory.dir('tmp/kotlin-classes/debug')) {
+    exclude '**/LibraryVersion*'
+}
+def mergedSourceDirectories = files('src/main/java')
+
+// Measured at 82% on 2026-08-28; gated a little below so a small drop is a conversation, not a
+// red build. Both emulator legs run the gate, and API 24 may cover slightly less than 34.
+def MERGED_COVERAGE_MINIMUM = 0.78
+
+// JaCoCo does not fail on empty inputs - an empty class tree or no execution data is a 0-line
+// report that passes any minimum - so both tasks refuse to run on nothing. Instrumented data is
+// not produced here on purpose: run connectedCheck first, as CI does.
+def requireCoverageInputs = {
+    if (mergedClassDirectories.isEmpty()) throw new GradleException("no compiled debug classes to measure")
+    if (mergedExecutionData.matching { include '**/*.ec' }.isEmpty()) throw new GradleException("no instrumented coverage; run connectedCheck first")
+}
+
+tasks.register('jacocoMergedReport', JacocoReport) {
+    group = 'verification'
+    dependsOn 'testDebugUnitTest'
+    executionData.from(mergedExecutionData)
+    classDirectories.from(mergedClassDirectories)
+    sourceDirectories.from(mergedSourceDirectories)
+    doFirst(requireCoverageInputs)
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('jacocoMergedVerification', JacocoCoverageVerification) {
+    group = 'verification'
+    dependsOn 'testDebugUnitTest'
+    executionData.from(mergedExecutionData)
+    classDirectories.from(mergedClassDirectories)
+    sourceDirectories.from(mergedSourceDirectories)
+    doFirst(requireCoverageInputs)
+    violationRules {
+        rule { limit { counter = 'LINE'; minimum = MERGED_COVERAGE_MINIMUM } }
+    }
 }
