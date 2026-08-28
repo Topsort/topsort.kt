@@ -12,6 +12,7 @@ import com.topsort.analytics.Analytics
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.auctions.AuctionError
 import com.topsort.analytics.model.auctions.EntityType
+import kotlinx.coroutines.CancellationException
 
 
 /**
@@ -127,6 +128,10 @@ class BannerView(
         } catch (e: AuctionError.DeserializationError) {
             onAuctionErrorCallback?.invoke(e)
             onErrorCallback?.invoke(e)
+        } catch (e: CancellationException) {
+            // The caller's scope was cancelled - navigating away, usually. Reporting it through
+            // onError would hand the host a spurious failure and keep running past the scope.
+            throw e
         } catch (e: Throwable) {
             onErrorCallback?.invoke(e)
         }
