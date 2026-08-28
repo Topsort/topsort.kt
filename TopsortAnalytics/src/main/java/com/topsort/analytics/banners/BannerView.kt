@@ -20,17 +20,19 @@ import kotlinx.coroutines.CancellationException
 /**
  * View for displaying banners powered by auctions.
  *
- * @constructor The constructor is meant to be called automatically from XML inflation.
- * You can add this view to your layout by using a `com.topsort.analytics.banners.BannerView` element.
+ * Inflate it from XML as a `com.topsort.analytics.banners.BannerView` element, or create it from
+ * code - `BannerView(context)` - which is how it goes inside Jetpack Compose's `AndroidView`.
  *
  * @param context
- * @param attrs AttributeSet for the view. Since this view inherits from `ImageView`
+ * @param attrs AttributeSet from XML inflation, if any. Since this view inherits from `ImageView`
  * you can set attributes as you would with a regular `ImageView`.
+ * @param defStyleAttr default style attribute, as for any `View`.
  */
-class BannerView(
+class BannerView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet
-) : ImageView(context, attrs) {
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : ImageView(context, attrs, defStyleAttr) {
 
     /** The impression owed to the current winner, reported once the view is on screen. */
     private var pendingImpression: (() -> Unit)? = null

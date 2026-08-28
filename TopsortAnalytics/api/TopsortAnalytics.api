@@ -181,7 +181,10 @@ public final class com/topsort/analytics/banners/BannerResponse {
 }
 
 public final class com/topsort/analytics/banners/BannerView : android/widget/ImageView {
+	public fun <init> (Landroid/content/Context;)V
 	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public synthetic fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun onAuctionError (Lkotlin/jvm/functions/Function1;)Lcom/topsort/analytics/banners/BannerView;
 	public final fun onError (Lkotlin/jvm/functions/Function1;)Lcom/topsort/analytics/banners/BannerView;
 	public final fun onImageLoad (Lkotlin/jvm/functions/Function0;)Lcom/topsort/analytics/banners/BannerView;
