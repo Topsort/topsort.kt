@@ -43,9 +43,9 @@ jobs:
       - name: Generate Dokka HTML
         run: ./gradlew :TopsortAnalytics:dokkaGeneratePublicationHtml
 
-      # Best-effort: the docs publish whether or not the tests passed; a failed run just gets a
-      # grey "unknown" badge. The artifact name is tests.yaml's coverage-merged-api${matrix}
-      # for the API 34 leg - either leg's report is the same merge.
+      # Best-effort: the docs publish whether or not the tests passed. Without a fresh report the
+      # badge keeps its last published value rather than going grey. The artifact name is
+      # tests.yaml's coverage-merged-api${matrix} for the API 34 leg - either leg is the same merge.
       - name: Download merged coverage report
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
@@ -57,7 +57,9 @@ jobs:
 
       # A shields.io "endpoint" badge reads this JSON; nothing is stored anywhere but Pages.
       - name: Write coverage badge data
-        run: python3 .github/scripts/coverage_badge.py coverage/jacocoMergedReport.xml TopsortAnalytics/build/dokka/html/coverage.json
+        run: |
+          curl -fsSL https://topsort.github.io/topsort.kt/coverage.json -o coverage/previous.json || true
+          python3 .github/scripts/coverage_badge.py coverage/jacocoMergedReport.xml TopsortAnalytics/build/dokka/html/coverage.json coverage/previous.json
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
