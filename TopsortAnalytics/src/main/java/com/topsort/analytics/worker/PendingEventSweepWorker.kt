@@ -44,18 +44,12 @@ internal class PendingEventSweepWorker(
     /**
      * Re-enqueues undelivered records so a stranded backlog gets another chance at delivery.
      *
-     * This deliberately does NOT decide what is too old to send. It re-enqueues every record it
-     * reads, anchored to that record's own occurredAt, and [EventEmitterWorker] applies the age cap
-     * when the work runs. Two reasons:
-     *
-     * - It cannot tell "stranded for a week" from "reported a moment ago and already enqueued". A
-     *   caller may report an event with an explicit backdated occurredAt through the public API,
-     *   and pruning on occurredAt alone destroyed those while their own work unit was still
-     *   pending - delivering the same event whenever no sweep happened to be in flight. Asking
-     *   WorkManager whether a record has live work is not available here: that query blocks on the
-     *   executor this worker is already running on.
-     * - KEEP makes the re-enqueue a no-op for any record that already has work pending, so the
-     *   record keeps one owner and the age decision lands in exactly one place.
+     * It re-enqueues every record it reads. Nothing client-side decides what is too old to send -
+     * Cache bounds the backlog by count, not age - and this worker does not judge what is already
+     * in flight either: it cannot tell "stranded for a week" from "reported a moment ago and
+     * already enqueued", because asking WorkManager whether a record has live work blocks on the
+     * executor this worker is running on. KEEP makes the re-enqueue a no-op for any record that
+     * already has work pending, so the record keeps one owner.
      */
     private fun sweep(workManager: WorkManager) {
         // Installs upgrading from a version that enqueued onto one shared chain still have work
@@ -82,11 +76,7 @@ internal class PendingEventSweepWorker(
     companion object {
         private const val TAG = "TopsortSweepWorker"
 
-        /**
-         * Upper bound on how many cached records one sweep reads and re-enqueues. Lives beside
-         * MAX_EVENT_AGE_DAYS in this package rather than in Analytics: the two constants jointly
-         * define recovery policy and are best read together.
-         */
+        /** Upper bound on how many cached records one sweep reads and re-enqueues. */
         private const val MAX_RESEND_PER_SWEEP = 100
         const val WORK_NAME = "TopsortAnalyticsPendingSweep"
     }

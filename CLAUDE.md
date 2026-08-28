@@ -11,7 +11,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full setup, release process, and cont
   ```
   JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
   ```
-- Always use `./gradlew` (wrapper 9.3.1), never system Gradle.
+- Always use `./gradlew` (wrapper 9.4.1), never system Gradle.
 
 ## Essential Commands
 

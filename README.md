@@ -22,10 +22,12 @@ The official Android SDK for the [Topsort](https://www.topsort.com) retail media
 - [Running Auctions](#running-auctions)
   - [Sponsored Listings](#sponsored-listings)
   - [Banner Auctions](#banner-auctions)
+  - [Displaying a Banner You Resolved Yourself](#displaying-a-banner-you-resolved-yourself)
 - [Advanced Features](#advanced-features)
   - [Event Context](#event-context)
   - [A/B Testing](#ab-testing)
   - [Quality Scores](#quality-scores)
+- [Java](#java)
 - [Error Handling](#error-handling)
 - [Testing](#testing)
 - [License](#license)
@@ -102,6 +104,8 @@ class MyApplication : Application() {
 }
 ```
 
+`Analytics.opaqueUserId` returns the id events are actually reported under.
+
 Report a promoted click:
 
 ```kotlin
@@ -134,6 +138,10 @@ Analytics.reportImpressionPromoted(
     page = Page.Factory.buildWithId(PageType.SEARCH, "electronics")
 )
 ```
+
+A promoted impression is reported at most once per `resolvedBidId` per session; repeats are
+dropped with a warning. To report several impressions in one event - a list screen, say - build
+them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
 
 **Organic impression** (non-promoted content):
 
@@ -301,7 +309,8 @@ lifecycleScope.launch {
         path = "/home",
         location = "hero-banner"
     ) { id, type ->
-        // Handle click
+        // Handle click. `type` is com.topsort.analytics.model.auctions.EntityType, which also
+        // has BRAND and URL - not the model.EntityType used for organic events.
         when (type) {
             EntityType.PRODUCT -> openProductPage(id)
             EntityType.VENDOR -> openVendorPage(id)
@@ -310,6 +319,29 @@ lifecycleScope.launch {
     }
 }
 ```
+
+`suspend fun runBannerAuction(config)` runs the same single-slot auction without a view. It returns
+null when there is no winner or the winner has no creative URL, and throws `AuctionError` on
+failure.
+
+### Displaying a Banner You Resolved Yourself
+
+If you run the auction with your own HTTP stack, map the winner onto `BannerResponse` and let the
+view do the rest - load the creative, report the impression once the banner is laid out, report the
+click:
+
+```kotlin
+val winner = BannerResponse(
+    id = "product-123",
+    url = "https://cdn.example.com/creative.png",
+    type = EntityType.PRODUCT,
+    resolvedBidId = "resolved-bid-id",
+)
+bannerView.setup(winner, path = "/home", location = "hero-banner") { id, type -> openProductPage(id) }
+```
+
+No auction runs, so `onAuctionError` and `onNoWinners` are never invoked from this overload;
+`onImageLoad` and `onError` still report the creative load.
 
 ## Advanced Features
 
@@ -356,6 +388,28 @@ val config = AuctionConfig.ProductIds(
     qualityScores = listOf(0.95, 0.82, 0.71)  // Must match ids size
 )
 ```
+
+## Java
+
+`Analytics` is a Kotlin `object`, reached from Java through `Analytics.INSTANCE`. Its report
+methods have no Java overloads, so every parameter is passed explicitly - `null` for the optional
+ones:
+
+```java
+Analytics.INSTANCE.reportClickPromoted(
+        resolvedBidId,
+        Placement.Companion.build("/search"),
+        null,   // opaqueUserId - falls back to the one given to setup
+        null,   // id           - generated when null
+        null,   // occurredAt   - now when null
+        null,   // deviceType
+        null,   // channel
+        null,   // page
+        null    // clickType
+);
+```
+
+The sample app's `JavaSampleActivity.java` reports impressions, clicks and purchases from Java.
 
 ## Error Handling
 
