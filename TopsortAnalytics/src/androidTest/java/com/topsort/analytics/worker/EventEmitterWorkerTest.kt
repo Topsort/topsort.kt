@@ -154,6 +154,32 @@ class EventEmitterWorkerTest {
     }
 
     @Test
+    fun doWork_impression_429_returns_retry_and_keeps_event() {
+        val event = getTestImpressionEvent()
+        val recordId = Cache.storeImpression(event)
+        mockService.responseCode = 429
+
+        val result = buildWorker(buildInputData(recordId, EventType.Impression)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.retry())
+        assertThat(Cache.readImpression(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportImpression")
+    }
+
+    @Test
+    fun doWork_impression_408_returns_retry_and_keeps_event() {
+        val event = getTestImpressionEvent()
+        val recordId = Cache.storeImpression(event)
+        mockService.responseCode = 408
+
+        val result = buildWorker(buildInputData(recordId, EventType.Impression)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.retry())
+        assertThat(Cache.readImpression(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportImpression")
+    }
+
+    @Test
     fun doWork_impression_nonexistent_returns_success() {
         val inputData = buildInputData(999999L, EventType.Impression)
         val worker = buildWorker(inputData)
