@@ -1,11 +1,16 @@
 name: Publish Docs
 
+# Runs after the Tests workflow finishes on main rather than on push, so the coverage badge it
+# publishes reflects the merged unit + instrumented report that run produced.
 on:
-  push:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
     branches: [main]
 
 permissions:
   contents: read
+  actions: read   # to download the coverage artifact from the triggering run
   pages: write
   id-token: write
 
@@ -16,10 +21,17 @@ concurrency:
 jobs:
   build-docs:
     name: Build Docs
+    # Only a push to this repository's main. workflow_run's `branches` filter matches the head
+    # branch name, which a fork PR controls, and this job runs Gradle with pages: write.
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
         with:
@@ -30,6 +42,22 @@ jobs:
 
       - name: Generate Dokka HTML
         run: ./gradlew :TopsortAnalytics:dokkaGeneratePublicationHtml
+
+      # Best-effort: the docs publish whether or not the tests passed; a failed run just gets a
+      # grey "unknown" badge. The artifact name is tests.yaml's coverage-merged-api${matrix}
+      # for the API 34 leg - either leg's report is the same merge.
+      - name: Download merged coverage report
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: coverage-merged-api34
+          path: coverage
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # A shields.io "endpoint" badge reads this JSON; nothing is stored anywhere but Pages.
+      - name: Write coverage badge data
+        run: python3 .github/scripts/coverage_badge.py coverage/jacocoMergedReport.xml TopsortAnalytics/build/dokka/html/coverage.json
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
