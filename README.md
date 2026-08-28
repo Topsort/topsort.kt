@@ -46,7 +46,8 @@ The official Android SDK for the [Topsort](https://www.topsort.com) retail media
 
 ## Requirements
 
-- Android SDK 24+ (Android 7.0 Nougat)
+- `minSdk` 24+ (Android 7.0 Nougat)
+- `compileSdk` 36+ — required transitively by `androidx.core` since 3.0.0
 - Java 11+
 - `INTERNET` permission
 
