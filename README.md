@@ -62,6 +62,8 @@ dependencies {
 Ensure Java 11 compatibility:
 
 ```gradle
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
