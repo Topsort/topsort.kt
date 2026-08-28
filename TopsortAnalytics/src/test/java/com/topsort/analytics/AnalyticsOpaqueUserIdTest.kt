@@ -155,6 +155,7 @@ class AnalyticsOpaqueUserIdTest {
         Analytics.reportClickPromoted(resolvedBidId = "bid", placement = Placement(path = "/"))
 
         assertThat(Analytics.opaqueUserId).isEqualTo("marketplace-id")
-        verify { Log.e(any<String>(), match { it.contains("setup") }) }
+        verify { Log.e(any<String>(), match { it.startsWith("WorkManager unavailable") }, any()) }
+        verify { Log.e(any<String>(), match { it.contains("call setup") }) }
     }
 }
