@@ -1,5 +1,5 @@
 [versions]
-agp                    = "9.2.1"
+agp                    = "9.3.2"
 detekt                 = "1.23.8"
 vanniktech-publish     = "0.37.0"
 core-ktx               = "1.18.0"
