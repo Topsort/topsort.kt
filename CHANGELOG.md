@@ -1,5 +1,30 @@
 # Changelog
 
+## [4.0.0](https://github.com/Topsort/topsort.kt/compare/v3.3.0...v4.0.0) (2026-09-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* additionalAttribution on Click and Impression is Entity? rather than String?. That changes the constructor, copy, component3 and the getter on both types, so code compiled against 3.x and not rebuilt will fail with NoSuchMethodError, and Kotlin source passing it by name will not compile.
+
+### Features
+
+* additionalAttribution carries an entity, not a string ([#179](https://github.com/Topsort/topsort.kt/issues/179)) ([079e33e](https://github.com/Topsort/topsort.kt/commit/079e33e0f1c07181e31caf2385a85e6f255e81ea))
+* drop joda-time; format the event timestamp with SimpleDateFormat ([#190](https://github.com/Topsort/topsort.kt/issues/190)) ([42629d2](https://github.com/Topsort/topsort.kt/commit/42629d29dc2f73c8121db9d1680d8d9260174d8a))
+* let a host hear about discarded events through Analytics.eventDiscardListener ([#188](https://github.com/Topsort/topsort.kt/issues/188)) ([108f119](https://github.com/Topsort/topsort.kt/commit/108f119e4437fe325cd7f3361d7f9eca5b10c11d))
+* let BannerView be created from code, for Compose's AndroidView ([#201](https://github.com/Topsort/topsort.kt/issues/201)) ([72e1e36](https://github.com/Topsort/topsort.kt/commit/72e1e368111a3dd5576b6cacace7b62e14427569))
+
+
+### Bug Fixes
+
+* let a cancelled scope cancel a banner auction instead of reporting an error ([#181](https://github.com/Topsort/topsort.kt/issues/181)) ([45b198e](https://github.com/Topsort/topsort.kt/commit/45b198eb836380d66ec645497a6265a62d50c6d1))
+* make the sample app's instrumented tests resolvable, and run them ([#176](https://github.com/Topsort/topsort.kt/issues/176)) ([51ec35a](https://github.com/Topsort/topsort.kt/commit/51ec35a3d9a80b3bf7d8e242e5324b48b00a2807))
+* report a banner impression when the banner is on screen, not on its first layout ([#191](https://github.com/Topsort/topsort.kt/issues/191)) ([a8d3ef5](https://github.com/Topsort/topsort.kt/commit/a8d3ef50af7b6602497d0dec3767ebcd7bc7459a))
+* retry an event the API answered 429 or 408 instead of discarding it ([#180](https://github.com/Topsort/topsort.kt/issues/180)) ([0d145ec](https://github.com/Topsort/topsort.kt/commit/0d145ecc1b729f17334649644e4c259acb397049))
+* run auctions on the IO dispatcher inside runAuctions instead of on the caller's ([#183](https://github.com/Topsort/topsort.kt/issues/183)) ([68c666f](https://github.com/Topsort/topsort.kt/commit/68c666f70a23250f45a64171d0dd6b1ce620a2d7))
+* stop retrying a failing event after five attempts and leave it for the sweep ([#184](https://github.com/Topsort/topsort.kt/issues/184)) ([9e23bdd](https://github.com/Topsort/topsort.kt/commit/9e23bdd507018dcfba07bb5f8141f7642233c030))
+* survive setup() when WorkManager is not initialized instead of crashing the host ([#182](https://github.com/Topsort/topsort.kt/issues/182)) ([0475c12](https://github.com/Topsort/topsort.kt/commit/0475c12fc68f7d08096e42df8fcc3f0354031e1b))
+
 ## [3.3.0](https://github.com/Topsort/topsort.kt/compare/v3.2.0...v3.3.0) (2026-08-27)
 
 
