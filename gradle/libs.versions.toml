@@ -20,7 +20,7 @@ androidx-test-core     = "1.7.0"
 espresso               = "3.7.0"
 kotlinx-coroutines     = "1.11.0"
 mockk                  = "1.14.11"
-bcv                    = "0.18.1"
+bcv                    = "0.18.2"
 kover                  = "0.9.8"
 dokka                  = "2.2.0"
 
