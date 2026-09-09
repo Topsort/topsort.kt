@@ -1,4 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import kotlinx.validation.KotlinApiBuildTask
@@ -106,6 +108,16 @@ kotlin {
     jvmToolchain(17)
     compilerOptions {
         jvmTarget = JvmTarget.JVM_11
+        // A Kotlin compiler reads metadata at most one minor version ahead of itself, and the
+        // metadata version tracks the language level, not the compiler. Sympla compiles with 2.1.
+        // Left to the compiler AGP bundles, the floor moves every time AGP does: 3.0.0 through 3.3.0
+        // were built with 2.3.21 and no 2.1 consumer could link against them. Pinning the level
+        // keeps the emitted metadata at 2.1.0 whatever AGP ships (2.2.10 today).
+        languageVersion = KotlinVersion.KOTLIN_2_1
+        apiVersion = KotlinVersion.KOTLIN_2_1
+        // Language level 2.1 would also revert interface methods with bodies to DefaultImpls-only,
+        // which is an ABI change (apiCheck catches it). Keep the 2.2 layout the released AARs have.
+        jvmDefault = JvmDefaultMode.ENABLE
     }
 }
 
@@ -156,6 +168,11 @@ dokka {
 }
 
 dependencies {
+    // Declared, so AGP does not add kotlin-stdlib at the bundled compiler's version (it skips its
+    // own once one is present). Pinned below the compiler on purpose: with apiVersion at 2.1 the
+    // code cannot use anything newer, and the version here is the floor every consumer inherits -
+    // a 2.1 consumer cannot read a 2.3 stdlib. Consumers on a newer Kotlin still resolve their own.
+    api libs.kotlin.stdlib
     implementation libs.androidx.core.ktx
     implementation libs.androidx.annotation
     implementation libs.androidx.work.runtime
