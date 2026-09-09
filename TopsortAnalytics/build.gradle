@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import kotlinx.validation.KotlinApiBuildTask
@@ -106,6 +107,15 @@ kotlin {
     jvmToolchain(17)
     compilerOptions {
         jvmTarget = JvmTarget.JVM_11
+        // Sympla compiles with Kotlin 2.1, and a Kotlin compiler reads metadata at most one minor
+        // version ahead of itself. Pinning the language and API level keeps the emitted metadata at
+        // 2.1.0 whatever Kotlin AGP bundles (2.2.10 today), so a 2.1 consumer can still link against
+        // the AAR. Every 3.x release before this one was built with 2.3.21 and could not be consumed.
+        languageVersion = KotlinVersion.KOTLIN_2_1
+        apiVersion = KotlinVersion.KOTLIN_2_1
+        // Language level 2.1 would also revert interface methods with bodies to DefaultImpls-only,
+        // which is an ABI change (apiCheck catches it). Keep the 2.2 layout the released AARs have.
+        freeCompilerArgs.add("-jvm-default=enable")
     }
 }
 

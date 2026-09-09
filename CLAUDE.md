@@ -95,6 +95,7 @@ Package layout:
 ## Code Conventions
 
 - Kotlin (AGP 9 built-in, currently 2.2.x — no standalone Kotlin Gradle plugin), Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
+- **Kotlin language/API level is pinned to 2.1** in `TopsortAnalytics/build.gradle` so the AAR emits 2.1.0 metadata: a Kotlin compiler reads metadata at most one minor version ahead, and Sympla compiles with 2.1. `-jvm-default=enable` is pinned alongside it to keep the interface ABI the 2.2 toolchain produces. Do not raise either without checking what consumers compile with.
 - Detekt enforces style (config: `detekt.yaml`). Run before pushing.
 - RFC3339 timestamps via `SimpleDateFormat` (`eventNow()` helper in `EventTimestamp.kt`); no date library.
 - `JsonSerializable` interface for all models that go over the wire.
