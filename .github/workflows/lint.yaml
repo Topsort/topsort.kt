@@ -33,6 +33,8 @@ jobs:
 
       - name: Check binary compatibility
         run: ./gradlew :TopsortAnalytics:apiCheck
+      - name: Published stdlib floor
+        run: ./gradlew :TopsortAnalytics:checkPomStdlib
 
       # Builds the sample app and its instrumented tests. Nothing did until recently, and three
       # separate things rotted in there unnoticed: the Java sample stopped compiling in 3.0.0

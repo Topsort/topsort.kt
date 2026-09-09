@@ -5,6 +5,7 @@ import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import kotlinx.validation.KotlinApiBuildTask
 import kotlinx.validation.KotlinApiCompareTask
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 plugins {
     id 'jacoco'
@@ -287,4 +288,31 @@ tasks.register('apiDump') {
     doLast { to.asFile.text = from.get().asFile.text }
 }
 
-tasks.named('check') { dependsOn 'apiCheck' }
+// The kotlin-stdlib the POM declares is the floor every consumer inherits (see kotlin.compilerOptions
+// above). Nothing else in the build would notice it drifting: 3.0.0 through 3.3.0 shipped a 2.3
+// floor unremarked. Read from the generated POM, so this measures what publishes, not the catalog.
+// The publish plugin registers its tasks after evaluation, hence the lookups by type and provider.
+tasks.register('checkPomStdlib') {
+    group = 'verification'
+    description = 'Checks the kotlin-stdlib version the published POM declares.'
+    dependsOn tasks.withType(GenerateMavenPom)
+    def pomFile = provider {
+        tasks.named('generatePomFileForMavenPublication', GenerateMavenPom).get().destination
+    }
+    def expected = libs.versions.kotlin.stdlib.get()
+    inputs.file(pomFile)
+    inputs.property('expected', expected)
+    doLast {
+        def stdlib = new groovy.xml.XmlSlurper().parse(pomFile.get())
+            .dependencies.dependency.find { it.artifactId.text() == 'kotlin-stdlib' }
+        def actual = stdlib?.version?.text()
+        if (actual != expected) {
+            throw new GradleException(
+                "POM declares kotlin-stdlib ${actual ?: '(absent)'}, expected ${expected}; " +
+                "see kotlin.compilerOptions in TopsortAnalytics/build.gradle"
+            )
+        }
+    }
+}
+
+tasks.named('check') { dependsOn 'apiCheck', 'checkPomStdlib' }

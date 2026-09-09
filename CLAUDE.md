@@ -95,7 +95,7 @@ Package layout:
 ## Code Conventions
 
 - Kotlin (AGP 9 built-in, currently 2.2.x — no standalone Kotlin Gradle plugin), Java 11 source/target, JVM toolchain 17 (build requires JDK 17, bytecode targets JVM 11).
-- **Kotlin language/API level is pinned to 2.1** in `TopsortAnalytics/build.gradle` so the AAR emits 2.1.0 metadata whatever compiler AGP bundles. A Kotlin compiler reads metadata at most one minor version ahead of itself, and Sympla compiles with 2.1. `jvmDefault = ENABLE` is pinned alongside it to keep the interface ABI the 2.2 toolchain produces, and `kotlin-stdlib` is declared explicitly at the same floor so the POM's stdlib does not track AGP either. Do not raise any of these without checking what consumers compile with.
+- **Kotlin language/API level is pinned to 2.1** in `TopsortAnalytics/build.gradle` so the AAR emits 2.1.0 metadata whatever compiler AGP bundles. A Kotlin compiler reads metadata at most one minor version ahead of itself, and Sympla compiles with 2.1. `jvmDefault = ENABLE` is pinned alongside it to keep the interface ABI the 2.2 toolchain produces, and `kotlin-stdlib` is declared explicitly at the same floor so the POM's stdlib does not track AGP either. Do not raise any of these without checking what consumers compile with. Both are guarded: `CompiledMetadataVersionTest` asserts the metadata version on a compiled class, and `checkPomStdlib` (lint CI) asserts the stdlib the generated POM declares.
 - Detekt enforces style (config: `detekt.yaml`). Run before pushing.
 - RFC3339 timestamps via `SimpleDateFormat` (`eventNow()` helper in `EventTimestamp.kt`); no date library.
 - `JsonSerializable` interface for all models that go over the wire.
