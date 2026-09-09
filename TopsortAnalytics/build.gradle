@@ -166,6 +166,10 @@ dokka {
 }
 
 dependencies {
+    // Pinned below the compiler on purpose: with apiVersion at 2.1 the code cannot use anything
+    // newer, so declaring the compiler's stdlib would only raise consumers' floor - a 2.1 consumer
+    // cannot read stdlib 2.3 metadata. Gradle still resolves a newer stdlib for consumers who have one.
+    api libs.kotlin.stdlib
     implementation libs.androidx.core.ktx
     implementation libs.androidx.annotation
     implementation libs.androidx.work.runtime
