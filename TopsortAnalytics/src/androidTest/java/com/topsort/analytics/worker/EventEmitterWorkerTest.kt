@@ -15,12 +15,14 @@ import com.topsort.analytics.getTestClickEvent
 import com.topsort.analytics.getTestImpressionEvent
 import com.topsort.analytics.getTestPageViewEvent
 import com.topsort.analytics.getTestPurchaseEvent
+import com.topsort.analytics.getTestRenderEvent
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -427,6 +429,66 @@ class EventEmitterWorkerTest {
         assertThat(mockService.lastMethod).isNull()
     }
 
+    // ==================== Render tests ====================
+
+    @Test
+    fun doWork_render_success_deletes_event_from_cache() {
+        val event = getTestRenderEvent()
+        val recordId = Cache.storeRender(event)
+        mockService.responseCode = 200
+
+        val inputData = buildInputData(recordId, EventType.Render)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        assertThat(Cache.readRender(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportRender")
+    }
+
+    @Test
+    fun doWork_render_4xx_error_returns_failure_and_deletes_event() {
+        val event = getTestRenderEvent()
+        val recordId = Cache.storeRender(event)
+        mockService.responseCode = 400
+
+        val inputData = buildInputData(recordId, EventType.Render)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.failure())
+        assertThat(Cache.readRender(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportRender")
+    }
+
+    @Test
+    fun doWork_render_5xx_error_returns_retry() {
+        val event = getTestRenderEvent()
+        val recordId = Cache.storeRender(event)
+        mockService.responseCode = 500
+
+        val inputData = buildInputData(recordId, EventType.Render)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.retry())
+        assertThat(Cache.readRender(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportRender")
+    }
+
+    @Test
+    fun doWork_render_nonexistent_returns_success() {
+        val inputData = buildInputData(999995L, EventType.Render)
+        val worker = buildWorker(inputData)
+        val result = worker.doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // Not just "returned success" - success has five sources in doWork() (input guard,
+        // age cap, record absent, unparseable body, real send). Without this the test passes
+        // whichever one fired, including a genuine delivery.
+        assertThat(mockService.lastMethod).isNull()
+    }
+
     // ==================== Exception handling tests ====================
 
     @Test
@@ -485,6 +547,11 @@ class EventEmitterWorkerTest {
 
         override fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse {
             lastMethod = "reportPageView"
+            return mockResponse()
+        }
+
+        override fun reportRender(renderEvent: RenderEvent): HttpResponse {
+            lastMethod = "reportRender"
             return mockResponse()
         }
 

@@ -26,6 +26,8 @@ import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.Render
+import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.model.Session
 import com.topsort.analytics.worker.EventEmitterWorker
 import com.topsort.analytics.worker.PendingEventSweepWorker
@@ -355,6 +357,37 @@ object Analytics : TopsortAnalytics {
         enqueueReportedEvent(recordId, EventType.PageView)
     }
 
+    override fun reportRender(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val renders = listOf(
+            Render.Factory.build(
+                resolvedBidId = resolvedBidId,
+                placement = placement,
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
+                id = id ?: randomId(),
+                occurredAt = occurredAt ?: eventNow(),
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+            )
+        )
+
+        reportRenders(renders)
+    }
+
     /**
      * The opaque user id for a single reported event. A per-call value only overrides the session
      * one when it is actually populated; a blank would be rejected by the API for a missing
@@ -374,6 +407,10 @@ object Analytics : TopsortAnalytics {
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     private fun Click.withResolvedOpaqueUserId(): Click =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
+
+    private fun Render.withResolvedOpaqueUserId(): Render =
         if (opaqueUserId.isNotBlank()) this
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
@@ -472,5 +509,26 @@ object Analytics : TopsortAnalytics {
 
         val recordId = Cache.storeClick(clickEvent)
         enqueueReportedEvent(recordId, EventType.Click)
+    }
+
+    /**
+     * Reports several renders in one event - a page that inserts a whole batch of sponsored ads at
+     * once, say. Public for the same reason [reportImpressions] is: a caller can build a list of
+     * [Render] themselves via [Render.Factory] rather than reporting one render per call.
+     */
+    public fun reportRenders(
+        renders: List<Render>,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val renderEvent = RenderEvent(
+            renders = renders.map { it.withResolvedOpaqueUserId() },
+        )
+
+        val recordId = Cache.storeRender(renderEvent)
+        enqueueReportedEvent(recordId, EventType.Render)
     }
 }

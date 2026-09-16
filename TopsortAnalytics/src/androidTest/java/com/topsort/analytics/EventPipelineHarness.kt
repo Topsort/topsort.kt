@@ -18,6 +18,7 @@ import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import com.topsort.analytics.worker.EventEmitterWorker
 import java.util.UUID
@@ -211,6 +212,8 @@ internal class FakeAnalyticsHttpService : TopsortAnalyticsHttpService.Service {
 
     val impressionsSent: List<ImpressionEvent> get() = sent.filterIsInstance<ImpressionEvent>()
 
+    val rendersSent: List<RenderEvent> get() = sent.filterIsInstance<RenderEvent>()
+
     /** Bids of every impression delivered so far, after draining the pending work. */
     fun reportedImpressionBids(): List<String?> {
         EventPipelineHarness.runPendingEventWork()
@@ -225,6 +228,8 @@ internal class FakeAnalyticsHttpService : TopsortAnalyticsHttpService.Service {
     override fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse = record(purchaseEvent)
 
     override fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse = record(pageViewEvent)
+
+    override fun reportRender(renderEvent: RenderEvent): HttpResponse = record(renderEvent)
 
     override fun reportEvent(event: Event): HttpResponse = record(event)
 

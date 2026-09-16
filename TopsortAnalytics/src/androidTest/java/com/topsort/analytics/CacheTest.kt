@@ -223,6 +223,50 @@ class CacheTest {
         assertThat(retrieved).isNull()
     }
 
+    // ==================== Render storage tests ====================
+
+    @Test
+    fun storeRender_returns_incrementing_record_id() {
+        val event1 = getTestRenderEvent()
+        val event2 = getTestRenderEvent()
+
+        val id1 = Cache.storeRender(event1)
+        val id2 = Cache.storeRender(event2)
+
+        assertThat(id2).isGreaterThan(id1)
+    }
+
+    @Test
+    fun readRender_returns_stored_event() {
+        val event = getTestRenderEvent()
+        val recordId = Cache.storeRender(event)
+
+        val retrieved = Cache.readRender(recordId)
+
+        assertThat(retrieved).isNotNull
+        assertThat(retrieved!!.renders).hasSize(1)
+        assertThat(retrieved.renders[0].resolvedBidId)
+            .isEqualTo(event.renders[0].resolvedBidId)
+    }
+
+    @Test
+    fun readRender_returns_null_for_nonexistent_id() {
+        val retrieved = Cache.readRender(999995L)
+
+        assertThat(retrieved).isNull()
+    }
+
+    @Test
+    fun deleteEvent_removes_render() {
+        val event = getTestRenderEvent()
+        val recordId = Cache.storeRender(event)
+
+        Cache.deleteEvent(recordId)
+        val retrieved = Cache.readRender(recordId)
+
+        assertThat(retrieved).isNull()
+    }
+
     // ==================== Mixed event type tests ====================
 
     @Test
@@ -231,14 +275,16 @@ class CacheTest {
         val click = getTestClickEvent()
         val purchase = getTestPurchaseEvent()
         val pageView = getTestPageViewEvent()
+        val render = getTestRenderEvent()
 
         val impressionId = Cache.storeImpression(impression)
         val clickId = Cache.storeClick(click)
         val purchaseId = Cache.storePurchase(purchase)
         val pageViewId = Cache.storePageView(pageView)
+        val renderId = Cache.storeRender(render)
 
         // All IDs should be unique
-        assertThat(setOf(impressionId, clickId, purchaseId, pageViewId)).hasSize(4)
+        assertThat(setOf(impressionId, clickId, purchaseId, pageViewId, renderId)).hasSize(5)
     }
 
     /**
