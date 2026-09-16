@@ -524,6 +524,10 @@ object Analytics : TopsortAnalytics {
             return
         }
 
+        if (renders.isEmpty()) {
+            return
+        }
+
         val renderEvent = RenderEvent(
             renders = renders.map { it.withResolvedOpaqueUserId() },
         )

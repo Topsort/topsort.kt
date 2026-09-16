@@ -211,4 +211,20 @@ class EventDeliveryTest {
         val sent = fake.impressionsSent.single().impressions.single()
         assertThat(sent.opaqueUserId).isEqualTo(EventPipelineHarness.OPAQUE_USER_ID)
     }
+
+    /**
+     * An empty batch must not reach the cache or the wire - unlike [Analytics.reportImpressions],
+     * [Analytics.reportRenders] has no per-item filter to fall back on for this, so it needs its
+     * own guard.
+     */
+    @Test
+    fun an_empty_batch_of_renders_is_not_cached_or_sent() {
+        setUpWith()
+
+        Analytics.reportRenders(emptyList())
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.rendersSent).isEmpty()
+        assertThat(Cache.cachedRecordIds()).isEmpty()
+    }
 }
