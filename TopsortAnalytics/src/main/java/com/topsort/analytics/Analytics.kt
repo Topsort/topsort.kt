@@ -35,6 +35,9 @@ import com.topsort.analytics.worker.PendingEventSweepWorker
 private const val LOG_TAG = "TopSortAnalytics"
 private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the application context before logging events"
 
+/** The events API rejects a "renders" array longer than this with a 400. */
+private const val MAX_RENDERS_PER_REQUEST = 50
+
 object Analytics : TopsortAnalytics {
 
     // Volatile: setup() writes these from the host's thread while WorkManager threads and any
@@ -155,13 +158,14 @@ object Analytics : TopsortAnalytics {
         )
 
         // A setup() that changes the user starts a fresh set of bids, because the new user's
-        // impressions are their own and must not be dropped as duplicates of the previous
-        // one's. One that resolves to the same user must keep the set: setup() is also how a
-        // caller refreshes an expired token, and UserIdentity.Unidentified deliberately keeps
-        // the id already in effect, so clearing here would reopen the duplicate it is meant to
-        // stop.
+        // impressions and renders are their own and must not be dropped as duplicates of the
+        // previous one's. One that resolves to the same user must keep the sets: setup() is also
+        // how a caller refreshes an expired token, and UserIdentity.Unidentified deliberately
+        // keeps the id already in effect, so clearing here would reopen the duplicate they are
+        // meant to stop.
         if (previousOpaqueUserId != resolvedOpaqueUserId) {
             ReportedBids.clear()
+            ReportedRenderBids.clear()
         }
 
         schedulePendingEventSweep()
@@ -435,6 +439,27 @@ object Analytics : TopsortAnalytics {
     }
 
     /**
+     * Whether this render is the first report of its resolved bid, and so should be sent.
+     *
+     * Renders have no organic variant, so unlike [Impression.keepAsFirstReportOfItsBid] there is no
+     * bid-less case to let through. Tracked in [ReportedRenderBids], not [ReportedBids]: a render
+     * fires as soon as the ad enters the view, well before the impression fires once it is actually
+     * on screen, and the two must not consume the same tracked-bid slot.
+     */
+    private fun Render.keepAsFirstReportOfItsBid(): Boolean {
+        if (ReportedRenderBids.markReported(resolvedBidId)) {
+            return true
+        }
+        Log.w(
+            LOG_TAG,
+            "Dropping a repeat render for resolvedBidId $resolvedBidId. A resolved bid earns " +
+                "one render; report it once, when the ad enters the view, not on every redraw, " +
+                "recomposition or view rebind."
+        )
+        return false
+    }
+
+    /**
      * Asks the sweep to run in the background.
      *
      * Deliberately not inline: [setup] is documented as something to call from the Application
@@ -515,6 +540,10 @@ object Analytics : TopsortAnalytics {
      * Reports several renders in one event - a page that inserts a whole batch of sponsored ads at
      * once, say. Public for the same reason [reportImpressions] is: a caller can build a list of
      * [Render] themselves via [Render.Factory] rather than reporting one render per call.
+     *
+     * Split into chunks of at most [MAX_RENDERS_PER_REQUEST]: the API rejects a longer "renders"
+     * array outright with a 400, which would permanently discard the whole batch rather than just
+     * the excess.
      */
     public fun reportRenders(
         renders: List<Render>,
@@ -524,15 +553,16 @@ object Analytics : TopsortAnalytics {
             return
         }
 
-        if (renders.isEmpty()) {
+        val unreported = renders.filter { it.keepAsFirstReportOfItsBid() }
+        if (unreported.isEmpty()) {
             return
         }
 
-        val renderEvent = RenderEvent(
-            renders = renders.map { it.withResolvedOpaqueUserId() },
-        )
-
-        val recordId = Cache.storeRender(renderEvent)
-        enqueueReportedEvent(recordId, EventType.Render)
+        unreported.map { it.withResolvedOpaqueUserId() }
+            .chunked(MAX_RENDERS_PER_REQUEST)
+            .forEach { chunk ->
+                val recordId = Cache.storeRender(RenderEvent(renders = chunk))
+                enqueueReportedEvent(recordId, EventType.Render)
+            }
     }
 }

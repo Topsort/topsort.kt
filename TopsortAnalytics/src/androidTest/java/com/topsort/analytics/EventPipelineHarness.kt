@@ -75,6 +75,7 @@ internal object EventPipelineHarness {
         // them when the user changes. Without this a bid id reused by another test is silently
         // deduplicated away, and the test that reports it sees fewer records than it wrote.
         ReportedBids.clear()
+        ReportedRenderBids.clear()
         installed = true
 
         return fake
