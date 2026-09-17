@@ -181,13 +181,14 @@ class BannerView @JvmOverloads constructor(
     }
 
     /**
-     * Display a banner you have already won, and report its impression and clicks.
+     * Display a banner you have already won, and report its render, impression and clicks.
      *
      * Use this when the auction is yours to run - your own HTTP stack, your own auth, retries or
      * telemetry, or a winner you resolved earlier and cached. Map whatever your auction returned
-     * onto [BannerResponse] and this view does the rest: loads the creative, reports the
-     * impression once the banner is on screen - not on layout, which happens below the fold too -
-     * and reports a click when it is tapped. Call from the main thread.
+     * onto [BannerResponse] and this view does the rest: reports the render immediately, since the
+     * winner is entering the view right here; loads the creative; reports the impression once the
+     * banner is on screen - not on layout, which happens below the fold too - and reports a click
+     * when it is tapped. Call from the main thread.
      *
      * The point of this overload is that reporting stays here. The impression must fire once per
      * resolved bid, when the ad is really on screen - not on every redraw, recomposition or view
@@ -212,6 +213,11 @@ class BannerView @JvmOverloads constructor(
         onClick: (String, EntityType) -> Unit
     ) {
         val placement = Placement(path = path, location = location)
+
+        Analytics.reportRender(
+            resolvedBidId = winner.resolvedBidId,
+            placement = placement
+        )
 
         this.load(winner.url) {
             listener(

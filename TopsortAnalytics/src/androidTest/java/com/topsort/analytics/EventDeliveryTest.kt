@@ -2,8 +2,10 @@ package com.topsort.analytics
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.work.WorkInfo
+import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
+import com.topsort.analytics.model.Render
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Test
@@ -210,5 +212,48 @@ class EventDeliveryTest {
 
         val sent = fake.impressionsSent.single().impressions.single()
         assertThat(sent.opaqueUserId).isEqualTo(EventPipelineHarness.OPAQUE_USER_ID)
+    }
+
+    /**
+     * An empty batch must not reach the cache or the wire - unlike [Analytics.reportImpressions],
+     * [Analytics.reportRenders] has no per-item filter to fall back on for this, so it needs its
+     * own guard.
+     */
+    @Test
+    fun an_empty_batch_of_renders_is_not_cached_or_sent() {
+        setUpWith()
+
+        Analytics.reportRenders(emptyList())
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.rendersSent).isEmpty()
+        assertThat(Cache.cachedRecordIds()).isEmpty()
+    }
+
+    /**
+     * The events API rejects a "renders" array longer than 50 with a 400, discarding the whole
+     * batch. A batch over that limit must be split into requests of at most 50 rather than sent -
+     * and lost - as one.
+     */
+    @Test
+    fun a_batch_of_51_renders_is_split_into_two_requests() {
+        setUpWith()
+
+        val renders = (1..51).map {
+            Render.Factory.build(
+                resolvedBidId = randomId("resolvedBid_"),
+                placement = Placement(path = "/delivery"),
+                occurredAt = "2026-08-25T00:00:00.000Z",
+                opaqueUserId = EventPipelineHarness.OPAQUE_USER_ID,
+                id = randomId("render_"),
+            )
+        }
+
+        Analytics.reportRenders(renders)
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.rendersSent).hasSize(2)
+        assertThat(fake.rendersSent.map { it.renders.size }).containsExactlyInAnyOrder(50, 1)
+        assertThat(fake.rendersSent.flatMap { it.renders }).hasSize(51)
     }
 }

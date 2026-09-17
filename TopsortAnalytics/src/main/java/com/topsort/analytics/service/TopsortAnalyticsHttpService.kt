@@ -10,6 +10,7 @@ import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.RenderEvent
 
 internal object TopsortAnalyticsHttpService {
 
@@ -60,6 +61,10 @@ internal object TopsortAnalyticsHttpService {
                 return reportSerializedEvent(pageViewEvent.toJsonObject().toString())
             }
 
+            override fun reportRender(renderEvent: RenderEvent): HttpResponse {
+                return reportSerializedEvent(renderEvent.toJsonObject().toString())
+            }
+
             override fun reportEvent(event: Event): HttpResponse {
                 return reportSerializedEvent(event.toJsonObject().toString())
             }
@@ -74,6 +79,8 @@ internal object TopsortAnalyticsHttpService {
         fun reportPurchase(purchaseEvent: PurchaseEvent): HttpResponse
 
         fun reportPageView(pageViewEvent: PageViewEvent): HttpResponse
+
+        fun reportRender(renderEvent: RenderEvent): HttpResponse
 
         fun reportEvent(event: Event): HttpResponse
     }

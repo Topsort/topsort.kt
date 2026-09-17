@@ -148,4 +148,32 @@ interface TopsortAnalytics {
         // Default empty implementation to maintain backward compatibility
         // for existing TopsortAnalytics interface implementors.
     }
+
+    /**
+     * Reports a render event: a sponsored ad was inserted into the page, separately from an
+     * impression, which records when the ad actually becomes visible. Renders are sponsored ads
+     * only, so unlike impressions and clicks there is no organic variant.
+     *
+     * @param resolvedBidId Required. Must be the ID for the auction the ad won
+     * @param placement Object describing the render's placement
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the render
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     * @param deviceType Optional device type
+     * @param channel Optional channel
+     * @param page Optional page context where the render occurred
+     */
+    fun reportRender(
+        resolvedBidId: String,
+        placement: Placement,
+        opaqueUserId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+        deviceType: Device? = null,
+        channel: Channel? = null,
+        page: Page? = null,
+    ) {
+        // Default empty implementation to maintain backward compatibility
+        // for existing TopsortAnalytics interface implementors.
+    }
 }
