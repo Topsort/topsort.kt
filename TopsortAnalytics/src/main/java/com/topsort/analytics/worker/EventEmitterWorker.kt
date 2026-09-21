@@ -17,6 +17,7 @@ import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import org.json.JSONException
 
@@ -83,6 +84,7 @@ internal class EventEmitterWorker(
         EventType.Click -> Cache.readClick(recordId)?.let(::reportClick)
         EventType.Purchase -> Cache.readPurchase(recordId)?.let(::reportPurchase)
         EventType.PageView -> Cache.readPageView(recordId)?.let(::reportPageView)
+        EventType.Render -> Cache.readRender(recordId)?.let(::reportRender)
     }
 
     private fun reportImpression(impressionEvent: ImpressionEvent): SendResult {
@@ -121,6 +123,16 @@ internal class EventEmitterWorker(
             toSendResult(response.code, response.message, "pageview")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting pageview", e)
+            SendResult.TRANSIENT_FAILURE
+        }
+    }
+
+    private fun reportRender(renderEvent: RenderEvent): SendResult {
+        return try {
+            val response = TopsortAnalyticsHttpService.service.reportRender(renderEvent)
+            toSendResult(response.code, response.message, "render")
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting render", e)
             SendResult.TRANSIENT_FAILURE
         }
     }

@@ -9,6 +9,7 @@ import com.topsort.analytics.EventPipelineHarness
 import com.topsort.analytics.FakeAnalyticsHttpService
 import com.topsort.analytics.UserIdentity
 import com.topsort.analytics.model.ClickEvent
+import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.model.auctions.EntityType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -82,6 +83,42 @@ class BannerWinnerSetupTest {
         assertThat(fake.sent.filterIsInstance<ClickEvent>().flatMap { it.clicks }
             .map { it.resolvedBidId })
             .containsExactly(winner.resolvedBidId)
+        }
+    }
+
+    /**
+     * The render fires immediately on setup - the winner entering this view - not gated on
+     * visibility or the image load the way the impression is.
+     */
+    @Test
+    fun setup_reports_a_render_immediately_for_the_supplied_bid() {
+        runBlocking(Dispatchers.Main) {
+            bannerView.setup(winner, path = "/search", location = "banner_top") { _, _ -> }
+            EventPipelineHarness.runPendingEventWork()
+
+            assertThat(fake.sent.filterIsInstance<RenderEvent>().flatMap { it.renders }
+                .map { it.resolvedBidId })
+                .containsExactly(winner.resolvedBidId)
+        }
+    }
+
+    /**
+     * A caller wrapping this view in Compose's `AndroidView` re-invokes `update` - and so
+     * `setup()` - on every recomposition, with the same winner, because no new auction ran. That
+     * must not re-report the render, the same "one bid, one report" rule [ReportedRenderBids]
+     * enforces.
+     */
+    @Test
+    fun a_repeated_setup_with_the_same_winner_reports_the_render_once() {
+        runBlocking(Dispatchers.Main) {
+            bannerView.setup(winner, path = "/search", location = "banner_top") { _, _ -> }
+            bannerView.setup(winner, path = "/search", location = "banner_top") { _, _ -> }
+            bannerView.setup(winner, path = "/search", location = "banner_top") { _, _ -> }
+            EventPipelineHarness.runPendingEventWork()
+
+            assertThat(fake.sent.filterIsInstance<RenderEvent>().flatMap { it.renders }
+                .map { it.resolvedBidId })
+                .containsExactly(winner.resolvedBidId)
         }
     }
 

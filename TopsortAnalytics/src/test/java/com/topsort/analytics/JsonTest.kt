@@ -9,6 +9,7 @@ import com.topsort.analytics.model.PageType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.Render
 import org.json.JSONObject
 import org.junit.Test
 import org.assertj.core.api.Assertions.assertThat
@@ -55,6 +56,16 @@ internal class JsonTest {
 
         assertThat(purchase).isNotSameAs(deserialized)
         assertThat(purchase).isEqualTo(deserialized)
+    }
+
+    @Test
+    fun `json render serialization`() {
+        val render = getRenderPromoted()
+        val serialized = render.toJsonObject().toString()
+        val deserialized = Render.Factory.fromJsonObject(JSONObject(serialized))
+
+        assertThat(render).isNotSameAs(deserialized)
+        assertThat(render).isEqualTo(deserialized)
     }
 
     @Test
@@ -191,6 +202,19 @@ internal class JsonTest {
     }
 
     @Test
+    fun `json render serialization with enhanced context fields`() {
+        val render = getRenderPromotedWithContext()
+        val serialized = render.toJsonObject().toString()
+        val deserialized = Render.Factory.fromJsonObject(JSONObject(serialized))
+
+        assertThat(render).isNotSameAs(deserialized)
+        assertThat(render).isEqualTo(deserialized)
+        assertThat(deserialized.deviceType).isNotNull()
+        assertThat(deserialized.channel).isNotNull()
+        assertThat(deserialized.page).isNotNull()
+    }
+
+    @Test
     fun `enum values serialize to correct strings`() {
         assertThat(Device.DESKTOP.value).isEqualTo("desktop")
         assertThat(Device.MOBILE.value).isEqualTo("mobile")
@@ -265,6 +289,26 @@ internal class JsonTest {
     }
 
     @Test
+    fun `render deserialization handles missing optional context fields`() {
+        val jsonWithoutNewFields = """
+            {
+                "resolvedBidId": "bid-123",
+                "placement": {"path": "test"},
+                "occurredAt": "2024-01-01T00:00:00Z",
+                "opaqueUserId": "user-123",
+                "id": "render-123"
+            }
+        """.trimIndent()
+
+        val render = Render.Factory.fromJsonObject(JSONObject(jsonWithoutNewFields))
+
+        assertThat(render.resolvedBidId).isEqualTo("bid-123")
+        assertThat(render.deviceType).isNull()
+        assertThat(render.channel).isNull()
+        assertThat(render.page).isNull()
+    }
+
+    @Test
     fun `purchase deserialization handles missing optional context fields`() {
         val jsonWithoutNewFields = """
             {
@@ -312,6 +356,17 @@ internal class JsonTest {
         val purchase = getRandomPurchase()
 
         val json = purchase.toJsonObject()
+
+        assertThat(json.has("deviceType")).isFalse()
+        assertThat(json.has("channel")).isFalse()
+        assertThat(json.has("page")).isFalse()
+    }
+
+    @Test
+    fun `render serialization omits null optional fields from json`() {
+        val render = getRenderPromoted()
+
+        val json = render.toJsonObject()
 
         assertThat(json.has("deviceType")).isFalse()
         assertThat(json.has("channel")).isFalse()

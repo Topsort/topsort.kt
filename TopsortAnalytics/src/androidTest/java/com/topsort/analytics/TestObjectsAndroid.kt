@@ -16,6 +16,8 @@ import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.Render
+import com.topsort.analytics.model.RenderEvent
 
 internal fun getClickPromoted(): Click {
     return Click.Factory.buildPromoted(
@@ -92,6 +94,16 @@ internal fun getRandomPageView(): PageView {
     )
 }
 
+internal fun getRenderPromoted(): Render {
+    return Render.Factory.build(
+        resolvedBidId = randomId("resolvedBid_"),
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+    )
+}
+
 private fun getTestPlacement(): Placement {
     return Placement(
         path = "test",
@@ -121,4 +133,8 @@ internal fun getTestPurchaseEvent(): PurchaseEvent {
 
 internal fun getTestPageViewEvent(): PageViewEvent {
     return PageViewEvent(pageviews = listOf(getRandomPageView()))
+}
+
+internal fun getTestRenderEvent(): RenderEvent {
+    return RenderEvent(renders = listOf(getRenderPromoted()))
 }

@@ -14,6 +14,7 @@ import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
+import com.topsort.analytics.model.RenderEvent
 import org.json.JSONObject
 import java.util.Locale
 
@@ -32,6 +33,7 @@ private val EVENT_TYPE_BY_JSON_KEY = mapOf(
     "clicks" to EventType.Click,
     "purchases" to EventType.Purchase,
     "pageviews" to EventType.PageView,
+    "renders" to EventType.Render,
 )
 /**
  * Upper bound on undelivered records held on disk.
@@ -273,6 +275,13 @@ internal object Cache {
 
     fun readPageView(recordId: Long): PageViewEvent? {
         return PageViewEvent.fromJson(readEvent(recordId))
+    }
+
+    fun storeRender(renderEvent: RenderEvent): Long =
+        storeEvent(renderEvent.toJsonObject().toString())
+
+    fun readRender(recordId: Long): RenderEvent? {
+        return RenderEvent.fromJson(readEvent(recordId))
     }
 
     /**

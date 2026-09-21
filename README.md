@@ -125,6 +125,24 @@ Analytics.reportClickPromoted(
 
 ## Event Tracking
 
+### Renders
+
+Track when a sponsored ad is inserted into the page, separately from an impression, which
+records when the ad actually becomes visible. Renders are sponsored ads only, so there is no
+organic variant.
+
+```kotlin
+Analytics.reportRender(
+    resolvedBidId = "resolved-bid-id",
+    placement = Placement(path = "/search/results"),
+    deviceType = Device.MOBILE,
+    channel = Channel.ONSITE
+)
+```
+
+To report several renders in one event, build them with `Render.Factory` and pass them to
+`Analytics.reportRenders(list)`.
+
 ### Impressions
 
 Track when products are displayed to users.

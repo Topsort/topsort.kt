@@ -14,6 +14,7 @@ import com.topsort.analytics.model.PageType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.Render
 
 fun getClickPromoted() : Click {
     return Click.Factory.buildPromoted(
@@ -62,6 +63,16 @@ fun getImpressionOrganic() : Impression {
         opaqueUserId = randomId("oId_"),
         id = randomId("mktId_"),
         additionalAttribution = Entity(id = randomId("attrProduct_"), type = EntityType.PRODUCT),
+    )
+}
+
+fun getRenderPromoted() : Render {
+    return Render.Factory.build(
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        resolvedBidId = randomId("resolvedBid_"),
     )
 }
 
@@ -157,6 +168,19 @@ fun getImpressionOrganicWithContext() : Impression {
         deviceType = Device.DESKTOP,
         channel = Channel.ONSITE,
         page = Page.Factory.buildWithValues(type = PageType.HOME, values = listOf("home-1", "home-2")),
+    )
+}
+
+fun getRenderPromotedWithContext() : Render {
+    return Render.Factory.build(
+        placement = getTestPlacement(),
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        resolvedBidId = randomId("resolvedBid_"),
+        deviceType = Device.MOBILE,
+        channel = Channel.ONSITE,
+        page = Page.Factory.build(type = PageType.SEARCH),
     )
 }
 

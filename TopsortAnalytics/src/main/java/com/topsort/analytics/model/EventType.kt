@@ -6,4 +6,5 @@ enum class EventType {
     Click,
     Purchase,
     PageView,
+    Render,
 }
