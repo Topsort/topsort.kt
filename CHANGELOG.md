@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/Topsort/topsort.kt/compare/v4.0.0...v4.1.0) (2026-09-21)
+
+
+### Features
+
+* report render events ([#221](https://github.com/Topsort/topsort.kt/issues/221)) ([4ab1f97](https://github.com/Topsort/topsort.kt/commit/4ab1f97d2f383d157bf1926f61e7530b2623857b))
+
 ## [4.0.0](https://github.com/Topsort/topsort.kt/compare/v3.3.0...v4.0.0) (2026-09-09)
 
 
