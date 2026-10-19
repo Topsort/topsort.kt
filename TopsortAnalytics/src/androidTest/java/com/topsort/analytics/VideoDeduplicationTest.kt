@@ -43,6 +43,7 @@ class VideoDeduplicationTest {
         )
     }
 
+    /** In delivery order, which is not report order: each report is its own work unit. */
     private fun sentEventTypes(): List<VideoEventType> {
         EventPipelineHarness.runPendingEventWork()
         return fake.videoEventsSent.flatMap { it.videoEvents }.map { it.eventType }
@@ -66,8 +67,9 @@ class VideoDeduplicationTest {
 
         VideoCheckpoint.entries.forEach { reportCheckpoint("bid-play", it) }
 
-        assertThat(sentEventTypes())
-            .containsExactlyElementsOf(VideoCheckpoint.entries.map { VideoEventType.Checkpoint(it) })
+        assertThat(sentEventTypes()).containsExactlyInAnyOrderElementsOf(
+            VideoCheckpoint.entries.map { VideoEventType.Checkpoint(it) }
+        )
     }
 
     @Test
@@ -78,7 +80,7 @@ class VideoDeduplicationTest {
         Analytics.reportVideoError(resolvedBidId = "bid-failing", errorCode = 405)
         Analytics.reportVideoError(resolvedBidId = "bid-failing", errorCode = 402)
 
-        assertThat(sentEventTypes()).containsExactly(
+        assertThat(sentEventTypes()).containsExactlyInAnyOrder(
             VideoEventType.Error(405),
             VideoEventType.Error(405),
             VideoEventType.Error(402),
