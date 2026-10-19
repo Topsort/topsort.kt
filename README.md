@@ -143,6 +143,37 @@ Analytics.reportRender(
 To report several renders in one event, build them with `Render.Factory` and pass them to
 `Analytics.reportRenders(list)`.
 
+### Video events
+
+Track the playback of a sponsored video ad. Checkpoints use the IAB VAST tracking event names
+(`START`, `FIRST_QUARTILE`, `MIDPOINT`, `THIRD_QUARTILE`, `COMPLETE`), so your player's existing
+VAST trackers map one to one. The `resolvedBidId` must come from a video ad; the API rejects one
+from any other ad. Video events feed engagement and delivery reporting and are never charged or
+attributed.
+
+```kotlin
+Analytics.reportVideoCheckpoint(
+    resolvedBidId = "resolved-bid-id",
+    checkpoint = VideoCheckpoint.FIRST_QUARTILE,
+    placement = Placement(path = "/search/results")
+)
+```
+
+A video that fails to play is reported with its VAST error code:
+
+```kotlin
+Analytics.reportVideoError(
+    resolvedBidId = "resolved-bid-id",
+    errorCode = 405
+)
+```
+
+Each checkpoint is reported once per user and `resolvedBidId`; repeats are dropped with a
+warning. Errors are never dropped. To report several video events in one call, build them with
+`VideoEvent.Factory.buildCheckpoint` or `buildError` and pass them to
+`Analytics.reportVideoEvents(list)`. One event from a non-video ad makes the API reject its whole
+request, so batch only events from video ads.
+
 ### Impressions
 
 Track when products are displayed to users.

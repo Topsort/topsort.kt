@@ -7,6 +7,7 @@ import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.Page
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.VideoCheckpoint
 
 interface TopsortAnalytics {
 
@@ -166,6 +167,68 @@ interface TopsortAnalytics {
     fun reportRender(
         resolvedBidId: String,
         placement: Placement,
+        opaqueUserId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+        deviceType: Device? = null,
+        channel: Channel? = null,
+        page: Page? = null,
+    ) {
+        // Default empty implementation to maintain backward compatibility
+        // for existing TopsortAnalytics interface implementors.
+    }
+
+    /**
+     * Reports that a sponsored video ad reached a playback checkpoint. Each checkpoint is reported
+     * once per user and resolved bid; repeats are dropped with a warning.
+     *
+     * Video events are for video ads only: the API rejects a resolvedBidId from any other ad. They
+     * are used for engagement and delivery reporting and are never charged or attributed.
+     *
+     * @param resolvedBidId Required. Must be the ID for the auction the video ad won
+     * @param checkpoint The VAST playback checkpoint reached
+     * @param placement Optional object describing where the video played
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the video event
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     * @param deviceType Optional device type
+     * @param channel Optional channel
+     * @param page Optional page context where the video played
+     */
+    fun reportVideoCheckpoint(
+        resolvedBidId: String,
+        checkpoint: VideoCheckpoint,
+        placement: Placement? = null,
+        opaqueUserId: String? = null,
+        id: String? = null,
+        occurredAt: String? = null,
+        deviceType: Device? = null,
+        channel: Channel? = null,
+        page: Page? = null,
+    ) {
+        // Default empty implementation to maintain backward compatibility
+        // for existing TopsortAnalytics interface implementors.
+    }
+
+    /**
+     * Reports that a sponsored video ad could not be delivered or played. Unlike checkpoints,
+     * errors are never dropped as repeats.
+     *
+     * @param resolvedBidId Required. Must be the ID for the auction the video ad won
+     * @param errorCode The VAST error code describing why the video failed, for example `405` for
+     * a media file that could not be displayed
+     * @param placement Optional object describing where the video played
+     * @param opaqueUserId The opaque user ID which allows correlating user activity.
+     * @param id The marketplace's unique ID for the video event
+     * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
+     * @param deviceType Optional device type
+     * @param channel Optional channel
+     * @param page Optional page context where the video played
+     */
+    fun reportVideoError(
+        resolvedBidId: String,
+        errorCode: Int,
+        placement: Placement? = null,
         opaqueUserId: String? = null,
         id: String? = null,
         occurredAt: String? = null,
