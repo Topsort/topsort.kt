@@ -7,4 +7,7 @@ enum class EventType {
     Purchase,
     PageView,
     Render,
+
+    // Appended, never inserted: the worker stores a record's type by ordinal in its input data.
+    Video,
 }

@@ -18,6 +18,9 @@ import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
 import com.topsort.analytics.model.Render
 import com.topsort.analytics.model.RenderEvent
+import com.topsort.analytics.model.VideoCheckpoint
+import com.topsort.analytics.model.VideoEvent
+import com.topsort.analytics.model.VideoEventBatch
 
 internal fun getClickPromoted(): Click {
     return Click.Factory.buildPromoted(
@@ -137,4 +140,29 @@ internal fun getTestPageViewEvent(): PageViewEvent {
 
 internal fun getTestRenderEvent(): RenderEvent {
     return RenderEvent(renders = listOf(getRenderPromoted()))
+}
+
+internal fun getVideoCheckpoint(): VideoEvent {
+    return VideoEvent.Factory.buildCheckpoint(
+        resolvedBidId = randomId("resolvedBid_"),
+        checkpoint = VideoCheckpoint.FIRST_QUARTILE,
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+        placement = getTestPlacement(),
+    )
+}
+
+internal fun getVideoError(): VideoEvent {
+    return VideoEvent.Factory.buildError(
+        resolvedBidId = randomId("resolvedBid_"),
+        errorCode = 405,
+        occurredAt = eventNow(),
+        opaqueUserId = randomId("oId_"),
+        id = randomId("mktId_"),
+    )
+}
+
+internal fun getTestVideoEventBatch(): VideoEventBatch {
+    return VideoEventBatch(videoEvents = listOf(getVideoCheckpoint(), getVideoError()))
 }

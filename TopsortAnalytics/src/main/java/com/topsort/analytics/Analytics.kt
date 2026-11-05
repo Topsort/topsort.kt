@@ -29,6 +29,10 @@ import com.topsort.analytics.model.PurchasedItem
 import com.topsort.analytics.model.Render
 import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.model.Session
+import com.topsort.analytics.model.VideoCheckpoint
+import com.topsort.analytics.model.VideoEvent
+import com.topsort.analytics.model.VideoEventBatch
+import com.topsort.analytics.model.VideoEventType
 import com.topsort.analytics.worker.EventEmitterWorker
 import com.topsort.analytics.worker.PendingEventSweepWorker
 
@@ -37,6 +41,9 @@ private const val INVALID_CONFIG_ERROR_MESSAGE = "Please call setup from the app
 
 /** The events API rejects a "renders" array longer than this with a 400. */
 private const val MAX_RENDERS_PER_REQUEST = 50
+
+/** The events API rejects a "videoEvents" array longer than this with a 400. */
+private const val MAX_VIDEO_EVENTS_PER_REQUEST = 50
 
 object Analytics : TopsortAnalytics {
 
@@ -392,6 +399,72 @@ object Analytics : TopsortAnalytics {
         reportRenders(renders)
     }
 
+    override fun reportVideoCheckpoint(
+        resolvedBidId: String,
+        checkpoint: VideoCheckpoint,
+        placement: Placement?,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val videoEvents = listOf(
+            VideoEvent.Factory.buildCheckpoint(
+                resolvedBidId = resolvedBidId,
+                checkpoint = checkpoint,
+                occurredAt = occurredAt ?: eventNow(),
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
+                id = id ?: randomId(),
+                placement = placement,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+            )
+        )
+
+        reportVideoEvents(videoEvents)
+    }
+
+    override fun reportVideoError(
+        resolvedBidId: String,
+        errorCode: Int,
+        placement: Placement?,
+        opaqueUserId: String?,
+        id: String?,
+        occurredAt: String?,
+        deviceType: Device?,
+        channel: Channel?,
+        page: Page?,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        val videoEvents = listOf(
+            VideoEvent.Factory.buildError(
+                resolvedBidId = resolvedBidId,
+                errorCode = errorCode,
+                occurredAt = occurredAt ?: eventNow(),
+                opaqueUserId = resolveOpaqueUserId(opaqueUserId),
+                id = id ?: randomId(),
+                placement = placement,
+                deviceType = deviceType,
+                channel = channel,
+                page = page,
+            )
+        )
+
+        reportVideoEvents(videoEvents)
+    }
+
     /**
      * The opaque user id for a single reported event. A per-call value only overrides the session
      * one when it is actually populated; a blank would be rejected by the API for a missing
@@ -415,6 +488,10 @@ object Analytics : TopsortAnalytics {
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
     private fun Render.withResolvedOpaqueUserId(): Render =
+        if (opaqueUserId.isNotBlank()) this
+        else copy(opaqueUserId = resolveOpaqueUserId(null))
+
+    private fun VideoEvent.withResolvedOpaqueUserId(): VideoEvent =
         if (opaqueUserId.isNotBlank()) this
         else copy(opaqueUserId = resolveOpaqueUserId(null))
 
@@ -455,6 +532,24 @@ object Analytics : TopsortAnalytics {
             "Dropping a repeat render for resolvedBidId $resolvedBidId. A resolved bid earns " +
                 "one render; report it once, when the ad enters the view, not on every redraw, " +
                 "recomposition or view rebind."
+        )
+        return false
+    }
+
+    /**
+     * Whether this video event is the first report of its checkpoint for this user and bid, and so
+     * should be sent. Errors always pass: see [ReportedVideoCheckpoints] for why.
+     */
+    private fun VideoEvent.keepAsFirstReportOfItsCheckpoint(): Boolean {
+        val checkpoint = (eventType as? VideoEventType.Checkpoint)?.checkpoint ?: return true
+        if (ReportedVideoCheckpoints.markReported(opaqueUserId, resolvedBidId, checkpoint)) {
+            return true
+        }
+        Log.w(
+            LOG_TAG,
+            "Dropping a repeat ${checkpoint.value} video event for resolvedBidId $resolvedBidId. " +
+                "A video ad reaches each checkpoint once per play; report it when the player " +
+                "fires it, not on every seek, rebind or recomposition."
         )
         return false
     }
@@ -563,6 +658,41 @@ object Analytics : TopsortAnalytics {
             .forEach { chunk ->
                 val recordId = Cache.storeRender(RenderEvent(renders = chunk))
                 enqueueReportedEvent(recordId, EventType.Render)
+            }
+    }
+
+    /**
+     * Reports several video events in one call - a player that buffers its tracker callbacks, say.
+     * Public for the same reason [reportRenders] is: a caller can build a list of [VideoEvent]
+     * themselves via [VideoEvent.Factory] rather than reporting one event per call.
+     *
+     * Split into chunks of at most [MAX_VIDEO_EVENTS_PER_REQUEST]: the API rejects a longer
+     * "videoEvents" array outright with a 400, which would permanently discard the whole batch
+     * rather than just the excess. A resolvedBidId from a non-video ad is also a 400, and takes the
+     * rest of its chunk with it, so only batch events from video ads.
+     */
+    public fun reportVideoEvents(
+        videoEvents: List<VideoEvent>,
+    ) {
+        if (!assertSetup()) {
+            Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        // The user is resolved before deduplicating, because it is part of the key: an event
+        // built with a blank opaqueUserId belongs to the session's user, and must be tracked as
+        // theirs.
+        val unreported = videoEvents
+            .map { it.withResolvedOpaqueUserId() }
+            .filter { it.keepAsFirstReportOfItsCheckpoint() }
+        if (unreported.isEmpty()) {
+            return
+        }
+
+        unreported.chunked(MAX_VIDEO_EVENTS_PER_REQUEST)
+            .forEach { chunk ->
+                val recordId = Cache.storeVideoEvents(VideoEventBatch(videoEvents = chunk))
+                enqueueReportedEvent(recordId, EventType.Video)
             }
     }
 }

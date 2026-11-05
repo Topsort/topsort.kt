@@ -2,6 +2,7 @@ package com.topsort.analytics
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.topsort.analytics.model.EventType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.json.JSONException
@@ -267,6 +268,47 @@ class CacheTest {
         assertThat(retrieved).isNull()
     }
 
+    // ==================== Video event storage tests ====================
+
+    @Test
+    fun readVideoEvents_returns_stored_batch() {
+        val batch = getTestVideoEventBatch()
+        val recordId = Cache.storeVideoEvents(batch)
+
+        val retrieved = Cache.readVideoEvents(recordId)
+
+        assertThat(retrieved).isEqualTo(batch)
+    }
+
+    @Test
+    fun readVideoEvents_returns_null_for_nonexistent_id() {
+        val retrieved = Cache.readVideoEvents(999994L)
+
+        assertThat(retrieved).isNull()
+    }
+
+    @Test
+    fun deleteEvent_removes_video_events() {
+        val recordId = Cache.storeVideoEvents(getTestVideoEventBatch())
+
+        Cache.deleteEvent(recordId)
+
+        assertThat(Cache.readVideoEvents(recordId)).isNull()
+    }
+
+    /**
+     * The sweep recovers a record by recognising its top-level key. A video record it did not
+     * recognise would be discarded as UNKNOWN_EVENT_TYPE instead of being sent.
+     */
+    @Test
+    fun pending_video_events_are_recognised_by_the_sweep() {
+        val recordId = Cache.storeVideoEvents(getTestVideoEventBatch())
+
+        val pending = Cache.pendingRecords(limit = 100).single { it.recordId == recordId }
+
+        assertThat(pending.eventType).isEqualTo(EventType.Video)
+    }
+
     // ==================== Mixed event type tests ====================
 
     @Test
@@ -276,15 +318,18 @@ class CacheTest {
         val purchase = getTestPurchaseEvent()
         val pageView = getTestPageViewEvent()
         val render = getTestRenderEvent()
+        val video = getTestVideoEventBatch()
 
         val impressionId = Cache.storeImpression(impression)
         val clickId = Cache.storeClick(click)
         val purchaseId = Cache.storePurchase(purchase)
         val pageViewId = Cache.storePageView(pageView)
         val renderId = Cache.storeRender(render)
+        val videoId = Cache.storeVideoEvents(video)
 
         // All IDs should be unique
-        assertThat(setOf(impressionId, clickId, purchaseId, pageViewId, renderId)).hasSize(5)
+        assertThat(setOf(impressionId, clickId, purchaseId, pageViewId, renderId, videoId))
+            .hasSize(6)
     }
 
     /**

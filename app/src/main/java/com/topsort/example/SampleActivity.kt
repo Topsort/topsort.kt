@@ -11,6 +11,7 @@ import com.topsort.analytics.model.Entity
 import com.topsort.analytics.model.EntityType
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.VideoCheckpoint
 import kotlinx.coroutines.launch
 import com.topsort.analytics.model.auctions.EntityType as BannerEntityType
 
@@ -38,6 +39,8 @@ class SampleActivity : AppCompatActivity() {
         reportPurchase()
         reportClick()
         reportImpression()
+
+        reportVideoCheckpoint()
     }
 
 
@@ -116,6 +119,14 @@ class SampleActivity : AppCompatActivity() {
             resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
             placement = placement,
             id = "marketPlaceImpressionId"
+        )
+    }
+
+    private fun reportVideoCheckpoint() {
+        Analytics.reportVideoCheckpoint(
+            resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
+            checkpoint = VideoCheckpoint.FIRST_QUARTILE,
+            placement = Placement(path = "search_results"),
         )
     }
 }

@@ -18,6 +18,7 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.RenderEvent
+import com.topsort.analytics.model.VideoEventBatch
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import org.json.JSONException
 
@@ -85,6 +86,7 @@ internal class EventEmitterWorker(
         EventType.Purchase -> Cache.readPurchase(recordId)?.let(::reportPurchase)
         EventType.PageView -> Cache.readPageView(recordId)?.let(::reportPageView)
         EventType.Render -> Cache.readRender(recordId)?.let(::reportRender)
+        EventType.Video -> Cache.readVideoEvents(recordId)?.let(::reportVideoEvents)
     }
 
     private fun reportImpression(impressionEvent: ImpressionEvent): SendResult {
@@ -133,6 +135,16 @@ internal class EventEmitterWorker(
             toSendResult(response.code, response.message, "render")
         } catch (e: Exception) {
             Log.e(TAG, "Exception reporting render", e)
+            SendResult.TRANSIENT_FAILURE
+        }
+    }
+
+    private fun reportVideoEvents(videoEventBatch: VideoEventBatch): SendResult {
+        return try {
+            val response = TopsortAnalyticsHttpService.service.reportVideoEvents(videoEventBatch)
+            toSendResult(response.code, response.message, "video event")
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception reporting video event", e)
             SendResult.TRANSIENT_FAILURE
         }
     }

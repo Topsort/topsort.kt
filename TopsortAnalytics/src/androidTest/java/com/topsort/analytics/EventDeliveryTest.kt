@@ -6,6 +6,8 @@ import com.topsort.analytics.core.randomId
 import com.topsort.analytics.model.Impression
 import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Render
+import com.topsort.analytics.model.VideoCheckpoint
+import com.topsort.analytics.model.VideoEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Test
@@ -255,5 +257,73 @@ class EventDeliveryTest {
         assertThat(fake.rendersSent).hasSize(2)
         assertThat(fake.rendersSent.map { it.renders.size }).containsExactlyInAnyOrder(50, 1)
         assertThat(fake.rendersSent.flatMap { it.renders }).hasSize(51)
+    }
+
+    @Test
+    fun an_empty_batch_of_video_events_is_not_cached_or_sent() {
+        setUpWith()
+
+        Analytics.reportVideoEvents(emptyList())
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.videoEventsSent).isEmpty()
+        assertThat(Cache.cachedRecordIds()).isEmpty()
+    }
+
+    /** Same 50-item limit as renders: a longer "videoEvents" array is rejected whole. */
+    @Test
+    fun a_batch_of_51_video_events_is_split_into_two_requests() {
+        setUpWith()
+
+        val videoEvents = (1..51).map {
+            VideoEvent.Factory.buildCheckpoint(
+                resolvedBidId = randomId("resolvedBid_"),
+                checkpoint = VideoCheckpoint.START,
+                occurredAt = "2026-10-19T00:00:00.000Z",
+                opaqueUserId = EventPipelineHarness.OPAQUE_USER_ID,
+                id = randomId("video_"),
+            )
+        }
+
+        Analytics.reportVideoEvents(videoEvents)
+        EventPipelineHarness.runPendingEventWork()
+
+        assertThat(fake.videoEventsSent).hasSize(2)
+        assertThat(fake.videoEventsSent.map { it.videoEvents.size }).containsExactlyInAnyOrder(50, 1)
+        assertThat(fake.videoEventsSent.flatMap { it.videoEvents }).hasSize(51)
+    }
+
+    @Test
+    fun a_reported_video_error_reaches_the_wire_with_its_code() {
+        setUpWith()
+
+        Analytics.reportVideoError(resolvedBidId = "bid-video", errorCode = 405)
+        EventPipelineHarness.runPendingEventWork()
+
+        val sent = fake.videoEventsSent.single().videoEvents.single().toJsonObject()
+        assertThat(sent.getString("eventType")).isEqualTo("error")
+        assertThat(sent.getInt("errorCode")).isEqualTo(405)
+        assertThat(sent.getString("opaqueUserId")).isEqualTo(EventPipelineHarness.OPAQUE_USER_ID)
+    }
+
+    @Test
+    fun a_caller_built_video_event_with_a_blank_user_is_sent_as_the_session_user() {
+        setUpWith()
+
+        Analytics.reportVideoEvents(
+            listOf(
+                VideoEvent.Factory.buildCheckpoint(
+                    resolvedBidId = "bid-video",
+                    checkpoint = VideoCheckpoint.COMPLETE,
+                    occurredAt = "2026-10-19T00:00:00.000Z",
+                    opaqueUserId = "",
+                    id = randomId("video_"),
+                )
+            )
+        )
+        EventPipelineHarness.runPendingEventWork()
+
+        val sent = fake.videoEventsSent.single().videoEvents.single()
+        assertThat(sent.opaqueUserId).isEqualTo(EventPipelineHarness.OPAQUE_USER_ID)
     }
 }

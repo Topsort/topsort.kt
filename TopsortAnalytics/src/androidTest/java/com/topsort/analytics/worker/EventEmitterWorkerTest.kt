@@ -16,6 +16,7 @@ import com.topsort.analytics.getTestImpressionEvent
 import com.topsort.analytics.getTestPageViewEvent
 import com.topsort.analytics.getTestPurchaseEvent
 import com.topsort.analytics.getTestRenderEvent
+import com.topsort.analytics.getTestVideoEventBatch
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.Event
 import com.topsort.analytics.model.EventType
@@ -23,6 +24,7 @@ import com.topsort.analytics.model.ImpressionEvent
 import com.topsort.analytics.model.PageViewEvent
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.RenderEvent
+import com.topsort.analytics.model.VideoEventBatch
 import com.topsort.analytics.service.TopsortAnalyticsHttpService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -489,6 +491,53 @@ class EventEmitterWorkerTest {
         assertThat(mockService.lastMethod).isNull()
     }
 
+    // ==================== Video event tests ====================
+
+    @Test
+    fun doWork_video_success_deletes_event_from_cache() {
+        val recordId = Cache.storeVideoEvents(getTestVideoEventBatch())
+        mockService.responseCode = 200
+
+        val result = buildWorker(buildInputData(recordId, EventType.Video)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        assertThat(Cache.readVideoEvents(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportVideoEvents")
+    }
+
+    @Test
+    fun doWork_video_4xx_error_returns_failure_and_deletes_event() {
+        val recordId = Cache.storeVideoEvents(getTestVideoEventBatch())
+        mockService.responseCode = 400
+
+        val result = buildWorker(buildInputData(recordId, EventType.Video)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.failure())
+        assertThat(Cache.readVideoEvents(recordId)).isNull()
+        assertThat(mockService.lastMethod).isEqualTo("reportVideoEvents")
+    }
+
+    @Test
+    fun doWork_video_5xx_error_returns_retry() {
+        val recordId = Cache.storeVideoEvents(getTestVideoEventBatch())
+        mockService.responseCode = 500
+
+        val result = buildWorker(buildInputData(recordId, EventType.Video)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.retry())
+        assertThat(Cache.readVideoEvents(recordId)).isNotNull
+        assertThat(mockService.lastMethod).isEqualTo("reportVideoEvents")
+    }
+
+    @Test
+    fun doWork_video_nonexistent_returns_success() {
+        val result = buildWorker(buildInputData(999994L, EventType.Video)).doWork()
+
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        // See doWork_render_nonexistent_returns_success for why this is asserted too.
+        assertThat(mockService.lastMethod).isNull()
+    }
+
     // ==================== Exception handling tests ====================
 
     @Test
@@ -552,6 +601,11 @@ class EventEmitterWorkerTest {
 
         override fun reportRender(renderEvent: RenderEvent): HttpResponse {
             lastMethod = "reportRender"
+            return mockResponse()
+        }
+
+        override fun reportVideoEvents(videoEventBatch: VideoEventBatch): HttpResponse {
+            lastMethod = "reportVideoEvents"
             return mockResponse()
         }
 
