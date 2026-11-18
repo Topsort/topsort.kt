@@ -24,7 +24,6 @@ public class JavaSampleActivity extends ComponentActivity {
         reportClick();
         reportClickWithResolvedBidId();
         reportPurchase();
-        reportPurchaseWithResolvedBidId();
     }
 
     private void reportImpressionWithResolvedBidId() {
@@ -119,29 +118,7 @@ public class JavaSampleActivity extends ComponentActivity {
                 "p_SA0238",
                 20,
                 1295,
-                null,   // resolvedBidId - organic purchase
-                null    // vendorId
-        );
-
-        Analytics
-                .INSTANCE
-                .reportPurchase(
-                        Collections.singletonList(item),
-                        "o:567-123",
-                        null,   // opaqueUserId
-                        null,   // occurredAt
-                        null,   // deviceType
-                        null,   // channel
-                        null    // page
-                );
-    }
-
-    private void reportPurchaseWithResolvedBidId() {
-        PurchasedItem item = new PurchasedItem(
-                "p_SA0238",
-                20,
-                1295,
-                "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
+                null,   // resolvedBidId, deprecated and not sent
                 null    // vendorId
         );
 

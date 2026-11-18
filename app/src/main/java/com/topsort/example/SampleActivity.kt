@@ -31,7 +31,6 @@ class SampleActivity : AppCompatActivity() {
                 { id, entityType -> onBannerClick(id, entityType) })
         }
 
-        reportPurchaseWithResolvedBidId()
         reportClickWithResolvedBidId()
         reportImpressionWithResolvedBidId()
 
@@ -40,20 +39,6 @@ class SampleActivity : AppCompatActivity() {
         reportImpression()
     }
 
-
-    private fun reportPurchaseWithResolvedBidId() {
-        val item = PurchasedItem(
-            resolvedBidId = "WyJiX01mazE1IiwiMTJhNTU4MjgtOGVhZC00Mjk5LTgzMjctY2ViYjAwMmEwZmE4IiwibGlzdGluZ3MiLCJkZWZhdWx0IiwiIl0=",
-            productId = "p_SA0238",
-            unitPrice = 1295,
-            quantity = 20
-        )
-
-        Analytics.reportPurchase(
-            id = "o:567-123",
-            items = listOf(item)
-        )
-    }
 
     private fun reportPurchase() {
         val item = PurchasedItem(
@@ -71,7 +56,6 @@ class SampleActivity : AppCompatActivity() {
     private fun reportClick() {
         val placement = Placement(
             path = "search_results",
-            location = "position_1",
         )
 
         Analytics.reportClickOrganic(
@@ -83,7 +67,6 @@ class SampleActivity : AppCompatActivity() {
     private fun reportClickWithResolvedBidId() {
         val placement = Placement(
             path = "search_results",
-            location = "position_1"
         )
 
         Analytics.reportClickPromoted(
@@ -96,7 +79,6 @@ class SampleActivity : AppCompatActivity() {
     private fun reportImpression() {
         val placement = Placement(
             path = "search_results",
-            location = "position_1"
         )
 
         Analytics.reportImpressionOrganic(
@@ -109,7 +91,6 @@ class SampleActivity : AppCompatActivity() {
     private fun reportImpressionWithResolvedBidId() {
         val placement = Placement(
             path = "search_results",
-            location = "position_1"
         )
 
         Analytics.reportImpressionPromoted(

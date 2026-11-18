@@ -139,7 +139,8 @@ class BannerView @JvmOverloads constructor(
      *
      * @param config a BannerConfig object that specifies the parameters for the auction
      * @param path identifier for the activity where the banner is displayed. It's recommended to be the deeplink for the view.
-     * @param location optional name for the location within the view where the banner is displayed.
+     * @param location ignored: the events API has no location on a placement, so it is not sent.
+     * To tell banners on the same screen apart, put the slot in [path] instead.
      * @param onClick callback for when the banner is clicked. Usually this should navigate to an activity related to the banner (e.g. the product page for the product shown in the banner).
      * @receiver
      */
@@ -202,7 +203,8 @@ class BannerView @JvmOverloads constructor(
      * @param winner the winning bid to display, from [runBannerAuction] or from your own auction.
      * @param path identifier for the screen where the banner is displayed. Prefer the real route
      * or deeplink - a constant here makes every per-page report collapse into one bucket.
-     * @param location optional name for the location within the screen where the banner is shown.
+     * @param location ignored: the events API has no location on a placement, so it is not sent.
+     * To tell banners on the same screen apart, put the slot in [path] instead.
      * @param onClick callback for when the banner is clicked, receiving the winner's entity id and
      * type. Usually this navigates to whatever the banner advertises.
      */

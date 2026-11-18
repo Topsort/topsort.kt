@@ -118,7 +118,6 @@ internal class PurchaseEventTest {
             productId = "p1",
             quantity = 2,
             unitPrice = 1500,
-            resolvedBidId = "bid-1",
             vendorId = "vendor-1"
         )
 
@@ -127,8 +126,29 @@ internal class PurchaseEventTest {
         assertThat(json.getString("productId")).isEqualTo("p1")
         assertThat(json.getInt("quantity")).isEqualTo(2)
         assertThat(json.getInt("unitPrice")).isEqualTo(1500)
-        assertThat(json.getString("resolvedBidId")).isEqualTo("bid-1")
         assertThat(json.getString("vendorId")).isEqualTo("vendor-1")
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `purchasedItem resolvedBidId is not serialized`() {
+        val item = PurchasedItem(productId = "p1", quantity = 1, unitPrice = 10, resolvedBidId = "bid-1")
+
+        assertThat(item.toJsonObject().has("resolvedBidId")).isFalse()
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `purchase page is not serialized`() {
+        val purchase = Purchase(
+            occurredAt = "2024-01-15T10:30:00Z",
+            opaqueUserId = "user-test",
+            id = "order-test",
+            items = listOf(PurchasedItem(productId = "p1", quantity = 1, unitPrice = 10)),
+            page = Page.Factory.build(type = PageType.CART),
+        )
+
+        assertThat(purchase.toJsonObject().has("page")).isFalse()
     }
 
     @Test
@@ -180,7 +200,6 @@ internal class PurchaseEventTest {
                 "productId": "product-abc",
                 "quantity": 5,
                 "unitPrice": 2500,
-                "resolvedBidId": "bid-xyz",
                 "vendorId": "vendor-123"
             }
         """.trimIndent())
@@ -190,7 +209,6 @@ internal class PurchaseEventTest {
         assertThat(item.productId).isEqualTo("product-abc")
         assertThat(item.quantity).isEqualTo(5)
         assertThat(item.unitPrice).isEqualTo(2500)
-        assertThat(item.resolvedBidId).isEqualTo("bid-xyz")
         assertThat(item.vendorId).isEqualTo("vendor-123")
     }
 

@@ -124,13 +124,20 @@ internal class JsonTest {
             productId = "prod-1",
             categoryIds = listOf("cat-a", "cat-b"),
             searchQuery = "shoes",
-            location = "top-banner",
         )
 
         val serialized = placement.toJsonObject().toString()
         val deserialized = Placement.fromJsonObject(JSONObject(serialized))
 
         assertThat(deserialized).isEqualTo(placement)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `placement location is not serialized`() {
+        val json = Placement(path = "home", location = "top-banner").toJsonObject()
+
+        assertThat(json.has("location")).isFalse()
     }
 
     @Test
@@ -197,7 +204,6 @@ internal class JsonTest {
         assertThat(purchase).isEqualTo(deserialized)
         assertThat(deserialized.deviceType).isNotNull()
         assertThat(deserialized.channel).isNotNull()
-        assertThat(deserialized.page).isNotNull()
         assertThat(deserialized.items.first().vendorId).isNotNull()
     }
 
@@ -379,7 +385,6 @@ internal class JsonTest {
             productId = "prod-123",
             quantity = 2,
             unitPrice = 999,
-            resolvedBidId = "bid-456",
             vendorId = "vendor-789",
         )
 
