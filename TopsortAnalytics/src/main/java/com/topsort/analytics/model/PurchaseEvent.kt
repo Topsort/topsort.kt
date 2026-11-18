@@ -117,8 +117,10 @@ data class PurchasedItem(
     @IntRange(from = 1) val quantity: Int,
 
     /**
-     * Price of a single item in major units of the marketplace currency, not cents.
-     * Example: 20 = 20.00 in the marketplace currency. Always set it: the API requires it.
+     * Price of a single item in the marketplace currency's major unit, not in cents.
+     * Example: an item priced at $25 is sent as 25, not 2500.
+     * This field is an Int, so fractional prices such as 25.35 cannot be sent exactly.
+     * Optional in this SDK, but the API requires it, so set it on every item.
      */
     @IntRange(from = 1) val unitPrice: Int? = null,
 

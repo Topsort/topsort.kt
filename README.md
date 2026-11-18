@@ -229,7 +229,7 @@ Analytics.reportPurchase(
 )
 ```
 
-Always set `unitPrice`. It is the price of a single item in major units of your marketplace currency (`20` means 20.00 in that currency), not cents. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
+Always set `unitPrice`. It is the price of a single item in major units of your marketplace currency, not cents: an item priced at $25 is sent as `25`, not `2500`. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
 
 ### Page Views
 
