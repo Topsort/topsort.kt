@@ -114,6 +114,8 @@ class MyApplication : Application() {
 
 `Analytics.opaqueUserId` returns the id events are actually reported under.
 
+When a user logs in, call `Analytics.setup` again with `UserIdentity.of(realId)` so events are reported under your own id. It is safe to call `setup` repeatedly, for example to refresh the token.
+
 Report a promoted click:
 
 ```kotlin
@@ -169,8 +171,9 @@ A promoted impression is reported once per `resolvedBidId` per process; repeats 
 with a warning. That rule applies to your own `reportImpressionPromoted` calls as much as
 to `BannerView`, so report when the ad is actually on screen - not on every layout, redraw or
 recomposition. `BannerView` handles that itself: it reports only once the banner is shown, in a
-visible window and not clipped away. To report several impressions in one event - a list screen,
-say - build them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
+visible window and not clipped away. The record of reported bids is cleared when `setup`
+switches to a different user. To report several impressions in one event (a list screen,
+say), build them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
 
 **Organic impression** (non-promoted content):
 
@@ -217,8 +220,7 @@ Analytics.reportPurchase(
         PurchasedItem(
             productId = "product-123",
             quantity = 2,
-            unitPrice = 1999,  // $19.99 in cents
-            resolvedBidId = "bid-id-if-promoted",  // Optional
+            unitPrice = 20,  // price of one item in your marketplace currency
             vendorId = "vendor-456"  // Optional, for halo attribution
         )
     ),
@@ -226,6 +228,8 @@ Analytics.reportPurchase(
     channel = Channel.ONSITE
 )
 ```
+
+Always set `unitPrice`. It is the price of a single item in major units of your marketplace currency, not cents: an item priced at $25 is sent as `25`, not `2500`. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
 
 ### Page Views
 
@@ -243,6 +247,8 @@ Analytics.reportPageView(
 ```
 
 **Page types** (from `PageType` enum): `HOME`, `PDP`, `SEARCH`, `CATEGORY`, `CART`, `OTHER`
+
+The API requires a `pageId` whenever you send a `page`, so build pages with `Page.Factory.buildWithId` (or pass `pageId` to `buildWithValues`).
 
 ## Running Auctions
 
@@ -290,6 +296,12 @@ AuctionConfig.CategorySingle(numSlots = 2, category = "electronics")
 
 // Multiple categories
 AuctionConfig.CategoryMultiple(numSlots = 2, categories = listOf("phones", "tablets"))
+
+// Category disjunctions: products in (phones OR tablets) AND android
+AuctionConfig.CategoryDisjunctions(
+    numSlots = 2,
+    disjunctions = listOf(listOf("phones", "tablets"), listOf("android"))
+)
 
 // Keyword search
 AuctionConfig.Keyword(numSlots = 3, keyword = "wireless headphones")
@@ -420,8 +432,8 @@ clickType = ClickType.PRODUCT // or LIKE, ADD_TO_CART
 
 // Page context
 page = Page.Factory.buildWithId(PageType.SEARCH, "query-id")
-// or with multiple values
-page = Page.Factory.buildWithValues(PageType.CATEGORY, listOf("electronics", "phones"))
+// or with multiple values (the API accepts a list of values for the cart page type only)
+page = Page.Factory.buildWithValues(PageType.CART, listOf("coffee", "cookies"), pageId = "/cart")
 ```
 
 ### A/B Testing
@@ -444,7 +456,7 @@ Pass quality signals to optimize auction results:
 val config = AuctionConfig.ProductIds(
     numSlots = 3,
     ids = listOf("p1", "p2", "p3"),
-    qualityScores = listOf(0.95, 0.82, 0.71)  // Must match ids size
+    qualityScores = listOf(0.95, 0.82, 0.71)  // One per id, otherwise the scores are ignored
 )
 ```
 
