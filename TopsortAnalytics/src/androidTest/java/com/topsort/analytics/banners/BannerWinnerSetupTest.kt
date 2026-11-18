@@ -122,9 +122,12 @@ class BannerWinnerSetupTest {
         }
     }
 
-    /** The placement the caller passed is the placement reported. */
+    /**
+     * The path the caller passed is the path reported. The location is not: the events API has
+     * no location on a placement, so the SDK no longer sends it.
+     */
     @Test
-    fun the_reported_click_carries_the_supplied_placement() {
+    fun the_reported_click_carries_the_path_but_not_the_location() {
         runBlocking(Dispatchers.Main) {
         bannerView.setup(winner, path = "/search", location = "banner_top") { _, _ -> }
         bannerView.performClick()
@@ -132,7 +135,7 @@ class BannerWinnerSetupTest {
 
         val click = fake.sent.filterIsInstance<ClickEvent>().flatMap { it.clicks }.single()
         assertThat(click.placement.path).isEqualTo("/search")
-        assertThat(click.placement.location).isEqualTo("banner_top")
+        assertThat(click.placement.location).isNull()
         }
     }
 
