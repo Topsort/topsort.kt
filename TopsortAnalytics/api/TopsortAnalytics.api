@@ -18,6 +18,7 @@ public final class com/topsort/analytics/Analytics : com/topsort/analytics/Topso
 
 public final class com/topsort/analytics/DiscardReason : java/lang/Enum {
 	public static final field CACHE_OVER_CAPACITY Lcom/topsort/analytics/DiscardReason;
+	public static final field INVALID_EVENT Lcom/topsort/analytics/DiscardReason;
 	public static final field PERMANENTLY_REJECTED Lcom/topsort/analytics/DiscardReason;
 	public static final field UNKNOWN_EVENT_TYPE Lcom/topsort/analytics/DiscardReason;
 	public static final field UNPARSEABLE_BODY Lcom/topsort/analytics/DiscardReason;

@@ -109,7 +109,10 @@ interface TopsortAnalytics {
     /**
      * Reports a purchase event.
      *
-     * @param items the list of purchased items
+     * @param items the list of purchased items. Each needs a non-empty productId, a quantity of at
+     * least 1 and a unitPrice greater than 0; if any item breaks a rule the whole purchase is not
+     * reported, the reason is logged and [EventDiscardListener] hears it as
+     * [DiscardReason.INVALID_EVENT].
      * @param id The marketplace assigned ID for the order
      * @param opaqueUserId The opaque user ID which allows correlating user activity.
      * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
