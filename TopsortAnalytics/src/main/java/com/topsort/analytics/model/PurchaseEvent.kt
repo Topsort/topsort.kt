@@ -114,13 +114,17 @@ data class PurchasedItem(
      */
     val productId: String,
 
+    /**
+     * Units purchased, at least 1. A purchase with any item below 1 is not reported.
+     */
     @IntRange(from = 1) val quantity: Int,
 
     /**
      * Price of a single item in the marketplace currency's major unit, not in cents.
      * Example: an item priced at $25 is sent as 25, not 2500.
      * This field is an Int, so fractional prices such as 25.35 cannot be sent exactly.
-     * Optional in this SDK, but the API requires it, so set it on every item.
+     * Nullable in this SDK, but the API requires it to be greater than 0: a purchase with any
+     * item missing it, or at 0 or below, is not reported.
      */
     @IntRange(from = 1) val unitPrice: Int? = null,
 
@@ -158,6 +162,27 @@ data class PurchasedItem(
                 vendorId = json.getStringOrNull("vendorId"),
             )
         }
+    }
+}
+
+/**
+ * Every rule in [items] the events API enforces with a 400, one message per broken field, or an
+ * empty list when the purchase can be sent. A single bad item fails the whole purchase server-side,
+ * so the caller drops the purchase rather than sending it.
+ */
+internal fun purchaseItemErrors(items: List<PurchasedItem>): List<String> {
+    if (items.isEmpty()) return listOf("items must not be empty")
+    return items.flatMapIndexed { index, item ->
+        val prefix = "items[$index] (${item.productId})"
+        listOfNotNull(
+            "$prefix: productId must not be empty".takeIf { item.productId.isEmpty() },
+            "$prefix: quantity must be at least 1, was ${item.quantity}".takeIf { item.quantity < 1 },
+            when {
+                item.unitPrice == null -> "$prefix: unitPrice is required"
+                item.unitPrice <= 0 -> "$prefix: unitPrice must be greater than 0, was ${item.unitPrice}"
+                else -> null
+            },
+        )
     }
 }
 

@@ -431,6 +431,15 @@ internal object Cache {
         notifyDiscarded(reason, 1)
     }
 
+    /**
+     * [discard] for an event rejected before it was ever stored, so there is no record to delete.
+     * Routed through here anyway so the listener and the log hear about it like any other loss.
+     */
+    fun discardUnstored(reason: DiscardReason, detail: String) {
+        Log.e(TAG, "Discarding unstored event: $reason ($detail)")
+        notifyDiscarded(reason, 1)
+    }
+
     /** [discard] for a batch, in one editor rather than one synchronous write per record. */
     fun discardAll(recordIds: Collection<Long>, reason: DiscardReason) {
         if (recordIds.isEmpty()) return

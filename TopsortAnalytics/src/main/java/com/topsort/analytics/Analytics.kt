@@ -26,6 +26,7 @@ import com.topsort.analytics.model.Placement
 import com.topsort.analytics.model.Purchase
 import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
+import com.topsort.analytics.model.purchaseItemErrors
 import com.topsort.analytics.model.Render
 import com.topsort.analytics.model.RenderEvent
 import com.topsort.analytics.model.Session
@@ -310,6 +311,17 @@ object Analytics : TopsortAnalytics {
     ) {
         if (!assertSetup()) {
             Log.e(LOG_TAG, INVALID_CONFIG_ERROR_MESSAGE)
+            return
+        }
+
+        // The API fails the whole purchase on one bad item, and a 400 is never retried, so sending
+        // it would only lose it later and out of sight. Lose it here, where the log can say why.
+        val errors = purchaseItemErrors(items)
+        if (errors.isNotEmpty()) {
+            Cache.discardUnstored(
+                DiscardReason.INVALID_EVENT,
+                "purchase $id not reported: ${errors.joinToString("; ")}",
+            )
             return
         }
 
