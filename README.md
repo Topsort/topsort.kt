@@ -171,7 +171,8 @@ A promoted impression is reported once per `resolvedBidId` per process; repeats 
 with a warning. That rule applies to your own `reportImpressionPromoted` calls as much as
 to `BannerView`, so report when the ad is actually on screen - not on every layout, redraw or
 recomposition. `BannerView` handles that itself: it reports only once the banner is shown, in a
-visible window and not clipped away. The record of reported bids is cleared when `setup` switches to a different user. To report several impressions in one event (a list screen,
+visible window and not clipped away. The record of reported bids is cleared when `setup`
+switches to a different user. To report several impressions in one event (a list screen,
 say), build them with `Impression.Factory` and pass them to `Analytics.reportImpressions(list)`.
 
 **Organic impression** (non-promoted content):
@@ -228,7 +229,7 @@ Analytics.reportPurchase(
 )
 ```
 
-`unitPrice` is required. It is the price of a single item in major units of your marketplace currency (`20` means 20.00 in that currency), not cents. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
+Always set `unitPrice`. It is the price of a single item in major units of your marketplace currency (`20` means 20.00 in that currency), not cents. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
 
 ### Page Views
 
@@ -247,7 +248,7 @@ Analytics.reportPageView(
 
 **Page types** (from `PageType` enum): `HOME`, `PDP`, `SEARCH`, `CATEGORY`, `CART`, `OTHER`
 
-The API requires a `pageId` on every page, so build pages with `Page.Factory.buildWithId` (or pass `pageId` to `buildWithValues`).
+The API requires a `pageId` whenever you send a `page`, so build pages with `Page.Factory.buildWithId` (or pass `pageId` to `buildWithValues`).
 
 ## Running Auctions
 
@@ -296,8 +297,11 @@ AuctionConfig.CategorySingle(numSlots = 2, category = "electronics")
 // Multiple categories
 AuctionConfig.CategoryMultiple(numSlots = 2, categories = listOf("phones", "tablets"))
 
-// Category disjunctions
-AuctionConfig.CategoryDisjunctions(numSlots = 2, disjunctions = listOf(listOf("phones", "android")))
+// Category disjunctions: products in (phones OR tablets) AND android
+AuctionConfig.CategoryDisjunctions(
+    numSlots = 2,
+    disjunctions = listOf(listOf("phones", "tablets"), listOf("android"))
+)
 
 // Keyword search
 AuctionConfig.Keyword(numSlots = 3, keyword = "wireless headphones")

@@ -117,8 +117,8 @@ data class PurchasedItem(
     @IntRange(from = 1) val quantity: Int,
 
     /**
-     * Unit price in the smallest currency unit (e.g., cents for USD).
-     * Example: 1295 = $12.95
+     * Price of a single item in major units of the marketplace currency, not cents.
+     * Example: 20 = 20.00 in the marketplace currency. Always set it: the API requires it.
      */
     @IntRange(from = 1) val unitPrice: Int? = null,
 
