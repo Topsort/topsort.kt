@@ -229,7 +229,7 @@ Analytics.reportPurchase(
 )
 ```
 
-Every item needs a non-empty `productId`, a `quantity` of at least 1 and a `unitPrice` greater than 0. The API rejects the whole purchase when any item breaks one of these rules, so the SDK checks them first: an invalid purchase is not sent, the reason is logged, and an `EventDiscardListener` hears about it as `DiscardReason.INVALID_EVENT`.
+Every item needs a non-empty `productId`, a `quantity` of at least 1 and a `unitPrice` greater than 0. The API rejects the whole purchase when any item breaks one of these rules, so the SDK checks them first: an invalid purchase is not sent, the reason is logged, and an `EventDiscardListener` hears about it as `DiscardReason.INVALID_EVENT`. That call runs on the thread that called `reportPurchase`, which may be the main thread, so keep the listener quick.
 
 Always set `unitPrice`. It is the price of a single item in major units of your marketplace currency, not cents: an item priced at $25 is sent as `25`, not `2500`. In 4.1.0 it is an `Int`, so only whole amounts can be sent. Topsort attributes the purchase from the shopper's earlier clicks and impressions, so a purchase carries no bid id.
 

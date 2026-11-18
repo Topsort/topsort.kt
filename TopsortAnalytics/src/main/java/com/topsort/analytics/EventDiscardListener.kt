@@ -32,9 +32,9 @@ enum class DiscardReason {
  *
  * Called on the SDK's worker thread, ahead of the work it was doing, so keep it quick. The one
  * exception is [DiscardReason.INVALID_EVENT], which is reported on the thread that called the
- * report method, before it returns. Held for
- * the life of the process: capture no Activity or Context, and set the listener to null to
- * unregister. Exceptions thrown from it are logged and swallowed.
+ * report method, before it returns. Held for the life of the process: capture no Activity or
+ * Context, and set the listener to null to unregister. Exceptions thrown from it are logged and
+ * swallowed.
  */
 fun interface EventDiscardListener {
     fun onEventsDiscarded(reason: DiscardReason, count: Int)
