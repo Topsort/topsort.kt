@@ -28,9 +28,27 @@ internal class PurchaseValidationTest {
     }
 
     @Test
-    fun `zero unitPrice is rejected`() {
+    fun `a single item at zero unitPrice is a zero total`() {
         assertThat(purchaseItemErrors(listOf(valid.copy(unitPrice = 0))))
-            .containsExactly("items[0] (p1): unitPrice must be greater than 0, was 0")
+            .containsExactly("total price is zero: every item has unitPrice 0")
+    }
+
+    @Test
+    fun `several items all at zero unitPrice are a zero total`() {
+        assertThat(
+            purchaseItemErrors(listOf(valid.copy(unitPrice = 0), valid.copy(productId = "p2", unitPrice = 0)))
+        ).containsExactly("total price is zero: every item has unitPrice 0")
+    }
+
+    @Test
+    fun `a paid item plus a gift at zero unitPrice produces no errors`() {
+        assertThat(purchaseItemErrors(listOf(valid, valid.copy(productId = "gift", unitPrice = 0)))).isEmpty()
+    }
+
+    @Test
+    fun `a gift does not hide a broken item, whose index is kept`() {
+        assertThat(purchaseItemErrors(listOf(valid.copy(unitPrice = 0), valid.copy(productId = "p2", unitPrice = -1))))
+            .containsExactly("items[1] (p2): unitPrice must be greater than 0, was -1")
     }
 
     @Test

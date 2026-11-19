@@ -20,7 +20,8 @@ enum class DiscardReason {
 
     /**
      * Rejected when reported, before it was cached, because the API would reject it with a 400:
-     * for example a purchase item with no unitPrice or a quantity below 1. The log names the field.
+     * for example a purchase item with no unitPrice, a negative unitPrice or a quantity below 1, or
+     * a purchase whose items are all at unitPrice 0. The log names the field.
      */
     INVALID_EVENT,
 }

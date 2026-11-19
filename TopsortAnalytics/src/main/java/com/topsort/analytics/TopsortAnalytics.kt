@@ -110,8 +110,9 @@ interface TopsortAnalytics {
      * Reports a purchase event.
      *
      * @param items the list of purchased items. Each needs a non-empty productId, a quantity of at
-     * least 1 and a unitPrice greater than 0; if any item breaks a rule the whole purchase is not
-     * reported, the reason is logged and [EventDiscardListener] hears it as
+     * least 1 and a unitPrice. Items at exactly 0, such as gifts, are left out of the purchase. A
+     * purchase whose items are all at 0, or with any negative or missing price or another broken
+     * rule, is not reported: the reason is logged and [EventDiscardListener] hears it as
      * [DiscardReason.INVALID_EVENT].
      * @param id The marketplace assigned ID for the order
      * @param opaqueUserId The opaque user ID which allows correlating user activity.

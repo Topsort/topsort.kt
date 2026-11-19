@@ -123,10 +123,11 @@ data class PurchasedItem(
      * Price of a single item in the marketplace currency's major unit, not in cents.
      * Example: an item priced at $25 is sent as 25, not 2500.
      * This field is an Int, so fractional prices such as 25.35 cannot be sent exactly.
-     * Nullable in this SDK, but the API requires it to be greater than 0: a purchase with any
-     * item missing it, or at 0 or below, is not reported.
+     * Nullable in this SDK, but the API requires it. Items at exactly 0, such as gifts, are left
+     * out of the purchase; a purchase whose items are all at 0, or with any negative or missing
+     * price, is not reported.
      */
-    @IntRange(from = 1) val unitPrice: Int? = null,
+    @IntRange(from = 0) val unitPrice: Int? = null,
 
     /**
      * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
@@ -168,11 +169,14 @@ data class PurchasedItem(
 /**
  * Every rule in [items] the events API enforces with a 400, one message per broken field, or an
  * empty list when the purchase can be sent. A single bad item fails the whole purchase server-side,
- * so the caller drops the purchase rather than sending it.
+ * so the caller drops the purchase rather than sending it. Items at unitPrice 0 (gifts) are not
+ * checked here: the caller leaves them out of the purchase, which is only rejected when nothing
+ * with a price is left.
  */
 internal fun purchaseItemErrors(items: List<PurchasedItem>): List<String> {
     if (items.isEmpty()) return listOf("items must not be empty")
-    return items.flatMapIndexed { index, item ->
+    if (items.all { it.unitPrice == 0 }) return listOf("total price is zero: every item has unitPrice 0")
+    return items.withIndex().filter { it.value.unitPrice != 0 }.flatMap { (index, item) ->
         val prefix = "items[$index] (${item.productId})"
         listOfNotNull(
             "$prefix: productId must not be empty".takeIf { item.productId.isEmpty() },
