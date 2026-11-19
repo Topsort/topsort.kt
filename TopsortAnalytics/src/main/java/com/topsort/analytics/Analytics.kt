@@ -325,11 +325,22 @@ object Analytics : TopsortAnalytics {
             return
         }
 
+        // The API rejects an item at 0, but a gift line is part of a real purchase: leave it out
+        // and send the rest. That is not a discard, so the listener does not hear it.
+        val (pricedItems, freeItems) = items.partition { it.unitPrice != 0 }
+        if (freeItems.isNotEmpty()) {
+            Log.d(
+                LOG_TAG,
+                "purchase $id: left out ${freeItems.size} item(s) at unitPrice 0: " +
+                    freeItems.joinToString { it.productId },
+            )
+        }
+
         val purchaseEvent = PurchaseEvent(
             purchases = listOf(
                 Purchase(
                     id = id,
-                    items = items,
+                    items = pricedItems,
                     occurredAt = occurredAt ?: eventNow(),
                     opaqueUserId = resolveOpaqueUserId(opaqueUserId),
                     deviceType = deviceType,

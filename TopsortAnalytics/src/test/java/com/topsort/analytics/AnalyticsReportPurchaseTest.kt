@@ -4,13 +4,16 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.work.WorkManager
+import com.topsort.analytics.model.PurchaseEvent
 import com.topsort.analytics.model.PurchasedItem
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -34,6 +37,7 @@ class AnalyticsReportPurchaseTest {
         every { Cache.setup(any(), any(), any()) } returns "user-1"
         every { Cache.storePurchase(any()) } returns 1L
         mockkStatic(Log::class)
+        every { Log.d(any<String>(), any<String>()) } returns 0
         every { Log.w(any<String>(), any<String>()) } returns 0
         every { Log.e(any<String>(), any<String>()) } returns 0
         every { Log.e(any<String>(), any<String>(), any()) } returns 0
@@ -79,6 +83,38 @@ class AnalyticsReportPurchaseTest {
         verify {
             Log.e(any<String>(), match { it.contains("order-1") && it.contains("items[1] (p2): quantity") })
         }
+    }
+
+    @Test
+    fun `a gift at zero unitPrice is left out and the rest of the purchase is cached`() {
+        val stored = slot<PurchaseEvent>()
+        every { Cache.storePurchase(capture(stored)) } returns 1L
+
+        Analytics.reportPurchase(
+            items = listOf(
+                PurchasedItem(productId = "p1", quantity = 1, unitPrice = 25),
+                PurchasedItem(productId = "gift", quantity = 1, unitPrice = 0),
+            ),
+            id = "order-1",
+        )
+
+        assertThat(stored.captured.purchases.single().items.map { it.productId }).containsExactly("p1")
+        verify(exactly = 0) { listener.onEventsDiscarded(any(), any()) }
+        verify { Log.d(any<String>(), match { it.contains("order-1") && it.contains("1 item") && it.contains("gift") }) }
+    }
+
+    @Test
+    fun `a purchase whose items are all at zero unitPrice is not cached`() {
+        Analytics.reportPurchase(
+            items = listOf(
+                PurchasedItem(productId = "gift-1", quantity = 1, unitPrice = 0),
+                PurchasedItem(productId = "gift-2", quantity = 1, unitPrice = 0),
+            ),
+            id = "order-1",
+        )
+
+        verify(exactly = 0) { Cache.storePurchase(any()) }
+        verify(exactly = 1) { listener.onEventsDiscarded(DiscardReason.INVALID_EVENT, 1) }
     }
 
     @Test
