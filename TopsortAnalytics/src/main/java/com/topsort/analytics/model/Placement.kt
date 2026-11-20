@@ -52,8 +52,10 @@ data class Placement(
     val searchQuery : String? = null,
 
     /**
-     * A marketplace defined name for a page part
+     * Not sent. The events API has no location on a placement, so the SDK does not serialize it.
+     * To tell parts of a screen apart, put them in [path] instead, e.g. `/home/carousel`.
      */
+    @Deprecated("Placements have no location in the events API, so this is not sent. Encode it in path.")
     val location: String? = null
 ) {
 
@@ -66,7 +68,6 @@ data class Placement(
             .put("productId", productId)
             .put("categoryIds", categoryIds?.let { JSONArray(it) })
             .put("searchQuery", searchQuery)
-            .put("location", location)
     }
 
     companion object {
@@ -96,7 +97,6 @@ data class Placement(
                 productId = json.getStringOrNull("productId"),
                 categoryIds = json.getStringListOrNull("categoryIds"),
                 searchQuery = json.getStringOrNull("searchQuery"),
-                location = json.getStringOrNull("location"),
             )
         }
     }

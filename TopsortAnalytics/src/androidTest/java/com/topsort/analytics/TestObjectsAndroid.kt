@@ -78,7 +78,6 @@ internal fun getRandomPurchase(): Purchase {
                 productId = randomId("p_"),
                 quantity = 1,
                 unitPrice = 100,
-                resolvedBidId = randomId("resolvedBid_"),
             )
         ),
         id = randomId("orderId_"),
@@ -113,7 +112,6 @@ private fun getTestPlacement(): Placement {
         productId = randomId(),
         categoryIds = listOf("cat1", "cat2"),
         searchQuery = "search query",
-        location = "gibraltar",
     )
 }
 

@@ -119,7 +119,7 @@ interface TopsortAnalytics {
      * @param occurredAt RFC3339 formatted timestamp including UTC offset. Defaults to DateTime() when null
      * @param deviceType Optional device type
      * @param channel Optional channel
-     * @param page Optional page context where the purchase occurred
+     * @param page Ignored: the events API has no page on a purchase, so it is not sent
      */
     fun reportPurchase(
         items: List<PurchasedItem>,

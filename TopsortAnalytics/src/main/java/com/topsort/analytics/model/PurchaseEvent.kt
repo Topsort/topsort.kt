@@ -64,9 +64,9 @@ data class Purchase(
     val channel: Channel? = null,
 
     /**
-     * The page context where the purchase occurred.
-     * Typically used for checkout or cart pages.
+     * Not sent. The events API has no page on a purchase, so the SDK does not serialize it.
      */
+    @Deprecated("Purchases have no page in the events API, so this is not sent.")
     val page: Page? = null,
 )  : JsonSerializable {
     override fun toJsonObject(): JSONObject {
@@ -78,7 +78,6 @@ data class Purchase(
             .apply {
                 deviceType?.let { put("deviceType", it.value) }
                 channel?.let { put("channel", it.value) }
-                page?.let { put("page", it.toJsonObject()) }
             }
     }
 
@@ -94,7 +93,6 @@ data class Purchase(
                 },
                 deviceType = Device.fromValue(json.getStringOrNull("deviceType")),
                 channel = Channel.fromValue(json.getStringOrNull("channel")),
-                page = json.optJSONObject("page")?.let { Page.Factory.fromJsonObject(it) },
             )
         }
 
@@ -130,8 +128,10 @@ data class PurchasedItem(
     @IntRange(from = 0) val unitPrice: Int? = null,
 
     /**
-     * If known, the product's auction ID if the consumer clicked on a promoted link before purchasing
+     * Not sent. Topsort attributes a purchase from the shopper's earlier clicks and impressions,
+     * so a purchase item carries no bid id and the SDK does not serialize this.
      */
+    @Deprecated("Purchases are attributed from earlier clicks and impressions, so this is not sent.")
     val resolvedBidId: String? = null,
 
     /**
@@ -148,7 +148,6 @@ data class PurchasedItem(
             .apply {
                 // Consistent null handling: omit keys when value is null
                 unitPrice?.let { put("unitPrice", it) }
-                resolvedBidId?.let { put("resolvedBidId", it) }
                 vendorId?.let { put("vendorId", it) }
             }
     }
@@ -159,7 +158,6 @@ data class PurchasedItem(
                 productId = json.getString("productId"),
                 quantity = json.getInt("quantity"),
                 unitPrice = json.getIntOrNull("unitPrice"),
-                resolvedBidId = json.getStringOrNull("resolvedBidId"),
                 vendorId = json.getStringOrNull("vendorId"),
             )
         }

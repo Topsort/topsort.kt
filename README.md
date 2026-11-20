@@ -349,8 +349,8 @@ val config = BannerConfig.LandingPage(
 lifecycleScope.launch {
     bannerView.setup(
         config = config,
-        path = "/home",
-        location = "hero-banner"
+        path = "/home/hero-banner",
+        location = null
     ) { id, type ->
         // Handle click. `type` is com.topsort.analytics.model.auctions.EntityType, which also
         // has BRAND and URL - not the model.EntityType used for organic events.
@@ -380,7 +380,7 @@ val winner = BannerResponse(
     type = EntityType.PRODUCT,
     resolvedBidId = "resolved-bid-id",
 )
-bannerView.setup(winner, path = "/home", location = "hero-banner") { id, type -> openProductPage(id) }
+bannerView.setup(winner, path = "/home/hero-banner", location = null) { id, type -> openProductPage(id) }
 ```
 
 No auction runs, so `onAuctionError` and `onNoWinners` are never invoked from this overload;
@@ -405,7 +405,7 @@ fun SponsoredBanner(config: BannerConfig, onClick: (String, EntityType) -> Unit)
         update = { view ->
             if (view.tag != current.resolvedBidId) {
                 view.tag = current.resolvedBidId
-                view.setup(current, path = "/home", location = "hero") { id, type -> latestOnClick(id, type) }
+                view.setup(current, path = "/home/hero", location = null) { id, type -> latestOnClick(id, type) }
             }
         },
     )
