@@ -14,7 +14,7 @@ assertj                = "3.27.7"
 # For instrumented tests only: 3.x touches java.time in a static initializer, which does not
 # exist on API 24 without desugaring, and desugaring a library is a requirement on every consumer.
 assertj-android        = "2.9.1"
-org-json               = "20260522"
+org-json               = "20260814"
 androidx-test-ext      = "1.3.0"
 androidx-test-core     = "1.7.0"
 espresso               = "3.7.0"
