@@ -47,7 +47,7 @@ data class Auction private constructor(
                     put("searchQuery", searchQuery)
                 }
                 if (geoTargeting != null) {
-                    put("geoTargeting", JSONObject.wrap(geoTargeting))
+                    put("geoTargeting", geoTargeting.toJsonObject())
                 }
                 if (slotId != null) {
                     put("slotId", slotId)
@@ -444,5 +444,13 @@ data class Auction private constructor(
 
     data class GeoTargeting(
         val location: String,
-    )
+    ) {
+        /**
+         * Built field by field. [JSONObject.wrap] returns null for this class on Android's
+         * org.json, and [JSONObject.put] then drops the key.
+         */
+        internal fun toJsonObject(): JSONObject {
+            return JSONObject().put("location", location)
+        }
+    }
 }
