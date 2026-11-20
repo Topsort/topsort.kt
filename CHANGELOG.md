@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.1.1](https://github.com/Topsort/topsort.kt/compare/v4.1.0...v4.1.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* leave zero-price items out of a purchase instead of dropping it ([#249](https://github.com/Topsort/topsort.kt/issues/249)) ([9054c31](https://github.com/Topsort/topsort.kt/commit/9054c31fa20e54ae85a7aada999b4bd27ee1be3e))
+* stop sending fields the events API ignores (INTE-4041) ([#247](https://github.com/Topsort/topsort.kt/issues/247)) ([f4a9da1](https://github.com/Topsort/topsort.kt/commit/f4a9da1aa1f610fdbc6f1f52ef9cbad5a52154a4))
+* validate purchase items before reporting (INTE-4033) ([#246](https://github.com/Topsort/topsort.kt/issues/246)) ([1566488](https://github.com/Topsort/topsort.kt/commit/15664881aa88955dbe997079d98b91d15791d2d4))
+
 ## [4.1.0](https://github.com/Topsort/topsort.kt/compare/v4.0.0...v4.1.0) (2026-09-21)
 
 
