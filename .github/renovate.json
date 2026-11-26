@@ -1,21 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Replaces Dependabot. Renovate merges its own patch, minor, pin and digest PRs once CI is green; majors and Kotlin toolchain bumps wait for a person (INTE-4163).",
-  "extends": ["config:recommended", ":disableRateLimiting"],
+  "description": "Replaces Dependabot. Library dependencies reach every consumer through the published POM, so Gradle updates always wait for a person. Renovate merges its own GitHub Actions patch, minor, pin and digest PRs once CI is green and the release is 3 days old (INTE-4163).",
+  "extends": ["config:recommended", ":semanticCommitTypeAll(chore)"],
   "timezone": "Europe/Lisbon",
   "schedule": ["before 9pm on sunday"],
   "labels": ["dependencies"],
+  "prConcurrentLimit": 10,
   "platformAutomerge": false,
   "packageRules": [
     {
-      "description": "Automerge patch, minor, pin and digest updates once CI passes",
+      "description": "Automerge GitHub Actions patch, minor, pin and digest updates once CI passes and the release has aged",
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["patch", "minor", "pin", "digest"],
+      "matchCurrentVersion": "!/^v?0\\./",
+      "minimumReleaseAge": "3 days",
+      "internalChecksFilter": "strict",
       "automerge": true
-    },
-    {
-      "description": "Kotlin and the Android Gradle Plugin set what consumers must build with (3.0.0 to 3.3.0 were unlinkable on Kotlin 2.1). Never automerge them",
-      "matchPackageNames": ["org.jetbrains.kotlin:**", "org.jetbrains.kotlin.**", "com.android.tools.build:**", "com.android.**"],
-      "automerge": false
     },
     {
       "description": "Group AndroidX libraries, as Dependabot did",
