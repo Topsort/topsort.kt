@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Replaces Dependabot. Library dependencies reach every consumer through the published POM, so Gradle updates always wait for a person. Renovate merges its own GitHub Actions patch, minor, pin and digest PRs once CI is green and the release is 3 days old (INTE-4163).",
+  "description": "Replaces Dependabot. Library dependencies reach every consumer through the published POM, so Gradle updates always wait for a person. Renovate merges its own GitHub Actions patch, minor, pin and digest PRs once CI is green and the release is 3 days old.",
   "extends": ["config:recommended", ":semanticCommitTypeAll(chore)"],
   "timezone": "Europe/Lisbon",
   "schedule": ["before 9pm on sunday"],
