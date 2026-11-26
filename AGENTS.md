@@ -80,7 +80,7 @@ Package layout:
 - **Factory companion objects** — deserialization via `fromJsonObject()` / `fromJsonArray()` on companion.
 - **Sealed classes for closed hierarchies** — errors (`AuctionError`), configs (`BannerConfig`), enums where exhaustive matching matters.
 - **Graceful degradation** — if `Analytics.setup()` not called, events are logged but not sent. Never crash the host app.
-- **Thread safety** — coroutines + `SupervisorJob` for background work, `AtomicBoolean` for flags. `SharedPreferences.apply()` for writes that can happen on the caller's thread; `commit()` only from worker threads, where losing the write would cost an event or duplicate one.
+- **Thread safety** — coroutines for background work. `SharedPreferences.apply()` for writes that can happen on the caller's thread; `commit()` from worker threads, where losing the write would cost an event or duplicate one, and on the caller's thread only in `Cache.setup()` when a placeholder user id is minted.
 
 ## SDK Anti-patterns
 
@@ -159,5 +159,5 @@ Never edit by hand the version on the `x-release-please-version` line of `README
 ## CI Pipeline
 
 - **PRs**: `detekt` + `apiCheck` (lint.yaml), unit tests + kover, then instrumented tests + merged coverage gate (tests.yaml)
-- **Push to main**: Dokka → GitHub Pages (docs.yaml), release-please PR (release-please.yaml)
+- **Main**: Dokka → GitHub Pages (docs.yaml, after the Tests workflow finishes on main), release-please PR (release-please.yaml)
 - **GitHub Release**: publish to Maven Central (publish-to-maven.yaml)
