@@ -18,6 +18,11 @@
       "automerge": true
     },
     {
+      "description": "These actions only run on main, on a release or after another workflow, so no PR check exercises them. Never automerge",
+      "matchPackageNames": ["googleapis/release-please-action", "actions/deploy-pages", "actions/upload-pages-artifact", "actions/download-artifact", "gradle/actions/dependency-submission"],
+      "automerge": false
+    },
+    {
       "description": "Group AndroidX libraries, as Dependabot did",
       "matchPackageNames": ["androidx.**"],
       "groupName": "androidx"
