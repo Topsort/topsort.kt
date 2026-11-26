@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.2](https://github.com/Topsort/topsort.kt/compare/v4.1.1...v4.1.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* keep geoTargeting in auction requests on Android (INTE-4068) ([#250](https://github.com/Topsort/topsort.kt/issues/250)) ([988458e](https://github.com/Topsort/topsort.kt/commit/988458e969dc05accf7290a16bc73d2360a89478))
+
 ## [4.1.1](https://github.com/Topsort/topsort.kt/compare/v4.1.0...v4.1.1) (2026-11-20)
 
 
