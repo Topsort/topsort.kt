@@ -110,8 +110,7 @@ Package layout:
 
 - **Never commit directly to `main`.** All changes go through PRs from a dedicated branch.
 - Branch names should be descriptive (e.g., `feat/add-google-environment`, `fix/merge-pagination-offset`).
-- **Large changes must be broken into stacked PRs** — each PR should be independently reviewable and represent a single logical unit of work. Avoid monolithic PRs that touch many unrelated things at once.
-- Each PR in a stack should be based on the previous branch, not `main`, so they can be reviewed and merged in order.
+- **Large changes must be broken into stacked PRs** — each PR should be independently reviewable and represent a single logical unit of work. Avoid monolithic PRs that touch many unrelated things at once. Base each PR in a stack on the previous branch, not `main`, so they can be reviewed and merged in order. Each one must build and pass CI on its own.
 - **After a stacked PR is squash-merged**, all child branches must be rebased onto the updated `main` to drop the now-duplicate commits. Squash merges create a new SHA on `main`, so the original commits appear as unrelated changes in child PRs if not rebased. Use `git rebase --onto main <old-base> <child-branch>` to cleanly re-root.
 - **Before opening any PR**, verify that `git log --oneline main..HEAD` only shows commits belonging to your change. If you see commits from already-merged PRs, rebase first.
 - **Admin override** (`gh pr merge --admin`) is only appropriate to bypass the review requirement when all CI checks pass. Never use it to force-merge a PR with failing CI — fix the failures first.
@@ -145,6 +144,8 @@ Package layout:
 
 ## Pull Requests
 
+Claude Code Review checks every pull request. When it passes, the author can merge without a second engineer, except for the paths in `.claude/approvals.yml` that need two people. Plan pull requests so that a person reviews as little as possible, and only what needs a person.
+
 Before creating or updating a PR, check whether the cumulative branch diff
 (`git diff <base>...HEAD`) changes anything the README documents: the public API and its usage
 examples (event reporting, auctions, banners, Jetpack Compose, Java interop), `Analytics.setup()`
@@ -156,20 +157,17 @@ Never edit by hand the version on the `x-release-please-version` line of `README
 `x-release-please-start-version` block in `gradle.properties`, `.release-please-manifest.json` or
 `CHANGELOG.md`; release-please owns them.
 
+- **One change per pull request.** A bug fix, a feature or a refactor, never more than one. Aim for under about 400 changed lines, excluding generated files and lockfiles. A reviewer can check that much carefully. A larger diff gets skimmed.
+- **Tests ship with the code they cover.** Put the tests for a change in the same pull request as the change, never in a follow-up.
+- **Each pull request is safe to revert on its own.** Once merged, `main` must still build and release, and reverting just this pull request must not break anything that merged after it.
+- **Keep two-person paths in their own pull request.** These include CI workflows, deploy and infrastructure config, Dockerfiles, the review policy and `CODEOWNERS`. A change to one of them makes the whole pull request wait for a second person. Open that change separately, kept small, and let the rest merge on Claude's review.
+- **Separate moves from changes.** Renames, file moves and formatting go in their own pull request, with no behaviour change, so the next diff shows only what changed.
+- **Never hand-edit generated files.** Lockfiles, API dumps, codegen output and snapshots come from their tool, and CI checks that they match. Regenerate them in the same pull request as the change that caused them. Mark generated paths `linguist-generated=true` in `.gitattributes` so GitHub collapses them in the diff.
+- **Say why in the description.** Give the reason for the change, how it was tested, and what a reviewer should look at first. Name any risk you know of.
+- **Fix review findings in new commits.** Do not rewrite history the reviewer has already seen, until it merges, except to rebase a stack after its parent is squash-merged, as described in Git Workflow.
+
 ## CI Pipeline
 
 - **PRs**: `detekt` + `apiCheck` (lint.yaml), unit tests + kover, then instrumented tests + merged coverage gate (tests.yaml)
 - **Main**: Dokka → GitHub Pages (docs.yaml, after the Tests workflow finishes on main), release-please PR (release-please.yaml)
 - **GitHub Release**: publish to Maven Central (publish-to-maven.yaml)
-
-## Pull request size and review
-
-Claude Code Review checks every pull request. When it passes, the author can merge without a second engineer, except for the paths in `.claude/approvals.yml` that need two people. Plan pull requests so that a person reviews as little as possible, and only what needs a person.
-
-- **One change per pull request.** A bug fix, a feature or a refactor, never more than one. Aim for under about 400 changed lines, excluding generated files and lockfiles. A reviewer can check that much carefully. A larger diff gets skimmed.
-- **Keep two-person paths in their own pull request.** These include CI workflows, deploy and infrastructure config, Dockerfiles, the review policy and `CODEOWNERS`. A change to one of them makes the whole pull request wait for a second person. Open that change separately, kept small, and let the rest merge on Claude's review.
-- **Separate moves from changes.** Renames, file moves and formatting go in their own pull request, with no behaviour change, so the next diff shows only what changed.
-- **Stack dependent work.** Base each pull request on the previous branch, and merge them in order. Each one must build and pass CI on its own.
-- **Never hand-edit generated files.** Lockfiles, API dumps, codegen output and snapshots come from their tool, and CI checks that they match. Regenerate them in the same pull request as the change that caused them. Mark generated paths `linguist-generated=true` in `.gitattributes` so GitHub collapses them in the diff.
-- **Say why in the description.** Give the reason for the change, how it was tested, and what a reviewer should look at first. Name any risk you know of.
-- **Fix review findings in new commits.** Do not rewrite history the reviewer has already seen, until it merges.
