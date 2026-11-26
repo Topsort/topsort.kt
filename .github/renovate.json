@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Replaces Dependabot. Library dependencies reach every consumer through the published POM, so Gradle updates always wait for a person. Renovate merges its own GitHub Actions patch, minor, pin and digest PRs once CI is green and the release is 3 days old.",
+  "extends": ["config:recommended", ":semanticCommitTypeAll(chore)"],
+  "timezone": "Europe/Lisbon",
+  "schedule": ["before 9pm on sunday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 10,
+  "platformAutomerge": false,
+  "packageRules": [
+    {
+      "description": "Automerge GitHub Actions patch, minor, pin and digest updates once CI passes and the release has aged",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor", "pin", "digest"],
+      "matchCurrentVersion": "!/^v?0\\./",
+      "minimumReleaseAge": "3 days",
+      "internalChecksFilter": "strict",
+      "automerge": true
+    },
+    {
+      "description": "These actions only run on main, on a release or after another workflow, or in the Maven Central publish job, so no PR check covers how they are used there. Never automerge. Renovate names every gradle/actions sub-action (setup-gradle, dependency-submission) gradle/actions",
+      "matchPackageNames": ["googleapis/release-please-action", "actions/deploy-pages", "actions/upload-pages-artifact", "actions/download-artifact", "gradle/actions"],
+      "automerge": false
+    },
+    {
+      "description": "Group AndroidX libraries, as Dependabot did",
+      "matchPackageNames": ["androidx.**"],
+      "groupName": "androidx"
+    },
+    {
+      "description": "Group kotlinx libraries, as Dependabot did",
+      "matchPackageNames": ["org.jetbrains.kotlinx:**"],
+      "groupName": "kotlinx"
+    }
+  ]
+}

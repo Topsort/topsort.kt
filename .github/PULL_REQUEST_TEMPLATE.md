@@ -18,7 +18,7 @@
 - [ ] `./gradlew :TopsortAnalytics:test` passes locally
 - [ ] If public API was changed: ran `./gradlew :TopsortAnalytics:apiDump` and committed the updated `TopsortAnalytics/api/TopsortAnalytics.api`
 - [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `docs:`, etc.)
-- [ ] CHANGELOG updated if this is a user-visible change (release-please handles this automatically from commit messages)
+- [ ] `CHANGELOG.md` not edited by hand (release-please writes it from commit messages)
 
 ## Testing
 
