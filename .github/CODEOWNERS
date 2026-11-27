@@ -30,3 +30,12 @@ CLAUDE.local.md @Topsort/integrations
 # Build pipeline
 buildspec.yml @Topsort/integrations
 build.sh @Topsort/integrations
+
+# Stored names, event models, cache and worker logic, consumer keep rules
+/TopsortAnalytics/src/main/java/com/topsort/analytics/StorageContract.kt @Topsort/integrations
+/TopsortAnalytics/src/test/java/com/topsort/analytics/StorageContractTest.kt @Topsort/integrations
+/TopsortAnalytics/src/main/java/com/topsort/analytics/model/*.kt @Topsort/integrations
+/TopsortAnalytics/src/main/java/com/topsort/analytics/model/auctions/Device.kt @Topsort/integrations
+/TopsortAnalytics/src/main/java/com/topsort/analytics/Cache.kt @Topsort/integrations
+/TopsortAnalytics/src/main/java/com/topsort/analytics/worker/ @Topsort/integrations
+/TopsortAnalytics/consumer-rules.pro @Topsort/integrations

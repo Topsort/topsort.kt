@@ -44,3 +44,13 @@ rules:
     verdict: { claude: comments, seats: 2 }
     override:
       - { if: "claude/code_review = pass", verdict: { claude: approves, seats: 1 } }
+  - purpose: "The stored names and event type order, the event models sent to /v2/events, the cache and worker logic that store, retry and discard events, and the consumer keep rules reach every installed app and cannot be withdrawn from Maven Central: someone else from Integrations approves, whatever the review says."
+    paths:
+      - "TopsortAnalytics/src/main/java/com/topsort/analytics/StorageContract.kt"
+      - "TopsortAnalytics/src/test/java/com/topsort/analytics/StorageContractTest.kt"
+      - "TopsortAnalytics/src/main/java/com/topsort/analytics/model/*.kt"
+      - "TopsortAnalytics/src/main/java/com/topsort/analytics/model/auctions/Device.kt"
+      - "TopsortAnalytics/src/main/java/com/topsort/analytics/Cache.kt"
+      - "TopsortAnalytics/src/main/java/com/topsort/analytics/worker/**"
+      - "TopsortAnalytics/consumer-rules.pro"
+    verdict: { claude: comments, seats: [{ count: 1, from: [Topsort/integrations, "!pr/authors"] }] }
