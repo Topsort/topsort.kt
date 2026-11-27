@@ -12,6 +12,9 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
 import com.topsort.analytics.DiscardReason
+import com.topsort.analytics.EMITTER_WORK_NAME
+import com.topsort.analytics.EXTRA_EVENT_TYPE
+import com.topsort.analytics.EXTRA_RECORD_ID
 import com.topsort.analytics.model.ClickEvent
 import com.topsort.analytics.model.EventType
 import com.topsort.analytics.model.ImpressionEvent
@@ -169,15 +172,11 @@ internal class EventEmitterWorker(
          */
         private const val MAX_DELIVERY_ATTEMPTS = 5
 
-        const val EXTRA_RECORD_ID = "EXTRA_RECORD_ID"
-        const val EXTRA_EVENT_TYPE = "EXTRA_EVENT_TYPE"
-        const val WORK_NAME = "TopsortAnalyticsReporter"
-
         /**
          * Unique work name for a single cached record. One name per record keeps enqueueing
          * idempotent and keeps one event's failure from touching any other.
          */
-        fun workNameFor(recordId: Long): String = "$WORK_NAME-$recordId"
+        fun workNameFor(recordId: Long): String = "$EMITTER_WORK_NAME-$recordId"
 
         /**
          * The single entry point for scheduling a record's delivery. Both the report path and the
@@ -212,7 +211,7 @@ internal class EventEmitterWorker(
                 // Tagged so all event work stays queryable as a group, independently of how it is
                 // scheduled. This is now the only way to find the population - the unique-work name
                 // no longer identifies it - so it is load-bearing for diagnostics, not scaffolding.
-                .addTag(WORK_NAME)
+                .addTag(EMITTER_WORK_NAME)
                 .build()
 
             // One unique work name per record, rather than one shared chain for every event. A

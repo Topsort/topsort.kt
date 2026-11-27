@@ -147,13 +147,13 @@ class EventRecoveryTest {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
         wm.enqueueUniqueWork(
-            EventEmitterWorker.WORK_NAME,
+            EMITTER_WORK_NAME,
             ExistingWorkPolicy.KEEP,
             OneTimeWorkRequestBuilder<EventEmitterWorker>()
                 .setConstraints(constraints)
                 .build(),
         )
-        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get().map { it.state })
+        assertThat(wm.getWorkInfosForUniqueWork(EMITTER_WORK_NAME).get().map { it.state })
             .containsOnly(WorkInfo.State.ENQUEUED)
 
         Analytics.setup(
@@ -162,7 +162,7 @@ class EventRecoveryTest {
             EventPipelineHarness.TOKEN,
         )
 
-        assertThat(wm.getWorkInfosForUniqueWork(EventEmitterWorker.WORK_NAME).get().map { it.state })
+        assertThat(wm.getWorkInfosForUniqueWork(EMITTER_WORK_NAME).get().map { it.state })
             .containsOnly(WorkInfo.State.CANCELLED)
     }
 
