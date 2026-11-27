@@ -148,7 +148,7 @@ internal object EventPipelineHarness {
      * assertions do not depend on how the work happens to be scheduled.
      */
     fun eventWork(): List<WorkInfo> =
-        workManager().getWorkInfosByTag(EventEmitterWorker.WORK_NAME).get()
+        workManager().getWorkInfosByTag(EMITTER_WORK_NAME).get()
 
     /**
      * Releases the network constraint on pending event work so it executes inline, draining until

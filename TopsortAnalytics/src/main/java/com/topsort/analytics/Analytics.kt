@@ -495,7 +495,7 @@ object Analytics : TopsortAnalytics {
     private fun schedulePendingEventSweep() {
         val wm = workManager ?: return
         wm.enqueueUniqueWork(
-            PendingEventSweepWorker.WORK_NAME,
+            SWEEP_WORK_NAME,
             ExistingWorkPolicy.KEEP,
             OneTimeWorkRequestBuilder<PendingEventSweepWorker>().build(),
         )

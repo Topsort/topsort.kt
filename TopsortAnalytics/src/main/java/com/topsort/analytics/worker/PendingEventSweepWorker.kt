@@ -6,6 +6,7 @@ import androidx.work.Worker
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.topsort.analytics.Cache
+import com.topsort.analytics.EMITTER_WORK_NAME
 
 /**
  * Recovers events that were cached but never delivered.
@@ -62,7 +63,7 @@ internal class PendingEventSweepWorker(
         // Targets only the legacy chain. Note WORK_NAME is also the TAG on every per-record unit,
         // so cancelAllWorkByTag(WORK_NAME) would destroy the entire pending queue - cancelling by
         // unique name is what makes this safe. Idempotent, so it stays after the migration window.
-        workManager.cancelUniqueWork(EventEmitterWorker.WORK_NAME)
+        workManager.cancelUniqueWork(EMITTER_WORK_NAME)
 
         val candidates = Cache.pendingRecords(MAX_RESEND_PER_SWEEP)
         if (candidates.isEmpty()) return
@@ -78,6 +79,5 @@ internal class PendingEventSweepWorker(
 
         /** Upper bound on how many cached records one sweep reads and re-enqueues. */
         private const val MAX_RESEND_PER_SWEEP = 100
-        const val WORK_NAME = "TopsortAnalyticsPendingSweep"
     }
 }

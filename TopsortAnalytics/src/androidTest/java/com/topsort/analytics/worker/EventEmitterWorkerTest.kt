@@ -8,6 +8,8 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import com.topsort.analytics.Analytics
 import com.topsort.analytics.Cache
 import com.topsort.analytics.DiscardReason
+import com.topsort.analytics.EXTRA_EVENT_TYPE
+import com.topsort.analytics.EXTRA_RECORD_ID
 import com.topsort.analytics.EventDiscardListener
 import com.topsort.analytics.UserIdentity
 import com.topsort.analytics.core.HttpResponse
@@ -59,8 +61,8 @@ class EventEmitterWorkerTest {
     @Test
     fun doWork_with_invalid_record_id_returns_success() {
         val inputData = Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, -1)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, EventType.Impression.ordinal)
+            .putLong(EXTRA_RECORD_ID, -1)
+            .putInt(EXTRA_EVENT_TYPE, EventType.Impression.ordinal)
             .build()
 
         val worker = buildWorker(inputData)
@@ -78,8 +80,8 @@ class EventEmitterWorkerTest {
     @Test
     fun doWork_with_invalid_event_type_returns_success() {
         val inputData = Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, 1)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, -1)
+            .putLong(EXTRA_RECORD_ID, 1)
+            .putInt(EXTRA_EVENT_TYPE, -1)
             .build()
 
         val worker = buildWorker(inputData)
@@ -101,8 +103,8 @@ class EventEmitterWorkerTest {
     @Test
     fun doWork_with_out_of_range_event_type_ordinal_returns_success() {
         val inputData = Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, 1)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, 999) // Out of range
+            .putLong(EXTRA_RECORD_ID, 1)
+            .putInt(EXTRA_EVENT_TYPE, 999) // Out of range
             .build()
 
         val worker = buildWorker(inputData)
@@ -517,8 +519,8 @@ class EventEmitterWorkerTest {
 
     private fun buildInputData(recordId: Long, eventType: EventType): Data {
         return Data.Builder()
-            .putLong(EventEmitterWorker.EXTRA_RECORD_ID, recordId)
-            .putInt(EventEmitterWorker.EXTRA_EVENT_TYPE, eventType.ordinal)
+            .putLong(EXTRA_RECORD_ID, recordId)
+            .putInt(EXTRA_EVENT_TYPE, eventType.ordinal)
             .build()
     }
 

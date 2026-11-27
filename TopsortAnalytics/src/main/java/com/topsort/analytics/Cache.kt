@@ -18,23 +18,6 @@ import com.topsort.analytics.model.RenderEvent
 import org.json.JSONObject
 import java.util.Locale
 
-private const val PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE"
-private const val ENCRYPTED_PREFERENCES_NAME = "TOPSORT_EVENTS_CACHE_ENCRYPTED"
-
-private const val KEY_TOKEN = "KEY_TOKEN"
-private const val KEY_SESSION_ID = "KEY_SESSION_ID"
-private const val KEY_RECORD = "KEY_RECORD_%d"
-private const val KEY_RECORD_PREFIX = "KEY_RECORD_"
-private const val KEY_RECENT_RECORD_ID = "KEY_RECORD_ID"
-
-/** Mirrors the top-level key each event model serialises itself under. */
-private val EVENT_TYPE_BY_JSON_KEY = mapOf(
-    "impressions" to EventType.Impression,
-    "clicks" to EventType.Click,
-    "purchases" to EventType.Purchase,
-    "pageviews" to EventType.PageView,
-    "renders" to EventType.Render,
-)
 /**
  * Upper bound on undelivered records held on disk.
  *
